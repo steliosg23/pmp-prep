@@ -8,7 +8,7 @@
  * one-shot refetch.
  */
 
-const CACHE_VERSION = 'v2026.04.25.13';
+const CACHE_VERSION = 'v2026.04.25.14';
 const APP_CACHE = `pmp-app-${CACHE_VERSION}`;
 const CDN_CACHE = `pmp-cdn-${CACHE_VERSION}`;
 
@@ -40,7 +40,18 @@ const RUNTIME_CACHEABLE_ORIGINS = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(APP_CACHE).then((cache) => cache.addAll(APP_SHELL)).then(() => self.skipWaiting())
+    caches.open(APP_CACHE).then(async (cache) => {
+      // Force-reload from network so the install never picks up a stale
+      // HTML/JS from the browser HTTP cache (iOS Safari + GitHub Pages
+      // ship Cache-Control: max-age=600, which would otherwise pin old
+      // bytes into the SW cache for ~10 min after every deploy).
+      await Promise.all(APP_SHELL.map(async (path) => {
+        try {
+          const res = await fetch(path, { cache: 'reload' });
+          if (res && res.ok) await cache.put(path, res);
+        } catch (_) { /* offline install — best effort */ }
+      }));
+    }).then(() => self.skipWaiting())
   );
 });
 
@@ -66,9 +77,18 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(req.url);
 
-  // Same-origin: cache-first with network fallback (offline-capable shell)
+  // Same-origin: navigation/HTML requests use network-first so a fresh
+  // deploy reaches users on the very next page load when online (the
+  // SW-update path is a separate, slower safety net). Other assets stay
+  // cache-first for offline + speed.
   if (url.origin === self.location.origin) {
-    event.respondWith(cacheFirst(req, APP_CACHE));
+    const isHTML = req.mode === 'navigate' ||
+      (req.headers.get('accept') || '').includes('text/html');
+    if (isHTML) {
+      event.respondWith(networkFirst(req, APP_CACHE));
+    } else {
+      event.respondWith(cacheFirst(req, APP_CACHE));
+    }
     return;
   }
 
@@ -91,6 +111,21 @@ async function cacheFirst(req, cacheName) {
     return res;
   } catch (err) {
     // Last-ditch: try the start_url so SPA still loads when offline
+    const fallback = await cache.match('./index.html');
+    if (fallback) return fallback;
+    throw err;
+  }
+}
+
+async function networkFirst(req, cacheName) {
+  const cache = await caches.open(cacheName);
+  try {
+    const res = await fetch(req, { cache: 'no-store' });
+    if (res && res.ok) cache.put(req, res.clone());
+    return res;
+  } catch (err) {
+    const hit = await cache.match(req);
+    if (hit) return hit;
     const fallback = await cache.match('./index.html');
     if (fallback) return fallback;
     throw err;
