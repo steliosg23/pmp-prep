@@ -1,0 +1,21 @@
+# Editor / OS noise
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Build artifacts (none currently, reserved)
+node_modules/
+dist/
+build/
+
+# Local backups / recovery files (never commit user data)
+pmp-recovery-*.json
+*.bak
+
+# Python helpers (kept in parent folder, not in app)
+__pycache__/
+*.pyc

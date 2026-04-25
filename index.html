@@ -1,0 +1,2804 @@
+<!doctype html>
+<html lang="en" class="h-full">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>PMP Prep — 1000+ Questions</title>
+<link rel="icon" type="image/svg+xml" href="icon.svg" />
+<link rel="icon" type="image/png" sizes="32x32" href="icon-32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="icon-16.png" />
+<link rel="shortcut icon" href="pmp.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#4338ca" />
+<meta name="description" content="PMP & CAPM exam prep with 1,044 practice questions, mastery tracking, spaced repetition and detailed explanations." />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: { extend: {
+      fontFamily: { sans: ['Inter','ui-sans-serif','system-ui','-apple-system','Segoe UI','Roboto','sans-serif'] },
+      colors: {
+        // Aligned to icon gradient (#6366f1 → #4338ca). Tailwind indigo scale.
+        brand: { 50:'#eef2ff',100:'#e0e7ff',200:'#c7d2fe',300:'#a5b4fc',400:'#818cf8',500:'#6366f1',600:'#4f46e5',700:'#4338ca',800:'#3730a3',900:'#312e81' },
+      },
+      boxShadow: {
+        soft: '0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.08)',
+        lift: '0 4px 6px -1px rgba(16,24,40,.08), 0 2px 4px -2px rgba(16,24,40,.06)'
+      },
+      letterSpacing: { tightish: '-0.015em' }
+    }}
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+  if (window['pdfjsLib']) {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  html,body{height:100%}
+  body{font-family:Inter,ui-sans-serif,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  .fade-in{animation:fade .25s ease both}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  .opt-btn{transition:transform .15s ease, border-color .15s ease, background-color .15s ease, box-shadow .15s ease}
+  .opt-btn:hover{transform:translateY(-1px)}
+  .card-hover{transition:transform .15s ease, border-color .15s ease, box-shadow .15s ease}
+  .card-hover:hover{transform:translateY(-2px)}
+  .scroll-stable{scrollbar-gutter:stable}
+  /* Heading polish */
+  h1, h2, h3 { letter-spacing:-0.015em }
+  /* Pulse for low-time timer */
+  @keyframes urgent{0%,100%{opacity:1}50%{opacity:.55}}
+  .timer-urgent{animation:urgent 1s ease-in-out infinite}
+  /* Print styles for PDF export */
+  @media print {
+    .no-print{display:none !important}
+    body{background:white !important;color:black !important}
+    .print-page{page-break-after:always}
+  }
+  /* Focus ring */
+  :focus-visible{outline:none;box-shadow:0 0 0 3px rgba(99,102,241,.4);border-radius:.5rem}
+</style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-full">
+
+<div id="app" class="min-h-full"></div>
+
+<!-- Toast container -->
+<div id="toast" class="fixed bottom-6 right-6 z-50 space-y-2"></div>
+
+<script src="data.js"></script>
+<!-- Cross-device sync via Firebase is disabled in this build (network restrictions).
+     The app runs local-only; use Settings → Backup & restore to move data between devices.
+     To enable later: uncomment the two lines below and fill in firebase-config.js.
+<script src="firebase-config.js"></script>
+<script type="module" src="firebase-init.js"></script>
+-->
+<script>
+  // Service worker registration. Skipped on file:// so local-file dev still works.
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').then((reg) => {
+        // Detect a waiting/new worker and surface an update prompt.
+        const showUpdate = () => {
+          if (!reg.waiting) return;
+          const t = document.createElement('div');
+          t.className = 'bg-brand-700 text-white px-4 py-3 rounded-lg shadow-lift text-sm fade-in flex items-center gap-3';
+          t.innerHTML = '<span>New version available</span><button class="px-2 py-1 rounded bg-white/20 hover:bg-white/30 font-semibold">Reload</button>';
+          t.querySelector('button').onclick = () => {
+            reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+            // The controllerchange listener below triggers reload.
+          };
+          document.getElementById('toast').appendChild(t);
+        };
+        if (reg.waiting) showUpdate();
+        reg.addEventListener('updatefound', () => {
+          const nw = reg.installing;
+          if (!nw) return;
+          nw.addEventListener('statechange', () => { if (nw.state === 'installed' && navigator.serviceWorker.controller) showUpdate(); });
+        });
+      }).catch((err) => console.warn('SW registration failed:', err));
+
+      let reloaded = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (reloaded) return;
+        reloaded = true;
+        location.reload();
+      });
+    });
+  }
+</script>
+<script>
+/* =========================================================================
+   PMP PREP APP — single-file vanilla JS
+   ========================================================================= */
+
+/* ---------------- Utilities ---------------- */
+const $ = (sel, root=document) => root.querySelector(sel);
+const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+const html = (strings, ...values) => strings.reduce((acc,s,i)=>acc+s+(values[i]??''),'');
+const escapeHtml = (s='') => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// Detect explanations truncated mid-sentence in the source PDF (~40/1044 affected).
+// Heuristic: text doesn't end with terminal punctuation AND ends with a comma or connector word.
+const isExplanationTruncated = (s='') => {
+  const t = String(s).trim();
+  if (!t) return false;
+  if (/[.!?:")\]]$/.test(t)) return false;
+  if (/,$/.test(t)) return true;
+  return /\b(the|a|an|of|to|in|on|by|for|with|and|or|is|be|as|at|from|that|this|which|its|their|his|her|our|your|my|are|was|were|will|would|should|could|can|may|might)$/i.test(t);
+};
+const truncatedExplBadge = '<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300" title="The source PDF cuts off this explanation mid-sentence. We are not fabricating the missing text.">⚠ truncated in source</span>';
+const fmtTime = (sec) => {
+  sec = Math.max(0, Math.round(sec));
+  const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60;
+  return (h?String(h).padStart(2,'0')+':':'') + String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+};
+const uid = () => Math.random().toString(36).slice(2,10) + Date.now().toString(36);
+const shuffle = (arr) => { const a=[...arr]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+const debounce = (fn,ms=200)=>{let t;return (...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);};};
+
+function toast(msg, kind='info') {
+  const el = document.createElement('div');
+  const colors = { info:'bg-slate-900 text-white', success:'bg-emerald-600 text-white', error:'bg-rose-600 text-white', warn:'bg-amber-500 text-white' };
+  el.className = `${colors[kind]} px-4 py-2 rounded-lg shadow-soft text-sm fade-in`;
+  el.textContent = msg;
+  $('#toast').appendChild(el);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(()=>el.remove(),300); }, 2400);
+}
+
+/* ---------------- Storage ---------------- */
+const KEY = 'pmpprep.v1';
+const Store = {
+  load() {
+    try {
+      const s = JSON.parse(localStorage.getItem(KEY)) || this._default();
+      return Object.assign(this._default(), s);
+    } catch { return this._default(); }
+  },
+  save(state) {
+    localStorage.setItem(KEY, JSON.stringify(state));
+  },
+  _default() {
+    return {
+      attempts: [],          // completed attempts
+      currentAttempt: null,  // in-progress attempt (auto-resumed)
+      mastery: {},           // qid -> { correct, wrong, lastSeen, ef, interval, due }
+      flags: {},             // qid -> true
+      qNotes: {},            // qid -> free-text note
+      libNotes: {},          // sectionKey -> note
+      bookmarks: {},         // sectionKey -> true
+      readPos: {},           // bookId -> chapterId-sectionId (last read)
+      flashState: {},        // cardId -> { ef, interval, due, reps }
+      studyDays: {},         // 'YYYY-MM-DD' -> { qs:n, mins:n }
+      courseProgress: {},    // courseId -> { chapterId: timestamp }
+      customTests: [],       // user-uploaded tests: {id, name, source, createdAt, questions[]}
+      settings: { theme: 'system', sound: false, confidenceCapture: false, tourSeen: false, dashboardMode: 'all' },
+      lastModified: 0        // ms since epoch — bumped on every save; used for cloud-sync conflict resolution
+    };
+  }
+};
+let STATE = Store.load();
+// Local save (always). Cloud sync is layered on top via PMP_SYNC.push when signed in.
+const persist = debounce(()=>{
+  STATE.lastModified = Date.now();
+  Store.save(STATE);
+  try { window.PMP_SYNC && window.PMP_SYNC.user && window.PMP_SYNC.push(STATE); } catch(e) { console.warn('sync push failed', e); }
+}, 150);
+
+/* ---------------- Cloud sync glue ---------------- */
+// Subscribe once init has wired up window.PMP_SYNC. The init module dispatches
+// 'pmp-sync-ready' whether or not real Firebase config is present.
+function setupSync() {
+  const SYNC = window.PMP_SYNC;
+  if (!SYNC) return;
+  // Auth state changes: pull cloud state on sign-in, merge by lastModified.
+  SYNC.onAuth(async (user) => {
+    updateAuthUI();
+    if (!user) return;
+    try {
+      const cloud = await SYNC.pull();
+      if (cloud && (cloud.lastModified || 0) > (STATE.lastModified || 0)) {
+        // Cloud is newer — replace local.
+        STATE = Object.assign(Store._default(), cloud);
+        Store.save(STATE);
+        applyTheme();
+        rebuildCatalog();
+        if (typeof router === 'function') router();
+        toast('Synced from cloud', 'success');
+      } else if ((STATE.lastModified || 0) > (cloud?.lastModified || 0)) {
+        // Local newer (or no cloud doc yet) — push it up.
+        await SYNC.push(STATE);
+      }
+    } catch (e) { console.warn('initial sync failed', e); }
+  });
+  // Live updates from another device.
+  SYNC.onRemote((data) => {
+    if (!data) return;
+    if ((data.lastModified || 0) <= (STATE.lastModified || 0)) return;
+    STATE = Object.assign(Store._default(), data);
+    Store.save(STATE);
+    applyTheme();
+    rebuildCatalog();
+    if (typeof router === 'function') router();
+    toast('Updated from another device', 'info');
+  });
+}
+window.addEventListener('pmp-sync-ready', setupSync);
+// In case the module finished before this listener attached:
+if (window.PMP_SYNC) setupSync();
+
+function updateAuthUI() {
+  const btn = document.getElementById('auth-btn');
+  const status = document.getElementById('sync-status');
+  const SYNC = window.PMP_SYNC;
+  if (status) {
+    status.textContent = (SYNC && SYNC.user) ? `Synced as ${SYNC.user.displayName || SYNC.user.email}` : (SYNC && SYNC.available) ? 'Local-only — sign in to sync' : 'Local-only — your data never leaves this browser';
+  }
+  if (!btn) return;
+  if (!SYNC || !SYNC.available) {
+    btn.style.display = 'none';
+    return;
+  }
+  btn.style.display = '';
+  if (SYNC.user) {
+    const name = SYNC.user.displayName || SYNC.user.email || 'Signed in';
+    const initial = (name[0] || '?').toUpperCase();
+    btn.title = `${name} — click to sign out`;
+    btn.innerHTML = `<span class="w-6 h-6 rounded-full bg-brand-600 text-white text-xs font-semibold flex items-center justify-center">${escapeHtml(initial)}</span><span class="hidden md:inline text-xs text-slate-600 dark:text-slate-300 max-w-[120px] truncate">${escapeHtml(name)}</span>`;
+  } else {
+    btn.title = 'Sign in with Google to sync across devices';
+    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg><span class="hidden md:inline">Sign in</span>`;
+  }
+}
+
+/* ---------------- Question id ---------------- */
+const qid = (q) => `${q.section}::${q.num}`;
+
+/* ---------------- Question Bank: index by section ----------------
+   Note: q.topic (Knowledge Area) is taken verbatim from the source PDF's
+   per-question tags. We do NOT infer PMI domains (People/Process/Business
+   Environment) since the book does not provide that mapping. */
+const BANK = (() => {
+  const all = window.PMP_QUESTIONS || [];
+  const sections = new Map();
+  for (const q of all) {
+    const s = q.section;
+    if (!sections.has(s)) sections.set(s, []);
+    q._id = qid(q);
+    sections.get(s).push(q);
+  }
+  return { all, sections };
+})();
+
+/* ---------------- Test catalog (30 sections) ---------------- */
+function classifySection(name) {
+  if (/Mock Exam/i.test(name)) return { kind:'mock', defaultMode:'exam' };
+  if (/Knowledge Area Quiz/i.test(name)) return { kind:'ka', defaultMode:'study' };
+  if (/Focus Area Test/i.test(name)) return { kind:'focus', defaultMode:'study' };
+  return { kind:'other', defaultMode:'study' };
+}
+
+// PMI pacing: CAPM = 150q/180min, PMP = 180q/230min ≈ 75 sec/question.
+// Exam Mode uses this for any test length so timing scales realistically.
+const SEC_PER_Q_EXAM = 75;
+const examMinutesFor = (count) => Math.max(5, Math.ceil(count * SEC_PER_Q_EXAM / 60));
+
+let CATALOG = [];
+function rebuildCatalog() {
+  const fromBank = Array.from(BANK.sections.entries()).map(([name, qs]) => {
+    const meta = classifySection(name);
+    return { id: name, name, count: qs.length, ...meta, examMin: examMinutesFor(qs.length), questions: qs };
+  });
+  const fromCustom = (STATE.customTests || []).map(t => ({
+    id: 'custom::' + t.id,
+    name: t.name,
+    count: t.questions.length,
+    kind: 'custom',
+    defaultMode: 'study',
+    examMin: examMinutesFor(t.questions.length),
+    questions: t.questions,
+    source: t.source || 'Uploaded PDF',
+    createdAt: t.createdAt,
+  }));
+  CATALOG = [...fromBank, ...fromCustom];
+}
+rebuildCatalog();
+
+/* ---------------- Theme ---------------- */
+function applyTheme() {
+  const t = STATE.settings.theme;
+  const dark = t === 'dark' || (t === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  document.documentElement.classList.toggle('dark', dark);
+}
+applyTheme();
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+
+/* ---------------- Router ---------------- */
+const routes = {};
+function route(path, fn) { routes[path] = fn; }
+function navigate(path) {
+  if (location.hash !== '#'+path) { location.hash = '#'+path; return; }
+  render();
+}
+window.addEventListener('hashchange', render);
+window.addEventListener('load', () => { if (!location.hash) location.hash = '#/'; render(); });
+
+function render() {
+  const hash = location.hash.replace(/^#/, '') || '/';
+  const [path, ...rest] = hash.split('/').filter(Boolean);
+  const root = '/'+(path||'');
+  // parametric matches
+  if (root === '/test' && rest.length) return routes['/test/:id'](decodeURIComponent(rest.join('/')));
+  if (root === '/results' && rest.length) return routes['/results/:id'](decodeURIComponent(rest.join('/')));
+  if (root === '/history' && rest.length) return routes['/history/:id'](decodeURIComponent(rest.join('/')));
+  const fn = routes[root] || routes['/'];
+  fn();
+}
+
+/* ---------------- Layout / Shell ---------------- */
+function shell(content, opts={}) {
+  const totalQs = BANK.all.length;
+  const attempts = STATE.attempts.length;
+  const flagged = Object.keys(STATE.flags).length;
+  return html`
+  <div class="min-h-screen flex flex-col">
+    <header class="no-print sticky top-0 z-40 backdrop-blur bg-white/80 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-4">
+        <a href="#/" class="flex items-center gap-2.5 font-semibold text-slate-900 dark:text-white">
+          <img src="icon.svg" alt="" width="32" height="32" class="w-8 h-8 rounded-lg shadow-soft" />
+          <span class="text-[15px]">PMP Prep</span>
+        </a>
+        <nav class="hidden md:flex items-center gap-1 text-sm">
+          <a href="#/" class="px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Tests</a>
+          <a href="#/search" class="px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Search</a>
+          <a href="#/dashboard" class="px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Dashboard</a>
+          <a href="#/history" class="px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">History</a>
+          <a href="#/rework" class="px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">Rework</a>
+        </nav>
+        <div class="flex-1"></div>
+        <div class="hidden sm:flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+          <a href="#/search" class="hover:text-brand-600 dark:hover:text-brand-400 transition" title="Browse all questions"><strong class="text-slate-900 dark:text-slate-100">${totalQs}</strong> questions</a>
+          <span>·</span>
+          <a href="#/history" class="hover:text-brand-600 dark:hover:text-brand-400 transition" title="View attempt history"><strong class="text-slate-900 dark:text-slate-100">${attempts}</strong> attempts</a>
+          <span>·</span>
+          <a href="#/flagged" class="hover:text-brand-600 dark:hover:text-brand-400 transition" title="View all flagged questions"><strong class="text-slate-900 dark:text-slate-100">${flagged}</strong> flagged</a>
+        </div>
+        <button id="theme-toggle" class="ml-2 inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800" title="Toggle theme">
+          <svg class="hidden dark:block" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+          <svg class="block dark:hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+        <button id="auth-btn" class="ml-1 inline-flex items-center gap-2 px-2.5 h-9 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm" style="display:none"></button>
+        <a href="#/settings" class="ml-1 inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800" title="Settings, sync, and backup">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </a>
+      </div>
+    </header>
+    <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6">
+      ${content}
+    </main>
+    <footer class="no-print border-t border-slate-200 dark:border-slate-800 py-5 px-4 text-center text-xs text-slate-500 dark:text-slate-400 flex items-center justify-center gap-2 flex-wrap">
+      <span class="inline-flex items-center gap-1.5"><img src="icon.svg" alt="" class="w-4 h-4 rounded opacity-80"/> PMP Prep</span>
+      <span class="text-slate-300 dark:text-slate-700">·</span>
+      <span>1044 questions · PMBOK 6 source</span>
+      <span class="text-slate-300 dark:text-slate-700">·</span>
+      <span id="sync-status">${(window.PMP_SYNC && window.PMP_SYNC.user) ? 'Synced to your Google account' : (window.PMP_SYNC && window.PMP_SYNC.available) ? 'Local-only — sign in to sync' : 'Local-only — your data never leaves this browser'}</span>
+      <span class="text-slate-300 dark:text-slate-700">·</span>
+      <kbd class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px]">?</kbd> shortcuts
+    </footer>
+  </div>`;
+}
+
+function mount(node) {
+  $('#app').innerHTML = node;
+  const tt = $('#theme-toggle');
+  if (tt) tt.onclick = () => {
+    const order = ['system','light','dark'];
+    const cur = STATE.settings.theme;
+    STATE.settings.theme = order[(order.indexOf(cur)+1) % order.length];
+    persist(); applyTheme();
+    toast(`Theme: ${STATE.settings.theme}`);
+  };
+  const ab = $('#auth-btn');
+  if (ab) {
+    ab.onclick = async () => {
+      const SYNC = window.PMP_SYNC;
+      if (!SYNC || !SYNC.available) { toast('Cloud sync not configured', 'warn'); return; }
+      try {
+        if (SYNC.user) {
+          await SYNC.signOut();
+          toast('Signed out');
+        } else {
+          await SYNC.signIn();
+          // onAuth handler will pull cloud state and toast.
+        }
+      } catch (e) { console.warn(e); toast('Sign-in failed: ' + (e.message || e), 'error'); }
+    };
+    updateAuthUI();
+  }
+}
+
+/* ===========================================================
+   ROUTE: HOME (test library)
+   =========================================================== */
+route('/', () => {
+  const customSorted = [...CATALOG.filter(t=>t.kind==='custom')].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  const groups = {
+    'Your uploads': customSorted,
+    'Mock Exams': CATALOG.filter(t=>t.kind==='mock'),
+    'Knowledge Area Quizzes': CATALOG.filter(t=>t.kind==='ka'),
+    'Focus Area': CATALOG.filter(t=>t.kind==='focus'),
+  };
+
+  const stats = computeOverallStats();
+  const streak = computeStreak();
+  const dueIds = computeDueIds();
+  const weakAreas = computeWeakAreas();
+  const readiness = computeReadiness();
+  const rColor = { rose:'#f43f5e', amber:'#f59e0b', brand:'#6366f1', emerald:'#10b981' }[readiness.bandColor];
+  const calCells = (() => {
+    const cells = [];
+    const today = new Date(); today.setHours(0,0,0,0);
+    for (let i=27; i>=0; i--) {
+      const d = new Date(today); d.setDate(today.getDate()-i);
+      const key = d.toISOString().slice(0,10);
+      const data = STATE.studyDays[key];
+      const intensity = !data ? 0 : data.qs >= 30 ? 4 : data.qs >= 15 ? 3 : data.qs >= 5 ? 2 : 1;
+      const colors = ['bg-white/10','bg-amber-300/40','bg-amber-300/70','bg-amber-300','bg-amber-200'];
+      cells.push(`<div class="w-3 h-3 rounded-[3px] ${colors[intensity]}" title="${key}: ${data?(data.qs+'q · '+data.mins+'m'):'no activity'}"></div>`);
+    }
+    return cells.join('');
+  })();
+
+  const heroCard = html`
+    <section class="rounded-2xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-800 text-white p-6 sm:p-8 shadow-lift mb-6 ring-1 ring-white/10">
+      <div class="flex flex-col md:flex-row md:items-center gap-6">
+        <div class="flex-1">
+          <p class="text-brand-200 text-[11px] font-semibold uppercase tracking-[0.18em]">PMP Exam Prep</p>
+          <h1 class="text-3xl sm:text-4xl font-bold mt-2 leading-tight">Pass with confidence.</h1>
+          <p class="text-brand-100/90 mt-3 max-w-xl text-sm sm:text-base leading-relaxed">${BANK.all.length} practice questions across ${CATALOG.length} curated tests. Detailed explanations, distractor analysis, and a personal rework queue.</p>
+          <div class="flex flex-wrap gap-2 mt-4">
+            ${STATE.currentAttempt ? html`
+              <a href="#/test/${encodeURIComponent(STATE.currentAttempt.testId)}" class="inline-flex items-center gap-2 bg-white text-brand-700 hover:bg-brand-50 font-semibold px-4 py-2 rounded-lg text-sm">
+                ▶ Resume “${escapeHtml(STATE.currentAttempt.testId)}”
+              </a>` : ''}
+            ${dueIds.length ? html`
+              <a href="#/due" class="inline-flex items-center gap-2 bg-amber-400 text-amber-950 hover:bg-amber-300 font-semibold px-4 py-2 rounded-lg text-sm" title="Spaced-repetition items due for review">
+                ⏰ Due today (${dueIds.length})
+              </a>` : ''}
+            <a href="#/dashboard" class="inline-flex items-center gap-2 bg-brand-700/40 hover:bg-brand-700/60 ring-1 ring-white/30 px-4 py-2 rounded-lg text-sm">📊 Dashboard</a>
+            <a href="#/rework" class="inline-flex items-center gap-2 bg-brand-700/40 hover:bg-brand-700/60 ring-1 ring-white/30 px-4 py-2 rounded-lg text-sm">🔁 Rework wrong (${stats.wrongCount})</a>
+            ${weakAreas.length ? html`
+              <a href="#/drill" class="inline-flex items-center gap-2 bg-brand-700/40 hover:bg-brand-700/60 ring-1 ring-white/30 px-4 py-2 rounded-lg text-sm" title="15-question drill on your weakest KAs: ${weakAreas.slice(0,3).map(w=>w.topic.replace('Project ','').replace(' Management','')+' ('+Math.round(w.acc*100)+'%)').join(', ')}">
+                🎯 Drill weak areas
+              </a>` : ''}
+            <a href="#/upload" class="inline-flex items-center gap-2 bg-brand-700/40 hover:bg-brand-700/60 ring-1 ring-white/30 px-4 py-2 rounded-lg text-sm">⬆ Upload PDF</a>
+          </div>
+        </div>
+        <div class="md:w-80 flex flex-col items-center justify-center gap-3">
+          <div class="relative w-36 h-36" title="Self-assessment from your bank performance — not a PMI predictor.">
+            <svg viewBox="0 0 120 120" class="w-full h-full -rotate-90">
+              <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="10"/>
+              <circle cx="60" cy="60" r="50" fill="none" stroke="${rColor}" stroke-width="10" stroke-linecap="round"
+                stroke-dasharray="${(readiness.score/100*314).toFixed(1)} 314"/>
+            </svg>
+            <div class="absolute inset-0 flex flex-col items-center justify-center">
+              <div class="text-3xl font-bold leading-none">${readiness.score}</div>
+              <div class="text-[10px] uppercase tracking-wider text-brand-100/80 mt-0.5">Readiness</div>
+            </div>
+          </div>
+          <div class="text-center">
+            <div class="text-sm font-semibold">${readiness.bandLabel}</div>
+            <div class="text-[10px] text-brand-100/70">acc ${readiness.parts.accuracy}% · mocks ${readiness.parts.mocks}% · cov ${readiness.parts.coverage}%</div>
+          </div>
+        </div>
+      </div>
+      <div class="mt-5 pt-5 border-t border-white/15 grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+        <div class="text-center">
+          <div class="text-2xl font-bold tracking-tight">${stats.attempts}</div>
+          <div class="text-[10px] text-brand-100 uppercase tracking-wider mt-0.5">Attempts</div>
+        </div>
+        <div class="text-center">
+          <div class="text-2xl font-bold tracking-tight">${stats.avgPct}%</div>
+          <div class="text-[10px] text-brand-100 uppercase tracking-wider mt-0.5">Avg score</div>
+        </div>
+        <div class="text-center">
+          <div class="text-2xl font-bold tracking-tight">${stats.mastered}</div>
+          <div class="text-[10px] text-brand-100 uppercase tracking-wider mt-0.5">Mastered</div>
+        </div>
+        <div class="text-center">
+          <div class="text-2xl font-bold tracking-tight ${dueIds.length?'text-amber-200':''}">${dueIds.length}</div>
+          <div class="text-[10px] text-brand-100 uppercase tracking-wider mt-0.5">Due today</div>
+        </div>
+      </div>
+      <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
+        <div class="flex items-center gap-2.5">
+          <span class="text-2xl ${streak>=3?'drop-shadow-[0_0_6px_rgba(251,146,60,0.7)]':''}">${streak?'🔥':'✨'}</span>
+          <div>
+            <div class="text-lg font-bold leading-none tracking-tight">${streak}-day streak</div>
+            <div class="text-[11px] text-brand-100/80 mt-1">${streak ? 'Keep it alive' : 'Start today'}</div>
+          </div>
+        </div>
+        <div class="flex-1 min-w-[200px]">
+          <div class="text-[11px] text-brand-100/80 uppercase tracking-wider mb-1.5">Last 28 days</div>
+          <div class="flex gap-1">${calCells}</div>
+        </div>
+      </div>
+    </section>`;
+
+  const groupHtml = Object.entries(groups).map(([title, items]) => {
+    if (!items.length) return '';
+    return html`
+      <section class="mb-8">
+        <div class="flex items-baseline justify-between mb-3">
+          <h2 class="text-base font-semibold uppercase tracking-[0.08em] text-slate-700 dark:text-slate-300">${title}</h2>
+          <span class="text-xs text-slate-500 dark:text-slate-400">${items.length} test${items.length>1?'s':''}</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          ${items.map(t => testCard(t)).join('')}
+        </div>
+      </section>`;
+  }).join('');
+
+  mount(shell(heroCard + groupHtml));
+
+  // First-run tour: only when no attempts and not yet seen
+  if (!STATE.settings.tourSeen && !STATE.attempts.length) {
+    setTimeout(() => showTour(false), 350);
+  }
+
+  $$('[data-del-custom]').forEach(b => b.onclick = (e) => {
+    e.preventDefault(); e.stopPropagation();
+    const id = b.dataset.delCustom;
+    const t = STATE.customTests.find(x => x.id === id);
+    if (!t) return;
+    if (!confirm(`Delete uploaded test “${t.name}” and all its questions?\n\nAttempts of this test will remain in your history but the test won't be retakeable.`)) return;
+    STATE.customTests = STATE.customTests.filter(x => x.id !== id);
+    if (STATE.currentAttempt && STATE.currentAttempt.testId === 'custom::' + id) {
+      STATE.currentAttempt = null;
+    }
+    persist();
+    rebuildCatalog();
+    toast('Upload deleted', 'success');
+    render();
+  });
+});
+
+function testCard(t) {
+  const at = STATE.attempts.filter(a => a.testId === t.id);
+  const best = at.length ? Math.max(...at.map(a => a.scorePct)) : null;
+  const last = at.length ? at[at.length-1] : null;
+  const inProg = STATE.currentAttempt && STATE.currentAttempt.testId === t.id;
+  const passColor = best!=null ? (best>=61 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400') : 'text-slate-400';
+  const kindLabel = t.kind === 'mock' ? 'Mock Exam' : t.kind==='ka' ? 'KA Quiz' : t.kind==='focus' ? 'Focus Area' : t.kind==='custom' ? 'Your upload' : 'Test';
+  const isCustom = t.kind === 'custom';
+  const dateStr = isCustom && t.createdAt ? new Date(t.createdAt).toLocaleDateString() : '';
+  return html`
+    <div class="card-hover group relative rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-brand-400 dark:hover:border-brand-500 hover:shadow-lift overflow-hidden">
+      ${isCustom ? html`<button data-del-custom="${escapeHtml(t.id)}" title="Delete this upload" class="absolute top-2 right-2 z-10 w-7 h-7 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/30 flex items-center justify-center">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>` : ''}
+      <a href="#/test/${encodeURIComponent(t.id)}" class="block p-4">
+        ${inProg ? html`<span class="absolute top-3 right-3 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">In progress</span>` : ''}
+        <div class="text-[10px] font-semibold uppercase tracking-[0.12em] ${isCustom?'text-amber-600 dark:text-amber-400':'text-brand-600 dark:text-brand-400'}">${kindLabel}</div>
+        <h3 class="font-semibold mt-1.5 leading-snug pr-16">${escapeHtml(t.name)}</h3>
+        <div class="flex items-center gap-3 mt-3 text-sm text-slate-600 dark:text-slate-400">
+          <span>${t.count} q</span>
+          <span class="text-slate-300 dark:text-slate-700">·</span>
+          <span title="Exam-mode time at PMI pacing (~75s/q)">${t.examMin} min</span>
+          ${at.length ? html`<span class="text-slate-300 dark:text-slate-700">·</span><span class="${passColor} font-semibold">${best}% best</span>` : ''}
+        </div>
+        <div class="mt-3 flex items-center justify-between text-xs text-slate-500 dark:text-slate-500">
+          <span>${isCustom ? `Uploaded ${dateStr}` : (at.length ? `${at.length} attempt${at.length>1?'s':''}` : 'Not yet attempted')}</span>
+          <span class="text-brand-600 dark:text-brand-400 group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">Start <span aria-hidden="true">→</span></span>
+        </div>
+      </a>
+    </div>`;
+}
+
+function computeOverallStats() {
+  const attempts = STATE.attempts.length;
+  const avgPct = attempts ? Math.round(STATE.attempts.reduce((s,a)=>s+a.scorePct,0)/attempts) : 0;
+  let wrongCount = 0;
+  const wrongSet = new Set();
+  for (const a of STATE.attempts) for (const r of a.responses) if (r.correct === false) wrongSet.add(r.qid);
+  // remove mastered ones from wrong queue
+  for (const id of wrongSet) {
+    const m = STATE.mastery[id];
+    if (!(m && m.correct >= 1 && (m.correct - m.wrong) >= 1)) wrongCount++;
+  }
+  let mastered = 0;
+  for (const id in STATE.mastery) {
+    const m = STATE.mastery[id];
+    if (m.correct >= 2 && m.correct > m.wrong) mastered++;
+  }
+  return { attempts, avgPct, wrongCount, mastered };
+}
+
+/* ---------------- Due-today queue ----------------
+   Returns qids whose SM-2 `due` timestamp has passed and the user has
+   actually engaged with them (lastSeen set). These are the items
+   spaced-repetition says you should review *today*. */
+function computeDueIds() {
+  const now = Date.now();
+  const ids = [];
+  for (const id in STATE.mastery) {
+    const m = STATE.mastery[id];
+    if (m && m.lastSeen && m.due && m.due <= now) ids.push(id);
+  }
+  return ids;
+}
+
+/* ---------------- Readiness score ----------------
+   Honest 0-100 self-assessment derived from your bank performance.
+   It is NOT a PMI exam-pass predictor. Three signals:
+
+     50%  KA-balanced accuracy: average of per-KA accuracies across all
+          KAs you've answered (so heavy study in 1 KA + zero in others
+          can't carry the score). Capped at 80% baseline so the rest must
+          come from mocks.
+     30%  Latest-3 mock-exam average. Zero if you haven't taken any.
+     20%  Coverage: % of bank you've answered at least once.            */
+function computeReadiness() {
+  // KA-balanced accuracy
+  const byKA = {};
+  for (const a of STATE.attempts) {
+    const test = CATALOG.find(t => t.id === a.testId);
+    if (!test) continue;
+    for (let i=0; i<a.responses.length; i++) {
+      const r = a.responses[i], q = test.questions[i];
+      if (!r || !r.choice || !q) continue;
+      const k = q.topic || 'Unknown';
+      byKA[k] = byKA[k] || { c:0, t:0 };
+      byKA[k].t++; if (r.correct) byKA[k].c++;
+    }
+  }
+  const kas = Object.values(byKA);
+  const kaAvg = kas.length ? kas.reduce((s,k)=>s+(k.c/k.t),0)/kas.length : 0;
+
+  // Latest 3 mocks
+  const mocks = STATE.attempts
+    .filter(a => /Mock Exam/i.test(a.testId))
+    .slice(-3);
+  const mockAvg = mocks.length ? mocks.reduce((s,a)=>s+a.scorePct/100,0)/mocks.length : 0;
+
+  // Coverage
+  const answered = new Set();
+  for (const a of STATE.attempts) for (const r of a.responses) if (r.choice) answered.add(r.qid);
+  const coverage = BANK.all.length ? answered.size / BANK.all.length : 0;
+
+  const parts = {
+    accuracy: Math.round(kaAvg*100),
+    mocks:    Math.round(mockAvg*100),
+    coverage: Math.round(coverage*100),
+    kaCount:  kas.length,
+    mockCount: mocks.length,
+  };
+  const score = Math.round((kaAvg*0.5 + mockAvg*0.3 + coverage*0.2) * 100);
+
+  let band, bandLabel, bandColor;
+  if (score < 40)      { band='building';   bandLabel='Building foundation'; bandColor='rose'; }
+  else if (score < 65) { band='practicing'; bandLabel='Practice phase';      bandColor='amber'; }
+  else if (score < 80) { band='sharpening'; bandLabel='Sharpening';          bandColor='brand'; }
+  else                 { band='ready';      bandLabel='Exam-ready';          bandColor='emerald'; }
+
+  return { score, band, bandLabel, bandColor, parts };
+}
+
+/* ---------------- Confidence calibration ----------------
+   For every response that has a `confidence` tag, we know if it was
+   correct. Returns accuracy bucketed by confidence + Brier score
+   (mean squared error between stated confidence and outcome). */
+function computeCalibration() {
+  const buckets = { low:{n:0,c:0}, med:{n:0,c:0}, high:{n:0,c:0} };
+  // Brier: confidence -> probability mapping
+  const probMap = { low:0.33, med:0.66, high:0.90 };
+  let brierSum = 0, brierN = 0;
+  for (const a of STATE.attempts) {
+    for (const r of a.responses) {
+      if (!r.confidence || r.correct == null) continue;
+      const b = buckets[r.confidence];
+      if (!b) continue;
+      b.n++; if (r.correct) b.c++;
+      brierSum += Math.pow(probMap[r.confidence] - (r.correct?1:0), 2);
+      brierN++;
+    }
+  }
+  const brier = brierN ? brierSum/brierN : null;
+  return { buckets, brier, total: brierN };
+}
+
+/* ---------------- First-run walkthrough ----------------
+   Modal tour shown once for new users (no attempts + tourSeen=false),
+   or on demand from the dashboard. Pure DOM overlay; doesn't touch the
+   router. Mark `tourSeen` after Skip or Finish so it stays out of the
+   way. */
+const TOUR_STEPS = [
+  {
+    title: 'Welcome to PMP Prep',
+    body: `<p>1,044 practice questions sourced verbatim from a PMBOK 6 question bank, plus your own uploaded PDFs.</p>
+           <p class="mt-2 text-slate-500 text-sm">Everything runs in your browser — your attempts, mastery, and notes never leave this device.</p>`
+  },
+  {
+    title: 'Two ways to take a test',
+    body: `<p><strong class="text-brand-600 dark:text-brand-400">Study Mode</strong> reveals the explanation after each answer. Best for learning a Knowledge Area.</p>
+           <p class="mt-2"><strong class="text-rose-600 dark:text-rose-400">Exam Mode</strong> is timed at PMI pacing (~75 sec/question) and saves all feedback for the end. Best for mocks.</p>`
+  },
+  {
+    title: 'Hint, Peek, Confidence',
+    body: `<p>In Study Mode you can hit <kbd class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-xs">P</kbd> to <strong>Peek</strong> — eliminate one wrong distractor. Mastery still updates if you answer right, but the spacing interval grows more slowly.</p>
+           <p class="mt-2">Turn on <em>"Track my confidence"</em> on the dashboard to log Low/Medium/High before each reveal. Over time you'll see whether your "high confidence" answers actually hit 90%.</p>`
+  },
+  {
+    title: 'Spaced repetition built in',
+    body: `<p>Every answered question gets an SM-2 review schedule. Right answers push the interval out (1 → 2 → 5 → 12 days…); wrong answers reset it.</p>
+           <p class="mt-2">Items past their review date show up under <strong>⏰ Due today</strong> on the home hero. Keeping that queue empty is the discipline.</p>`
+  },
+  {
+    title: 'Drill your weak areas',
+    body: `<p>After a few attempts the home page surfaces a <strong>🎯 Drill weak areas</strong> button. It builds a 15-question session weighted toward the Knowledge Areas where your accuracy is lowest, prioritising questions you've previously gotten wrong.</p>`
+  },
+  {
+    title: 'Honest readiness — not a PMI predictor',
+    body: `<p>The dashboard shows a <strong>Readiness</strong> score (0–100) computed from your KA-balanced accuracy, latest 3 mocks, and bank coverage. It's a self-assessment of <em>your performance on this bank</em> — not a guarantee of an exam pass.</p>
+           <p class="mt-2 text-amber-700 dark:text-amber-300 text-sm"><strong>Heads up for CAPM:</strong> this bank is 100% PMBOK 6. The current CAPM exam adds Agile (~20%) and Business Analysis (~27%) content this bank doesn't cover. Supplement accordingly.</p>`
+  },
+];
+
+function showTour(forced=false) {
+  if (!forced && STATE.settings.tourSeen) return;
+  // Guard against duplicate overlays (the home route can render twice on
+  // initial load, which would stack two tours and intercept clicks).
+  if (document.getElementById('tour-overlay')) return;
+  let step = 0;
+  const overlay = document.createElement('div');
+  overlay.className = 'fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 fade-in';
+  overlay.id = 'tour-overlay';
+  document.body.appendChild(overlay);
+
+  const renderStep = () => {
+    const s = TOUR_STEPS[step];
+    overlay.innerHTML = html`
+      <div class="max-w-lg w-full rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-lift overflow-hidden">
+        <div class="bg-gradient-to-br from-brand-600 to-brand-800 text-white px-6 py-5">
+          <div class="text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-200">Step ${step+1} of ${TOUR_STEPS.length}</div>
+          <h2 class="text-xl font-bold mt-1">${s.title}</h2>
+        </div>
+        <div class="px-6 py-5 text-sm leading-relaxed text-slate-700 dark:text-slate-300 space-y-1 max-h-[55vh] overflow-y-auto">
+          ${s.body}
+        </div>
+        <div class="px-6 py-4 bg-slate-50 dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3">
+          <button id="tour-skip" class="text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">Skip tour</button>
+          <div class="flex items-center gap-2">
+            <div class="flex gap-1">
+              ${TOUR_STEPS.map((_,i)=>`<span class="w-1.5 h-1.5 rounded-full ${i===step?'bg-brand-600':'bg-slate-300 dark:bg-slate-700'}"></span>`).join('')}
+            </div>
+            ${step>0 ? `<button id="tour-prev" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 text-sm hover:bg-slate-100 dark:hover:bg-slate-800">← Back</button>` : ''}
+            <button id="tour-next" class="px-4 py-1.5 rounded-lg bg-brand-600 text-white text-sm font-semibold hover:bg-brand-700">${step===TOUR_STEPS.length-1?'Get started':'Next →'}</button>
+          </div>
+        </div>
+      </div>`;
+    $('#tour-skip').onclick = close;
+    const pb = $('#tour-prev'); if (pb) pb.onclick = () => { step--; renderStep(); };
+    $('#tour-next').onclick = () => {
+      if (step < TOUR_STEPS.length-1) { step++; renderStep(); }
+      else close();
+    };
+  };
+
+  const close = () => {
+    STATE.settings.tourSeen = true;
+    persist();
+    overlay.remove();
+    document.onkeydown = null;
+  };
+
+  document.onkeydown = (e) => {
+    if (e.key === 'Escape') close();
+    else if (e.key === 'ArrowRight' || e.key === 'Enter') $('#tour-next').click();
+    else if (e.key === 'ArrowLeft') { const p = $('#tour-prev'); if (p) p.click(); }
+  };
+
+  renderStep();
+}
+
+/* ---------------- Weak-area drill ----------------
+   Identifies the user's lowest-accuracy KAs (with a minimum sample
+   threshold so we don't punish a 1/2 fluke) and builds a 15-question
+   session weighted toward those areas. Returns null if not enough
+   data to be meaningful.                                         */
+function computeWeakAreas(minSamples=4) {
+  const byKA = {};
+  for (const a of STATE.attempts) {
+    const test = CATALOG.find(t => t.id === a.testId);
+    if (!test) continue;
+    for (let i=0; i<a.responses.length; i++) {
+      const q = test.questions[i], r = a.responses[i];
+      if (!r || !r.choice || !q) continue;
+      const k = q.topic || 'Unknown';
+      byKA[k] = byKA[k] || { c:0, t:0, ids:new Set() };
+      byKA[k].t++; if (r.correct) byKA[k].c++;
+      byKA[k].ids.add(r.qid);
+    }
+  }
+  const areas = Object.entries(byKA)
+    .filter(([k,v]) => v.t >= minSamples && k !== 'Unknown')
+    .map(([k,v]) => ({ topic:k, acc: v.c/v.t, samples:v.t }))
+    .sort((a,b) => a.acc - b.acc);
+  return areas;
+}
+
+function buildDrillSession(target=15) {
+  const weak = computeWeakAreas();
+  if (!weak.length) return null;
+  // Take bottom 3 KAs (or fewer if user only studied 1-2).
+  const focus = weak.slice(0, Math.min(3, weak.length));
+  const focusTopics = new Set(focus.map(w => w.topic));
+  // Source pool: full bank + custom-test questions, restricted to focus topics.
+  const pool = [];
+  for (const q of BANK.all) if (focusTopics.has(q.topic)) pool.push(q);
+  for (const t of (STATE.customTests||[])) for (const q of t.questions) if (focusTopics.has(q.topic)) pool.push(q);
+  if (!pool.length) return null;
+  // Prioritise: items previously wrong > items unanswered > items answered correctly.
+  // Build a score per question; lower = more important to drill.
+  const wrongIds = new Set();
+  const answeredIds = new Set();
+  for (const a of STATE.attempts) for (const r of a.responses) {
+    if (r.choice) answeredIds.add(r.qid);
+    if (r.correct === false) wrongIds.add(r.qid);
+  }
+  const ranked = pool.map(q => {
+    const m = STATE.mastery[q._id];
+    let score = 3;
+    if (wrongIds.has(q._id)) score = 0;
+    else if (!answeredIds.has(q._id)) score = 1;
+    else if (m && m.correct >= 2 && m.correct > m.wrong) score = 4;  // mastered: deprioritise
+    return { q, score };
+  }).sort((a,b) => a.score - b.score || Math.random() - 0.5);
+  const picked = ranked.slice(0, target).map(r => r.q);
+  return { questions: shuffle(picked), focus };
+}
+
+/* ===========================================================
+   PDF UPLOAD: parser + route
+   ===========================================================
+   Parser is regex-based and lossy by design. It handles patterns
+   common to PMP/CAPM mock-exam PDFs:
+     - Question lines starting with "1." / "1)" / "Q1." etc.
+     - Options labelled "A." "B." "C." "D." or "A)" "B)" etc.
+     - Answer key inline ("Correct Answer: B" / "Answer: B") or
+       at the end of a question's explanation block.
+   Garbage in → garbage out. The preview lets the user reject
+   bad parses before saving.                                       */
+
+async function extractPdfText(file) {
+  if (!window.pdfjsLib) throw new Error('PDF.js failed to load. Check your internet connection.');
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+  const pages = [];
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    // Reconstruct lines using each item's y position
+    const byY = new Map();
+    for (const it of content.items) {
+      const y = Math.round(it.transform[5]);
+      if (!byY.has(y)) byY.set(y, []);
+      byY.get(y).push(it.str);
+    }
+    const ys = [...byY.keys()].sort((a,b)=>b-a); // top to bottom
+    const lines = ys.map(y => byY.get(y).join(' ').replace(/\s+/g,' ').trim()).filter(Boolean);
+    pages.push(lines.join('\n'));
+  }
+  return pages.join('\n\n');
+}
+
+function parseQuestionsFromText(text) {
+  // Normalise
+  let t = text.replace(/\r/g,'').replace(/\u00A0/g,' ');
+
+  // Try to detect "Correct Answer: X" markers as anchors.
+  // Each question block: starts with "<num>." or "<num>)" or "Q<num>."
+  // Split by question-number-at-line-start.
+  const blocks = [];
+  const lines = t.split('\n');
+  let cur = null;
+  const qStart = /^\s*(?:Q\s*)?(\d{1,3})\s*[\.\)]\s+(.+)$/i;
+  for (const ln of lines) {
+    const m = ln.match(qStart);
+    // Heuristic: a "question start" must have meaningful text after the number
+    // and shouldn't be a page footer like "Page 1." We require length > 12.
+    if (m && m[2].length > 12) {
+      if (cur) blocks.push(cur);
+      cur = { num: parseInt(m[1],10), raw: m[2] + '\n' };
+    } else if (cur) {
+      cur.raw += ln + '\n';
+    }
+  }
+  if (cur) blocks.push(cur);
+
+  const out = [];
+  const warnings = [];
+  for (const b of blocks) {
+    const parsed = parseSingleQuestion(b.num, b.raw);
+    if (parsed) out.push(parsed);
+    else warnings.push(`Q${b.num}: could not extract options/answer`);
+  }
+  return { questions: out, warnings, blockCount: blocks.length };
+}
+
+function parseSingleQuestion(num, raw) {
+  // Split out options. Look for "A." / "A)" markers.
+  // We capture from "A" up to either the answer key or the end.
+  const optRe = /(^|\n|\s)([ABCD])\s*[\.\)]\s+/g;
+  const matches = [];
+  let m;
+  while ((m = optRe.exec(raw))) {
+    matches.push({ letter: m[2], idx: m.index + m[1].length });
+  }
+  // Need at least 4 distinct letters in order
+  const want = ['A','B','C','D'];
+  const inOrder = matches.filter((mm, i) => mm.letter === want[i % 4]);
+  if (inOrder.length < 4) return null;
+  const a = inOrder[0], b = inOrder[1], c = inOrder[2], d = inOrder[3];
+
+  const question = raw.slice(0, a.idx).replace(/\s+/g,' ').trim();
+  if (question.length < 8) return null;
+
+  // Slice to D's end — next anchor is end of raw
+  const optAtext = raw.slice(a.idx + 2, b.idx).replace(/^[\.\)]\s*/,'').replace(/\s+/g,' ').trim();
+  const optBtext = raw.slice(b.idx + 2, c.idx).replace(/^[\.\)]\s*/,'').replace(/\s+/g,' ').trim();
+  const optCtext = raw.slice(c.idx + 2, d.idx).replace(/^[\.\)]\s*/,'').replace(/\s+/g,' ').trim();
+  // For D, look for the next "answer key" marker or end
+  const tail = raw.slice(d.idx + 2);
+  const ansRe = /(?:Correct\s*Answer|Answer)\s*[:\-]?\s*([ABCD])\b/i;
+  const am = tail.match(ansRe);
+  let optDtext, explanation = '', correct = null;
+  if (am) {
+    optDtext = tail.slice(0, am.index).replace(/^[\.\)]\s*/,'').replace(/\s+/g,' ').trim();
+    correct = am[1].toUpperCase();
+    explanation = tail.slice(am.index + am[0].length).replace(/\s+/g,' ').trim();
+  } else {
+    // No answer key found — try a trailing "(B)" / "(C)" pattern
+    const fallback = tail.match(/\(([ABCD])\)\s*$/);
+    if (fallback) {
+      optDtext = tail.slice(0, fallback.index).replace(/^[\.\)]\s*/,'').replace(/\s+/g,' ').trim();
+      correct = fallback[1];
+    } else {
+      optDtext = tail.replace(/^[\.\)]\s*/,'').replace(/\s+/g,' ').trim();
+    }
+  }
+
+  if (!optAtext || !optBtext || !optCtext || !optDtext) return null;
+  if (!correct) return null; // require an answer; we don't fabricate
+
+  // Strip trailing PMBOK reference into its own field if possible
+  const refMatch = explanation.match(/\[(PMBOK[^\]]+|Page\s+\d+[^\]]*)\]\s*$/i);
+  let reference = '';
+  if (refMatch) {
+    reference = refMatch[0];
+    explanation = explanation.slice(0, refMatch.index).trim();
+  }
+
+  return {
+    num,
+    question,
+    options: { A: optAtext, B: optBtext, C: optCtext, D: optDtext },
+    correct,
+    explanation,
+    reference,
+    topic: ''
+  };
+}
+
+route('/upload', () => {
+  let parsed = null;     // { questions, warnings, blockCount }
+  let fileName = '';
+  let fileBytes = 0;
+
+  const view = () => html`
+    <div class="mb-6">
+      <a href="#/" class="text-sm text-brand-600 dark:text-brand-400 hover:underline">← Back to tests</a>
+      <h1 class="text-2xl font-bold mt-1">Upload PDF</h1>
+      <p class="text-sm text-slate-500 mt-1">Auto-extract questions from a PMP/CAPM mock-exam PDF. The parser is intentionally simple — review the count below before saving.</p>
+    </div>
+
+    <div class="rounded-2xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-4 mb-6 text-sm text-amber-900 dark:text-amber-200">
+      <strong>Heads-up.</strong> The parser only saves questions where it could find <em>all four options and a clear answer key</em> (e.g. "Correct Answer: B"). Anything ambiguous is dropped. If the count looks wrong, your PDF likely uses a different format and you'll need a structured import.
+    </div>
+
+    <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 mb-6">
+      <label class="block">
+        <span class="text-sm font-semibold">PDF file</span>
+        <input id="pdf-file" type="file" accept="application/pdf" class="mt-2 block w-full text-sm text-slate-600 dark:text-slate-300 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-brand-600 file:text-white file:font-semibold hover:file:bg-brand-700" />
+      </label>
+      <div id="pdf-status" class="mt-3 text-sm text-slate-500"></div>
+    </div>
+
+    <div id="upload-preview"></div>
+  `;
+
+  mount(shell(view()));
+
+  const setStatus = (html2) => { const s = $('#pdf-status'); if (s) s.innerHTML = html2; };
+  const renderPreview = () => {
+    const wrap = $('#upload-preview');
+    if (!wrap) return;
+    if (!parsed) { wrap.innerHTML = ''; return; }
+    const { questions, warnings, blockCount } = parsed;
+    const sample = questions.slice(0, 3).map(q => html`
+      <div class="rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 p-3">
+        <div class="text-xs text-slate-500 mb-1">#${q.num} · answer: <strong class="text-emerald-700 dark:text-emerald-400">${q.correct}</strong></div>
+        <div class="text-sm font-medium">${escapeHtml(q.question.slice(0, 200))}${q.question.length>200?'…':''}</div>
+        <div class="mt-2 text-xs text-slate-600 dark:text-slate-400 space-y-0.5">
+          <div><strong>A.</strong> ${escapeHtml(q.options.A.slice(0,140))}</div>
+          <div><strong>B.</strong> ${escapeHtml(q.options.B.slice(0,140))}</div>
+          <div><strong>C.</strong> ${escapeHtml(q.options.C.slice(0,140))}</div>
+          <div><strong>D.</strong> ${escapeHtml(q.options.D.slice(0,140))}</div>
+        </div>
+      </div>`).join('');
+    const okPct = blockCount ? Math.round(questions.length * 100 / blockCount) : 0;
+    wrap.innerHTML = html`
+      <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 mb-6">
+        <div class="flex items-center justify-between mb-4 gap-4 flex-wrap">
+          <div>
+            <h2 class="text-lg font-bold">Parse preview</h2>
+            <p class="text-sm text-slate-500">${escapeHtml(fileName)} · ${(fileBytes/1024).toFixed(0)} KB</p>
+          </div>
+          <div class="text-right">
+            <div class="text-3xl font-bold ${questions.length>0?'text-emerald-600':'text-rose-600'}">${questions.length}</div>
+            <div class="text-xs text-slate-500">of ${blockCount} candidate blocks (${okPct}%)</div>
+          </div>
+        </div>
+
+        ${questions.length === 0 ? html`<p class="text-sm text-rose-600">No questions could be extracted. The PDF format isn't recognised. Try a different source or a structured (JSON) import.</p>` : html`
+          <div class="space-y-3 mb-5">${sample}${questions.length>3?html`<p class="text-xs text-slate-500 italic">…and ${questions.length-3} more</p>`:''}</div>
+
+          <label class="block mb-3">
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Test name</span>
+            <input id="test-name" type="text" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-sm" value="${escapeHtml(fileName.replace(/\.pdf$/i,''))}" />
+          </label>
+
+          ${warnings.length ? html`<details class="mb-4 text-xs text-slate-500"><summary class="cursor-pointer">⚠ ${warnings.length} block${warnings.length>1?'s':''} skipped</summary><ul class="mt-2 space-y-0.5 list-disc list-inside">${warnings.slice(0,30).map(w=>`<li>${escapeHtml(w)}</li>`).join('')}${warnings.length>30?`<li>…and ${warnings.length-30} more</li>`:''}</ul></details>` : ''}
+
+          <div class="flex gap-2">
+            <button id="save-upload" class="px-4 py-2 rounded-lg bg-brand-600 text-white text-sm font-semibold hover:bg-brand-700">💾 Save ${questions.length} questions as a new test</button>
+            <button id="cancel-upload" class="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-800 text-sm hover:bg-slate-100 dark:hover:bg-slate-800">Cancel</button>
+          </div>
+        `}
+      </div>
+    `;
+    const sb = $('#save-upload'), cb = $('#cancel-upload');
+    if (sb) sb.onclick = saveUpload;
+    if (cb) cb.onclick = () => { parsed = null; fileName=''; fileBytes=0; renderPreview(); $('#pdf-file').value=''; setStatus(''); };
+  };
+
+  function saveUpload() {
+    const name = ($('#test-name').value || fileName.replace(/\.pdf$/i,'') || 'Untitled upload').trim();
+    if (!parsed || !parsed.questions.length) return;
+    const id = 't_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,7);
+    const sectionKey = 'custom::' + id;
+    const questions = parsed.questions.map(q => {
+      const qq = { ...q, section: sectionKey };
+      qq._id = qid(qq);
+      return qq;
+    });
+    STATE.customTests = STATE.customTests || [];
+    STATE.customTests.push({ id, name, source: fileName, createdAt: Date.now(), questions });
+    persist();
+    rebuildCatalog();
+    toast(`Saved "${name}" — ${questions.length} questions`, 'success');
+    navigate('/');
+  }
+
+  $('#pdf-file').onchange = async (ev) => {
+    const file = ev.target.files && ev.target.files[0];
+    if (!file) return;
+    fileName = file.name;
+    fileBytes = file.size;
+    setStatus('Reading PDF…');
+    try {
+      const text = await extractPdfText(file);
+      setStatus('Parsing questions…');
+      parsed = parseQuestionsFromText(text);
+      setStatus(`Extracted ${parsed.questions.length} question${parsed.questions.length===1?'':'s'} from ${parsed.blockCount} candidate blocks.`);
+      renderPreview();
+    } catch (e) {
+      console.error(e);
+      setStatus(`<span class="text-rose-600">Failed: ${escapeHtml(e.message || String(e))}</span>`);
+      parsed = null;
+      renderPreview();
+    }
+  };
+});
+
+/* ===========================================================
+   ROUTE: TEST (taking) — mode-aware
+   =========================================================== */
+route('/test/:id', (id) => {
+  const test = CATALOG.find(t => t.id === id);
+  if (!test) { mount(shell(`<p>Test not found.</p>`)); return; }
+
+  // 1) If a different test is in progress, ask before discarding.
+  let A = STATE.currentAttempt;
+  if (A && A.testId !== id) {
+    if (!confirm(`You have an in-progress attempt for “${A.testId}”. Discard it and start “${id}”?`)) {
+      navigate('/test/'+encodeURIComponent(A.testId));
+      return;
+    }
+    STATE.currentAttempt = null; A = null; persist();
+  }
+
+  // 2) No attempt yet → show the mode picker.
+  if (!A) {
+    renderModePicker(test);
+    return;
+  }
+
+  // 3) In-progress attempt: ensure it has a mode (legacy attempts default to exam).
+  if (!A.mode) { A.mode = 'exam'; persist(); }
+  renderRunner(test, A);
+});
+
+function renderModePicker(test) {
+  const past = STATE.attempts.filter(a => a.testId === test.id);
+  const examAttempts = past.filter(a => (a.mode||'exam') === 'exam');
+  const studyAttempts = past.filter(a => a.mode === 'study');
+  const kaSet = new Set(test.questions.map(q => q.topic).filter(Boolean));
+  const kas = Array.from(kaSet).slice(0, 6);
+
+  const isMock = test.kind === 'mock';
+
+  mount(shell(html`
+    <div class="mb-6">
+      <a href="#/" class="text-sm text-brand-600 dark:text-brand-400 hover:underline">← Back to tests</a>
+      <div class="mt-2 flex items-center gap-2 text-[11px] uppercase tracking-[0.12em] text-brand-600 dark:text-brand-400 font-semibold">
+        ${test.kind === 'mock' ? 'Mock Exam' : test.kind === 'ka' ? 'Knowledge Area Quiz' : 'Focus Area Test'}
+      </div>
+      <h1 class="text-2xl sm:text-3xl font-bold mt-1 leading-tight">${escapeHtml(test.name)}</h1>
+      <div class="mt-2 text-sm text-slate-600 dark:text-slate-400 flex flex-wrap items-center gap-x-3 gap-y-1">
+        <span><strong class="text-slate-900 dark:text-slate-100">${test.count}</strong> questions</span>
+        ${past.length ? html`<span class="text-slate-300 dark:text-slate-700">·</span><span>${past.length} prior attempt${past.length>1?'s':''}</span>` : ''}
+        ${kas.length ? html`<span class="text-slate-300 dark:text-slate-700">·</span><span class="truncate">Topics: ${kas.map(k=>escapeHtml(k.replace('Project ','').replace(' Management',''))).join(', ')}${kaSet.size>kas.length?` +${kaSet.size-kas.length}`:''}</span>` : ''}
+      </div>
+    </div>
+
+    <h2 class="text-sm font-semibold uppercase tracking-[0.08em] text-slate-700 dark:text-slate-300 mb-3">Choose how you want to take it</h2>
+    <div class="grid md:grid-cols-2 gap-4 mb-6">
+
+      <button data-mode="study" class="mode-card text-left rounded-2xl bg-white dark:bg-slate-900 border-2 ${!isMock ? 'border-brand-500 ring-2 ring-brand-500/20' : 'border-slate-200 dark:border-slate-800'} p-6 hover:border-brand-500 hover:shadow-lift transition card-hover relative">
+        ${!isMock ? '<span class="absolute top-4 right-4 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-brand-100 text-brand-700 dark:bg-brand-900/40 dark:text-brand-300">Suggested</span>' : ''}
+        <div class="flex items-center gap-2 text-brand-600 dark:text-brand-400 mb-1">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+          <span class="text-xs font-bold uppercase tracking-[0.12em]">Study Mode</span>
+        </div>
+        <div class="text-xl font-bold tracking-tight">Learn as you go</div>
+        <p class="text-sm text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">Immediate feedback after each answer. No timer pressure. Best for first passes and Knowledge Area drills.</p>
+        <ul class="mt-4 space-y-1.5 text-sm text-slate-700 dark:text-slate-300">
+          <li class="flex items-center gap-2"><span class="text-emerald-500">✓</span> Explanation shown immediately</li>
+          <li class="flex items-center gap-2"><span class="text-emerald-500">✓</span> No countdown — work at your pace</li>
+          <li class="flex items-center gap-2"><span class="text-emerald-500">✓</span> Free navigation between questions</li>
+        </ul>
+        ${studyAttempts.length ? html`<div class="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800 text-xs text-slate-500">${studyAttempts.length} prior study attempt${studyAttempts.length>1?'s':''} · best ${Math.max(...studyAttempts.map(a=>a.scorePct))}%</div>`:''}
+      </button>
+
+      <button data-mode="exam" class="mode-card text-left rounded-2xl bg-white dark:bg-slate-900 border-2 ${isMock ? 'border-brand-500 ring-2 ring-brand-500/20' : 'border-slate-200 dark:border-slate-800'} p-6 hover:border-brand-500 hover:shadow-lift transition card-hover relative">
+        ${isMock ? '<span class="absolute top-4 right-4 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-brand-100 text-brand-700 dark:bg-brand-900/40 dark:text-brand-300">Suggested</span>' : ''}
+        <div class="flex items-center gap-2 text-rose-600 dark:text-rose-400 mb-1">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span class="text-xs font-bold uppercase tracking-[0.12em]">Exam Mode</span>
+        </div>
+        <div class="text-xl font-bold tracking-tight">Simulate the real thing</div>
+        <p class="text-sm text-slate-600 dark:text-slate-400 mt-2 leading-relaxed"><strong class="text-slate-900 dark:text-slate-100">${test.examMin} min</strong> countdown at PMI pacing (≈75 s/question). No feedback until you submit. Best for mocks and readiness checks.</p>
+        <ul class="mt-4 space-y-1.5 text-sm text-slate-700 dark:text-slate-300">
+          <li class="flex items-center gap-2"><span class="text-rose-500">●</span> Strict countdown — auto-submits at 0:00</li>
+          <li class="flex items-center gap-2"><span class="text-rose-500">●</span> No answers revealed during the test</li>
+          <li class="flex items-center gap-2"><span class="text-rose-500">●</span> Realistic exam-day conditions</li>
+        </ul>
+        ${examAttempts.length ? html`<div class="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800 text-xs text-slate-500">${examAttempts.length} prior exam attempt${examAttempts.length>1?'s':''} · best ${Math.max(...examAttempts.map(a=>a.scorePct))}%</div>`:''}
+      </button>
+
+    </div>
+    <p class="text-xs text-slate-500">Tip — you can take a test in either mode as many times as you like. Mode is recorded so your dashboard distinguishes practice from real exam-mode results.</p>
+  `));
+
+  $$('.mode-card').forEach(b => b.onclick = () => startAttempt(test, b.dataset.mode));
+}
+
+function startAttempt(test, mode) {
+  const A = {
+    id: uid(),
+    testId: test.id,
+    mode,                                  // 'study' | 'exam'
+    startedAt: Date.now(),
+    durationMin: mode === 'exam' ? test.examMin : null,
+    idx: 0,
+    responses: test.questions.map(q => ({
+      qid: q._id, choice: null, correct: null,
+      flagged: !!STATE.flags[q._id], timeMs: 0,
+      revealed: false,                     // study-mode: did the user submit & see feedback?
+      peeked: false, peekedLetter: null    // study-mode peek/hint usage
+    })),
+    lastTickAt: Date.now(),
+    finished: false,
+  };
+  STATE.currentAttempt = A;
+  persist();
+  renderRunner(test, A);
+}
+
+function renderRunner(test, A) {
+  const isExam = A.mode === 'exam';
+  const useConfidence = !isExam && STATE.settings.confidenceCapture;
+
+  const renderQ = () => {
+    const q = test.questions[A.idx];
+    const r = A.responses[A.idx];
+    const elapsedSec = (Date.now() - A.startedAt)/1000;
+    const totalSec = isExam ? A.durationMin*60 : null;
+    const remainingSec = isExam ? totalSec - elapsedSec : null;
+    const answered = A.responses.filter(x=>x.choice).length;
+
+    const showFeedback = !isExam && r.revealed && r.choice;
+    // In confidence-capture mode, between pick and reveal we ask the user
+    // to commit a confidence level. Only when r.choice && !r.revealed && !r.confidence
+    // && useConfidence is the picker shown.
+    const askConfidence = useConfidence && !!r.choice && !r.revealed && !r.confidence;
+
+    const optHtml = ['A','B','C','D'].map(letter => {
+      const selected = r.choice === letter;
+      const isAnswer = q.correct === letter;
+      const eliminated = r.peekedLetter === letter && !showFeedback;
+      let cls;
+      if (showFeedback) {
+        if (isAnswer)             cls = 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/30 dark:border-emerald-400';
+        else if (selected)        cls = 'border-rose-500 bg-rose-50 dark:bg-rose-900/30 dark:border-rose-400';
+        else                      cls = 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 opacity-60';
+      } else if (eliminated) {
+        cls = 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 opacity-40 line-through';
+      } else {
+        cls = selected ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/30 dark:border-brand-400'
+                       : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-900';
+      }
+      const badgeBg = showFeedback && isAnswer ? 'bg-emerald-600 text-white'
+                    : showFeedback && selected ? 'bg-rose-600 text-white'
+                    : selected                 ? 'bg-brand-600 text-white'
+                    :                            'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300';
+      return html`
+        <button data-letter="${letter}" ${showFeedback||eliminated?'disabled':''} class="opt-btn w-full text-left p-4 rounded-xl border-2 ${cls}">
+          <div class="flex gap-3">
+            <span class="flex-shrink-0 w-7 h-7 rounded-full ${badgeBg} font-semibold flex items-center justify-center text-sm">${letter}</span>
+            <span class="flex-1 leading-relaxed">${escapeHtml(q.options[letter]||'')}</span>
+          </div>
+        </button>`;
+    }).join('');
+
+    const dots = A.responses.map((rr,i)=>{
+      const cls = i===A.idx ? 'bg-brand-600 text-white' :
+                  rr.flagged ? 'bg-amber-200 dark:bg-amber-700 text-amber-900 dark:text-amber-100' :
+                  rr.choice ? (isExam ? 'bg-slate-300 dark:bg-slate-700 text-slate-800 dark:text-slate-200'
+                                      : (rr.correct ? 'bg-emerald-200 dark:bg-emerald-800 text-emerald-900 dark:text-emerald-100'
+                                                    : 'bg-rose-200 dark:bg-rose-800 text-rose-900 dark:text-rose-100')) :
+                  'bg-slate-100 dark:bg-slate-900 text-slate-400 border border-slate-200 dark:border-slate-800';
+      return `<button data-jump="${i}" class="w-7 h-7 rounded-md text-xs font-semibold ${cls}">${i+1}</button>`;
+    }).join('');
+
+    const modeBadge = isExam
+      ? '<span class="text-[10px] font-bold uppercase tracking-[0.12em] px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300">Exam Mode</span>'
+      : '<span class="text-[10px] font-bold uppercase tracking-[0.12em] px-2 py-0.5 rounded-full bg-brand-100 text-brand-700 dark:bg-brand-900/40 dark:text-brand-300">Study Mode</span>';
+
+    const timerHtml = isExam
+      ? `<div id="timer" class="font-mono text-sm px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 ${remainingSec<60?'text-rose-600 timer-urgent':''}">${fmtTime(remainingSec)}</div>`
+      : `<div id="timer" class="font-mono text-sm px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400" title="Elapsed (no time limit in Study Mode)">${fmtTime(elapsedSec)}</div>`;
+
+    const feedbackPanel = showFeedback ? html`
+      <div class="mt-5 rounded-xl ${r.correct?'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800':'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-800'} border p-4">
+        <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+          <span class="font-semibold ${r.correct?'text-emerald-700 dark:text-emerald-300':'text-rose-700 dark:text-rose-300'}">${r.correct?'✓ Correct':`✗ Not quite — correct answer is ${q.correct}`}</span>
+          <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">PMBOK 6 source</span>
+          ${r.peeked ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300" title="You used Peek — mastery interval grows more slowly">💡 peeked</span>` : ''}
+          ${r.confidence ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400" title="Your stated confidence before reveal">conf: ${r.confidence}</span>` : ''}
+          ${isExplanationTruncated(q.explanation) ? truncatedExplBadge : ''}
+        </div>
+        <p class="text-sm leading-relaxed">${escapeHtml(q.explanation||'(No explanation provided in source.)')}</p>
+        ${q.reference ? `<p class="text-xs text-slate-500 mt-2">${escapeHtml((q.reference||'').replace(/\s+/g,' '))}</p>`:''}
+      </div>` : '';
+
+    const confidencePanel = askConfidence ? html`
+      <div class="mt-5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 p-4">
+        <div class="text-sm font-semibold mb-2">Before you reveal — how confident are you?</div>
+        <p class="text-xs text-slate-500 mb-3">Honest tracking calibrates your judgment. We'll show you, over time, whether your "high confidence" answers actually match your accuracy.</p>
+        <div class="flex flex-wrap gap-2">
+          <button data-conf="low"  class="conf-btn px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 hover:border-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 text-sm font-medium">🤔 Low — guessing</button>
+          <button data-conf="med"  class="conf-btn px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 hover:border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 text-sm font-medium">🤷 Medium — leaning</button>
+          <button data-conf="high" class="conf-btn px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 hover:border-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 text-sm font-medium">💪 High — confident</button>
+        </div>
+      </div>` : '';
+
+    const submitLabel = isExam
+      ? (A.idx===test.questions.length-1 ? 'Submit ✓' : 'Next →')
+      : (showFeedback ? (A.idx===test.questions.length-1 ? 'Submit ✓' : 'Next →') : 'Submit answer');
+
+    const content = html`
+      <div class="grid lg:grid-cols-[1fr,260px] gap-6">
+        <section>
+          <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2 mb-0.5 flex-wrap">
+                ${modeBadge}
+                <div class="text-xs uppercase tracking-wider text-slate-500 truncate">${escapeHtml(test.name)}</div>
+              </div>
+              <div class="text-sm text-slate-500">Question <strong class="text-slate-900 dark:text-slate-100">${A.idx+1}</strong> of ${test.questions.length} · <span class="text-slate-700 dark:text-slate-300">${escapeHtml(q.topic||'—')}</span></div>
+            </div>
+            <div class="flex items-center gap-2">
+              ${timerHtml}
+              <button id="flag-btn" class="px-3 py-1.5 rounded-lg text-sm border ${r.flagged?'bg-amber-100 dark:bg-amber-900/40 border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-200':'border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'}" title="Flag (F)">⚑ Flag</button>
+            </div>
+          </div>
+
+          <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-soft">
+            ${/\[text truncated in source PDF\]/.test(q.question) ? `<div class="mb-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 text-xs font-medium">⚠ Source PDF truncates this question — answer with available context</div>` : ''}
+            <p class="text-base sm:text-lg leading-relaxed">${escapeHtml(q.question)}</p>
+            <div class="mt-5 space-y-2.5">${optHtml}</div>
+            ${confidencePanel}
+            ${feedbackPanel}
+          </div>
+
+          <div class="mt-5 flex items-center justify-between gap-2">
+            <button id="prev-btn" class="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm" ${A.idx===0?'disabled':''}>← Prev</button>
+            <div class="flex items-center gap-2">
+              ${!isExam && !showFeedback && !r.peeked ? `<button id="peek-btn" class="px-3 py-2 rounded-lg text-sm border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 bg-amber-50/50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/40" title="Eliminate one wrong option. Reduces mastery credit if you answer correctly.">💡 Peek</button>`:''}
+              <button id="end-btn" class="px-4 py-2 rounded-lg text-sm bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/50 border border-rose-200 dark:border-rose-800">End test</button>
+              <button id="next-btn" class="px-4 py-2 rounded-lg text-sm bg-brand-600 text-white hover:bg-brand-700 font-semibold disabled:opacity-50 disabled:cursor-not-allowed" ${(!isExam && !showFeedback && !r.choice) || askConfidence ? 'disabled':''} ${askConfidence?'title="Pick a confidence level above to reveal"':''}>${submitLabel}</button>
+            </div>
+          </div>
+        </section>
+        <aside class="lg:sticky lg:top-20 self-start">
+          <div class="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4">
+            <div class="flex items-center justify-between mb-2 text-sm">
+              <strong>Progress</strong>
+              <span class="text-slate-500">${answered}/${test.questions.length}</span>
+            </div>
+            <div class="h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 mb-3 overflow-hidden">
+              <div class="h-full bg-brand-500" style="width:${(answered/test.questions.length)*100}%"></div>
+            </div>
+            <div class="grid grid-cols-8 lg:grid-cols-7 gap-1.5">${dots}</div>
+            <div class="mt-3 text-xs text-slate-500 space-y-1">
+              <div class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded bg-brand-600"></span>Current</div>
+              ${isExam
+                ? '<div class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded bg-slate-300 dark:bg-slate-700"></span>Answered</div>'
+                : '<div class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded bg-emerald-200 dark:bg-emerald-800"></span>Correct</div><div class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded bg-rose-200 dark:bg-rose-800"></span>Wrong</div>'}
+              <div class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded bg-amber-200 dark:bg-amber-700"></span>Flagged</div>
+              <div class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded bg-slate-100 border border-slate-200 dark:bg-slate-900 dark:border-slate-800"></span>Unanswered</div>
+            </div>
+            <div class="mt-3 pt-3 border-t border-slate-200 dark:border-slate-800 text-xs text-slate-500">
+              <div class="font-semibold text-slate-700 dark:text-slate-300 mb-1">Shortcuts</div>
+              <div>1–4 select · ←/→ nav · F flag · ${!isExam?'P peek · ':''}Enter ${isExam?'next':'submit/next'}</div>
+            </div>
+          </div>
+        </aside>
+      </div>`;
+
+    mount(shell(content));
+
+    // Wire interactions
+    $$('.opt-btn').forEach(btn => btn.onclick = () => pick(btn.dataset.letter));
+    $$('.conf-btn').forEach(btn => btn.onclick = () => {
+      A.responses[A.idx].confidence = btn.dataset.conf;
+      persist();
+      renderQ();
+    });
+    $('#prev-btn').onclick = prev;
+    $('#next-btn').onclick = next;
+    $('#flag-btn').onclick = toggleFlag;
+    const peekBtn = $('#peek-btn');
+    if (peekBtn) peekBtn.onclick = () => {
+      const cur = A.responses[A.idx];
+      if (cur.peeked || cur.revealed) return;
+      // Eliminate a random wrong distractor that the user hasn't selected.
+      const wrongs = ['A','B','C','D'].filter(L => L !== q.correct && L !== cur.choice);
+      if (!wrongs.length) return;
+      cur.peekedLetter = wrongs[Math.floor(Math.random()*wrongs.length)];
+      cur.peeked = true;
+      // If the user had selected the eliminated option, clear it.
+      if (cur.choice === cur.peekedLetter) { cur.choice = null; cur.correct = null; }
+      persist();
+      renderQ();
+    };
+    $('#end-btn').onclick = () => { if (confirm('End the test now and see results?')) finish(); };
+    $$('[data-jump]').forEach(b => b.onclick = () => { trackTime(); A.idx = +b.dataset.jump; persist(); renderQ(); });
+
+    // Timer tick (countdown for exam, elapsed for study)
+    if (window.__pmpTimer) clearInterval(window.__pmpTimer);
+    window.__pmpTimer = setInterval(() => {
+      const t = $('#timer'); if (!t) return;
+      if (isExam) {
+        const rem = totalSec - (Date.now() - A.startedAt)/1000;
+        t.textContent = fmtTime(rem);
+        if (rem < 60) t.classList.add('text-rose-600','timer-urgent');
+        if (rem <= 0) { clearInterval(window.__pmpTimer); finish(); }
+      } else {
+        t.textContent = fmtTime((Date.now() - A.startedAt)/1000);
+      }
+    }, 500);
+
+    // Keyboard
+    document.onkeydown = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (['1','2','3','4'].includes(e.key)) { pick(['A','B','C','D'][+e.key-1]); }
+      else if (e.key === 'ArrowRight' || e.key === 'Enter') { next(); }
+      else if (e.key === 'ArrowLeft') { prev(); }
+      else if (e.key.toLowerCase() === 'f') { toggleFlag(); }
+      else if (e.key.toLowerCase() === 'p' && !isExam) { const pb = $('#peek-btn'); if (pb) pb.click(); }
+    };
+
+    function trackTime() {
+      const now = Date.now();
+      A.responses[A.idx].timeMs += now - A.lastTickAt;
+      A.lastTickAt = now;
+    }
+    function pick(letter) {
+      // In Study Mode, once revealed, no changes.
+      if (!isExam && A.responses[A.idx].revealed) return;
+      // Block picking an eliminated option.
+      if (A.responses[A.idx].peekedLetter === letter) return;
+      trackTime();
+      A.responses[A.idx].choice = letter;
+      A.responses[A.idx].correct = letter === q.correct;
+      persist();
+      // Re-render to update visual state (selection in exam, or just selection in study).
+      renderQ();
+    }
+    function prev() { trackTime(); if (A.idx>0) A.idx--; persist(); renderQ(); }
+    function next() {
+      trackTime();
+      const cur = A.responses[A.idx];
+      // Study Mode: first Enter/Next reveals feedback; second moves on.
+      if (!isExam && cur.choice && !cur.revealed) {
+        cur.revealed = true;
+        // Update mastery immediately on reveal so it counts
+        updateMasteryForResponse(q, cur);
+        persist();
+        renderQ();
+        return;
+      }
+      if (A.idx === test.questions.length-1) {
+        if (confirm('Submit the test?')) finish();
+      } else { A.idx++; persist(); renderQ(); }
+    }
+    function toggleFlag() {
+      A.responses[A.idx].flagged = !A.responses[A.idx].flagged;
+      const id = q._id;
+      if (A.responses[A.idx].flagged) STATE.flags[id] = true; else delete STATE.flags[id];
+      persist(); renderQ();
+    }
+  };
+
+  const finish = () => {
+    if (window.__pmpTimer) clearInterval(window.__pmpTimer);
+    document.onkeydown = null;
+    const A2 = STATE.currentAttempt;
+    if (!A2) return;
+    A2.responses[A2.idx].timeMs += Date.now() - A2.lastTickAt;
+    let correct = 0;
+    for (let i=0;i<A2.responses.length;i++) {
+      const q = test.questions[i];
+      const r = A2.responses[i];
+      r.correct = r.choice === q.correct;
+      if (r.correct) correct++;
+      // In Exam Mode mastery updates here. In Study Mode it already updated on reveal,
+      // so only update for any unrevealed (e.g., user ended early).
+      if (A2.mode === 'exam' || !r.revealed) updateMasteryForResponse(q, r);
+    }
+    A2.finished = true;
+    A2.endedAt = Date.now();
+    A2.scorePct = Math.round((correct/test.questions.length)*100);
+    A2.correct = correct;
+    A2.total = test.questions.length;
+    STATE.attempts.push(A2);
+    STATE.currentAttempt = null;
+    const today = new Date().toISOString().slice(0,10);
+    const d = STATE.studyDays[today] || { qs:0, mins:0 };
+    d.qs += A2.responses.filter(r => r.choice).length;
+    d.mins += Math.round((A2.endedAt - A2.startedAt)/60000);
+    STATE.studyDays[today] = d;
+    persist();
+    navigate('/results/'+encodeURIComponent(A2.id));
+  };
+
+  renderQ();
+}
+
+function updateMasteryForResponse(q, r) {
+  if (!r.choice) return;
+  const m = STATE.mastery[q._id] || { correct:0, wrong:0, ef:2.5, interval:0, due:0, lastSeen:0 };
+  if (r.correct) m.correct++; else m.wrong++;
+  m.lastSeen = Date.now();
+  // Peek penalty: a correct-after-peek answer still counts, but with a
+  // reduced SM-2 grade so the interval doesn't grow as aggressively.
+  // Wrong stays wrong regardless of peek.
+  let grade;
+  if (r.correct) grade = r.peeked ? 3 : 5;
+  else           grade = 2;
+  m.ef = Math.max(1.3, m.ef + (0.1 - (5-grade)*(0.08 + (5-grade)*0.02)));
+  m.interval = r.correct ? (m.interval ? Math.round(m.interval * m.ef) : 1) : 0;
+  m.due = Date.now() + m.interval*86400000;
+  STATE.mastery[q._id] = m;
+}
+
+/* ===========================================================
+   ROUTE: RESULTS
+   =========================================================== */
+route('/results/:id', (id) => {
+  const A = STATE.attempts.find(a => a.id === id);
+  if (!A) { mount(shell(`<p>Attempt not found. <a href="#/" class="text-brand-600">Back home</a></p>`)); return; }
+  const test = CATALOG.find(t => t.id === A.testId);
+  const passed = A.scorePct >= 61;
+  const totalSec = (A.endedAt - A.startedAt)/1000;
+  const avgSec = A.responses.reduce((s,r)=>s+r.timeMs,0)/1000/A.responses.length;
+
+  // breakdowns
+  const byKA = {};
+  for (let i=0;i<A.responses.length;i++) {
+    const q = test.questions[i], r = A.responses[i];
+    const k = q.topic || 'Unknown';
+    byKA[k] = byKA[k] || { c:0, t:0 }; byKA[k].t++; if (r.correct) byKA[k].c++;
+  }
+
+  // historical avg
+  const sameTest = STATE.attempts.filter(a => a.testId === A.testId);
+  const histAvg = sameTest.length ? Math.round(sameTest.reduce((s,a)=>s+a.scorePct,0)/sameTest.length) : A.scorePct;
+  const overallAvg = STATE.attempts.length ? Math.round(STATE.attempts.reduce((s,a)=>s+a.scorePct,0)/STATE.attempts.length) : A.scorePct;
+
+  const content = html`
+    <div class="mb-6">
+      <a href="#/" class="text-sm text-brand-600 dark:text-brand-400 hover:underline">← Back to tests</a>
+      <div class="flex items-center gap-2 mt-1 flex-wrap">
+        <h1 class="text-2xl font-bold">${escapeHtml(test.name)} — Results</h1>
+        ${(A.mode||'exam')==='exam'
+          ? `<span class="text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 ring-1 ring-rose-200 dark:bg-rose-900/30 dark:text-rose-300 dark:ring-rose-800">Exam mode</span>`
+          : `<span class="text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-brand-50 text-brand-700 ring-1 ring-brand-200 dark:bg-brand-900/30 dark:text-brand-300 dark:ring-brand-800">Study mode</span>`}
+      </div>
+      <p class="text-sm text-slate-500">Submitted ${new Date(A.endedAt).toLocaleString()}</p>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-4 mb-6">
+      <div class="rounded-2xl p-6 ${passed?'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800':'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-800'} border">
+        <div class="text-xs font-semibold uppercase tracking-wider ${passed?'text-emerald-700 dark:text-emerald-400':'text-rose-700 dark:text-rose-400'}">${passed?'Passing':'Below passing'}</div>
+        <div class="text-5xl font-bold mt-1 ${passed?'text-emerald-700 dark:text-emerald-300':'text-rose-700 dark:text-rose-300'}">${A.scorePct}%</div>
+        <div class="text-sm text-slate-600 dark:text-slate-400 mt-1">${A.correct} / ${A.total} correct · target ≥ 61%</div>
+      </div>
+      <div class="rounded-2xl p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+        <div class="text-xs font-semibold uppercase tracking-wider text-slate-500">Time</div>
+        <div class="text-3xl font-bold mt-1">${fmtTime(totalSec)}</div>
+        <div class="text-sm text-slate-600 dark:text-slate-400 mt-1">~${avgSec.toFixed(1)}s per question · ${A.durationMin ? `limit ${A.durationMin} min` : 'no time limit'}</div>
+      </div>
+      <div class="rounded-2xl p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+        <div class="text-xs font-semibold uppercase tracking-wider text-slate-500">Comparison</div>
+        <div class="text-sm mt-2 space-y-1">
+          <div class="flex justify-between"><span>This test avg (${sameTest.length}x)</span><strong>${histAvg}%</strong></div>
+          <div class="flex justify-between"><span>Overall avg (${STATE.attempts.length}x)</span><strong>${overallAvg}%</strong></div>
+          <div class="flex justify-between"><span>Best on this test</span><strong>${Math.max(...sameTest.map(a=>a.scorePct))}%</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid md:grid-cols-1 gap-4 mb-6">
+      <div class="rounded-2xl p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+        <h3 class="font-semibold mb-3">By Knowledge Area</h3>
+        <canvas id="kaChart" height="200"></canvas>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap gap-2 mb-4 no-print">
+      <a href="#/history/${encodeURIComponent(A.id)}" class="px-4 py-2 rounded-lg bg-brand-600 text-white text-sm font-semibold hover:bg-brand-700">📖 Review answers</a>
+      <a href="#/test/${encodeURIComponent(A.testId)}" class="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-800 text-sm hover:bg-slate-100 dark:hover:bg-slate-800">🔄 Retake</a>
+      <button id="export-csv" class="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-800 text-sm hover:bg-slate-100 dark:hover:bg-slate-800">⬇ CSV</button>
+      <button id="export-pdf" class="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-800 text-sm hover:bg-slate-100 dark:hover:bg-slate-800">🖨 Print / PDF</button>
+      <div class="flex-1"></div>
+      <button id="delete-attempt" class="px-4 py-2 rounded-lg border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-sm hover:bg-rose-50 dark:hover:bg-rose-900/30">🗑 Delete attempt</button>
+    </div>
+  `;
+
+  mount(shell(content));
+
+  // Charts
+  const dark = document.documentElement.classList.contains('dark');
+  const tc = dark ? '#cbd5e1' : '#334155';
+  Chart.defaults.color = tc;
+  Chart.defaults.borderColor = dark ? '#1e293b' : '#e2e8f0';
+
+  const kLabels = Object.keys(byKA);
+  new Chart($('#kaChart'), {
+    type: 'bar',
+    data: { labels: kLabels.map(k=>k.replace('Project ','').replace(' Management','')),
+      datasets: [
+        { label:'Correct',   data: kLabels.map(k=>byKA[k].c),               backgroundColor:'#10b981' },
+        { label:'Incorrect', data: kLabels.map(k=>byKA[k].t-byKA[k].c),     backgroundColor:'#ef4444' },
+      ]},
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      scales: { x: { stacked: true, beginAtZero:true }, y: { stacked: true } },
+      plugins: { legend: { position: 'bottom' } }
+    }
+  });
+
+  $('#export-csv').onclick = () => exportCSV(A, test);
+  $('#export-pdf').onclick = () => window.print();
+  $('#delete-attempt').onclick = () => {
+    if (!confirm(`Delete this attempt of “${A.testId}” (${A.scorePct}%)?\n\nThis cannot be undone.`)) return;
+    deleteAttempt(A.id);
+    toast('Attempt deleted', 'success');
+    navigate('/history');
+  };
+});
+
+/* ===========================================================
+   ROUTE: HISTORY (specific attempt review)
+   =========================================================== */
+route('/history/:id', (id) => {
+  const A = STATE.attempts.find(a => a.id === id);
+  if (!A) { mount(shell(`<p>Attempt not found.</p>`)); return; }
+  const test = CATALOG.find(t => t.id === A.testId);
+
+  let filter = 'all'; // all, wrong, flagged, correct, unanswered
+
+  const renderList = () => {
+    const items = test.questions.map((q,i)=>({q, r:A.responses[i], i})).filter(({q,r}) => {
+      if (filter==='wrong') return r.correct === false;
+      if (filter==='correct') return r.correct === true;
+      if (filter==='flagged') return r.flagged;
+      if (filter==='unanswered') return !r.choice;
+      return true;
+    });
+
+    const list = items.map(({q,r,i})=>renderHistoryCard(q,r,i)).join('');
+
+    const filterBtn = (k,label,count) => html`
+      <button data-f="${k}" class="px-3 py-1.5 rounded-lg text-sm ${filter===k?'bg-brand-600 text-white':'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700'}">
+        ${label} <span class="ml-1 text-xs opacity-70">${count}</span>
+      </button>`;
+
+    const counts = {
+      all: A.responses.length,
+      wrong: A.responses.filter(r=>r.correct===false).length,
+      correct: A.responses.filter(r=>r.correct===true).length,
+      flagged: A.responses.filter(r=>r.flagged).length,
+      unanswered: A.responses.filter(r=>!r.choice).length,
+    };
+
+    const content = html`
+      <div class="mb-4 flex items-baseline justify-between">
+        <div>
+          <a href="#/results/${encodeURIComponent(A.id)}" class="text-sm text-brand-600 dark:text-brand-400 hover:underline">← Results</a>
+          <h1 class="text-2xl font-bold mt-1">Answer review</h1>
+          <p class="text-sm text-slate-500">${escapeHtml(test.name)} · ${new Date(A.endedAt).toLocaleString()}</p>
+        </div>
+      </div>
+      <div class="flex flex-wrap gap-2 mb-4 no-print">
+        ${filterBtn('all','All',counts.all)}
+        ${filterBtn('wrong','Wrong',counts.wrong)}
+        ${filterBtn('correct','Correct',counts.correct)}
+        ${filterBtn('flagged','Flagged',counts.flagged)}
+        ${filterBtn('unanswered','Unanswered',counts.unanswered)}
+      </div>
+      <div class="space-y-4">${list || '<p class="text-slate-500">No questions match this filter.</p>'}</div>`;
+
+    mount(shell(content));
+    $$('[data-f]').forEach(b => b.onclick = () => { filter = b.dataset.f; renderList(); });
+    $$('.qnote-btn').forEach(b => b.onclick = () => {
+      const qid = b.dataset.qid;
+      const cur = STATE.qNotes[qid] || '';
+      const next = prompt('Personal note for this question:\n(Leave empty to delete)', cur);
+      if (next === null) return;
+      if (next.trim()) STATE.qNotes[qid] = next.trim();
+      else delete STATE.qNotes[qid];
+      Store.save();
+      renderList();
+    });
+  };
+
+  renderList();
+});
+
+function renderHistoryCard(q, r, i) {
+  const isWrong = r.correct === false;
+  const isCorrect = r.correct === true;
+  const opts = ['A','B','C','D'].map(letter => {
+    const isPick = r.choice === letter;
+    const isAnswer = q.correct === letter;
+    let cls = 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900';
+    let badge = '';
+    if (isAnswer) { cls = 'border-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 dark:border-emerald-600'; badge = '<span class="ml-2 text-xs font-semibold text-emerald-700 dark:text-emerald-400">✓ Correct answer</span>'; }
+    if (isPick && !isAnswer) { cls = 'border-rose-400 bg-rose-50 dark:bg-rose-900/20 dark:border-rose-600'; badge = '<span class="ml-2 text-xs font-semibold text-rose-700 dark:text-rose-400">✗ Your answer</span>'; }
+    if (isPick && isAnswer) { badge = '<span class="ml-2 text-xs font-semibold text-emerald-700 dark:text-emerald-400">✓ Your answer (correct)</span>'; }
+    const distractorNote = (!isAnswer && letter !== r.choice) ? html`<div class="mt-1 text-xs text-slate-500 italic">Why not ${letter}? ${escapeHtml(distractorReason(q, letter))}</div>` : '';
+    return html`
+      <div class="p-3 rounded-lg border ${cls}">
+        <div class="flex items-start gap-2">
+          <span class="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-semibold flex items-center justify-center">${letter}</span>
+          <div class="flex-1 text-sm">
+            <span>${escapeHtml(q.options[letter]||'')}</span>${badge}
+            ${distractorNote}
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+  const statusBadge = isCorrect ? '<span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">Correct</span>'
+                    : isWrong ? '<span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300">Wrong</span>'
+                    : '<span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">Unanswered</span>';
+  const flagBadge = r.flagged ? '<span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">⚑ Flagged</span>' : '';
+
+  return html`
+    <article class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 shadow-soft">
+      <div class="flex flex-wrap items-center gap-2 mb-2">
+        <span class="text-xs font-semibold text-slate-500">Q${i+1}</span>
+        ${statusBadge}
+        ${flagBadge}
+        <span class="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">${escapeHtml(q.topic||'')}</span>
+        <span class="ml-auto text-xs text-slate-500">${(r.timeMs/1000).toFixed(0)}s</span>
+      </div>
+      <p class="leading-relaxed mb-3">${escapeHtml(q.question)}</p>
+      <div class="space-y-2 mb-4">${opts}</div>
+      <div class="rounded-xl bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 p-4">
+        <div class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Explanation <span class="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800">PMBOK 6 source</span> ${isExplanationTruncated(q.explanation) ? truncatedExplBadge : ''}</div>
+        <p class="text-sm leading-relaxed">${escapeHtml(q.explanation||'')}</p>
+        ${q.reference ? `<p class="text-xs text-slate-500 mt-2">Reference: ${escapeHtml((q.reference||'').replace(/\s+/g,' '))}</p>` : ''}
+      </div>
+      <div class="mt-3">
+        <button class="qnote-btn text-xs px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800" data-qid="${escapeHtml(q._id)}" title="Add a personal note to this question">📝 ${STATE.qNotes[q._id]?'Edit note':'Add note'}</button>
+        ${STATE.qNotes[q._id] ? `<div class="mt-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-3 text-sm"><strong>My note:</strong> ${escapeHtml(STATE.qNotes[q._id])}</div>` : ''}
+      </div>
+    </article>`;
+}
+
+function distractorReason(q, letter) {
+  // Lightweight rule-based hint. The book's explanation justifies the correct answer;
+  // we surface a generic "incorrect because not the best answer per PMBOK" note.
+  // Heuristic: if the explanation explicitly mentions the letter, surface that snippet.
+  const expl = q.explanation || '';
+  const re = new RegExp(`\\b${letter}\\b[^.]*\\.`, 'i');
+  const m = expl.match(re);
+  if (m) return m[0].trim();
+  return `Not the best answer here — see the explanation; the correct choice (${q.correct}) better satisfies the PMBOK guidance for ${q.topic||'this topic'}.`;
+}
+
+/* ===========================================================
+   ROUTE: HISTORY (list of all attempts)
+   =========================================================== */
+route('/history', () => {
+  if (!STATE.attempts.length) {
+    mount(shell(`<div class="text-center py-16"><p class="text-slate-500">No attempts yet. <a href="#/" class="text-brand-600">Take a test →</a></p></div>`));
+    return;
+  }
+  const rows = [...STATE.attempts].reverse().map(a => {
+    const passed = a.scorePct >= 61;
+    return html`
+      <div class="group flex items-stretch rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-brand-400 transition overflow-hidden">
+        <a href="#/history/${encodeURIComponent(a.id)}" class="flex-1 p-4 flex items-center gap-4">
+          <div class="text-2xl font-bold ${passed?'text-emerald-600':'text-rose-600'} w-16">${a.scorePct}%</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2">
+              <div class="font-semibold truncate">${escapeHtml(a.testId)}</div>
+              ${(a.mode||'exam')==='exam'
+                ? `<span class="shrink-0 text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-rose-50 text-rose-700 ring-1 ring-rose-200 dark:bg-rose-900/30 dark:text-rose-300 dark:ring-rose-800">Exam</span>`
+                : `<span class="shrink-0 text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-brand-50 text-brand-700 ring-1 ring-brand-200 dark:bg-brand-900/30 dark:text-brand-300 dark:ring-brand-800">Study</span>`}
+            </div>
+            <div class="text-xs text-slate-500">${new Date(a.endedAt).toLocaleString()} · ${a.correct}/${a.total} · ${fmtTime((a.endedAt-a.startedAt)/1000)}</div>
+          </div>
+          <span class="text-brand-600 dark:text-brand-400 hidden sm:inline">→</span>
+        </a>
+        <button data-del="${a.id}" title="Delete attempt"
+          class="px-3 sm:px-4 flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/30 border-l border-slate-200 dark:border-slate-800 transition">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+        </button>
+      </div>`;
+  }).join('');
+  mount(shell(html`
+    <div class="flex items-center justify-between mb-4">
+      <h1 class="text-2xl font-bold">Attempt history</h1>
+      <button id="clear-all-btn" class="text-sm px-3 py-1.5 rounded-lg border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-900/30">Clear all</button>
+    </div>
+    <div class="space-y-3">${rows}</div>
+  `));
+
+  $$('[data-del]').forEach(b => b.onclick = (e) => {
+    e.preventDefault(); e.stopPropagation();
+    const id = b.dataset.del;
+    const a = STATE.attempts.find(x => x.id === id);
+    if (!a) return;
+    if (!confirm(`Delete this attempt of “${a.testId}” (${a.scorePct}%)?\n\nThis cannot be undone.`)) return;
+    deleteAttempt(id);
+    toast('Attempt deleted', 'success');
+    render();
+  });
+
+  $('#clear-all-btn').onclick = () => {
+    if (!confirm(`Delete ALL ${STATE.attempts.length} attempts? This cannot be undone.\n(Mastery and flags will be kept.)`)) return;
+    STATE.attempts = [];
+    persist();
+    toast('All attempts cleared', 'success');
+    render();
+  };
+});
+
+function deleteAttempt(id) {
+  const idx = STATE.attempts.findIndex(a => a.id === id);
+  if (idx < 0) return;
+  STATE.attempts.splice(idx, 1);
+  persist();
+}
+
+/* ===========================================================
+   ROUTE: DASHBOARD
+   =========================================================== */
+route('/dashboard', () => {
+  if (!STATE.attempts.length) {
+    mount(shell(html`
+      <div class="text-center py-16">
+        <p class="text-slate-500">No data yet. <a href="#/" class="text-brand-600">Take your first test →</a></p>
+        <label class="mt-8 inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 text-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50">
+          <input type="checkbox" id="conf-toggle-empty" ${STATE.settings.confidenceCapture?'checked':''} class="accent-brand-600"/>
+          <span>Track my confidence in Study Mode</span>
+        </label>
+      </div>`));
+    const ce = $('#conf-toggle-empty');
+    if (ce) ce.onchange = () => {
+      STATE.settings.confidenceCapture = ce.checked; persist();
+      toast(ce.checked ? 'Confidence tracking on' : 'Confidence tracking off', 'success');
+    };
+    return;
+  }
+
+  // Mode filter: 'all' | 'study' | 'exam'. Attempts created before mode-tracking
+  // existed default to 'exam'.
+  const mode = STATE.settings.dashboardMode || 'all';
+  const allAttempts = STATE.attempts;
+  const filtered = mode === 'all' ? allAttempts
+    : mode === 'study' ? allAttempts.filter(a => a.mode === 'study')
+    : allAttempts.filter(a => (a.mode||'exam') === 'exam');
+
+  const counts = {
+    all: allAttempts.length,
+    study: allAttempts.filter(a => a.mode === 'study').length,
+    exam: allAttempts.filter(a => (a.mode||'exam') === 'exam').length,
+  };
+
+  // Aggregate across filtered attempts
+  const byKA = {};
+  let totalCorrect = 0, totalAns = 0;
+  for (const a of filtered) {
+    const test = CATALOG.find(t => t.id === a.testId);
+    if (!test) continue;
+    for (let i=0;i<a.responses.length;i++) {
+      const q = test.questions[i], r = a.responses[i];
+      if (!r.choice) continue;
+      totalAns++; if (r.correct) totalCorrect++;
+      const k = q.topic||'Unknown';
+      byKA[k] = byKA[k] || { c:0, t:0 }; byKA[k].t++; if (r.correct) byKA[k].c++;
+    }
+  }
+  const overall = totalAns ? Math.round(totalCorrect/totalAns*100) : 0;
+  const trend = filtered.map((a,i)=>({x:i+1, y:a.scorePct, label:a.testId, when:a.endedAt}));
+  const stats = (() => {
+    const attempts = filtered.length;
+    const avgPct = attempts ? Math.round(filtered.reduce((s,a)=>s+a.scorePct,0)/attempts) : 0;
+    return { attempts, avgPct };
+  })();
+
+  const tabBtn = (key, label, count) => {
+    const active = mode === key;
+    return `<button data-dashmode="${key}" class="px-3 py-1.5 rounded-lg text-sm font-medium ${active?'bg-brand-600 text-white':'border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}">${label} <span class="text-[11px] opacity-75">${count}</span></button>`;
+  };
+
+  const emptyForFilter = filtered.length === 0;
+
+  mount(shell(html`
+    <div class="flex items-baseline justify-between mb-5 flex-wrap gap-3">
+      <h1 class="text-2xl font-bold">Dashboard</h1>
+      <div class="flex items-center gap-1.5" title="Filter charts and accuracy by attempt mode">
+        ${tabBtn('all', 'All', counts.all)}
+        ${tabBtn('study', 'Study', counts.study)}
+        ${tabBtn('exam', 'Exam', counts.exam)}
+      </div>
+    </div>
+    ${(() => {
+      const r = computeReadiness();
+      const c = { rose:'#f43f5e', amber:'#f59e0b', brand:'#6366f1', emerald:'#10b981' }[r.bandColor];
+      return `
+        <div class="rounded-2xl p-5 mb-6 bg-gradient-to-br from-slate-50 to-white dark:from-slate-900 dark:to-slate-950 border border-slate-200 dark:border-slate-800">
+          <div class="flex items-center gap-5 flex-wrap">
+            <div class="relative w-28 h-28 flex-shrink-0">
+              <svg viewBox="0 0 120 120" class="w-full h-full -rotate-90">
+                <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(100,116,139,0.2)" stroke-width="10"/>
+                <circle cx="60" cy="60" r="50" fill="none" stroke="${c}" stroke-width="10" stroke-linecap="round" stroke-dasharray="${(r.score/100*314).toFixed(1)} 314"/>
+              </svg>
+              <div class="absolute inset-0 flex flex-col items-center justify-center">
+                <div class="text-2xl font-bold">${r.score}</div>
+                <div class="text-[9px] uppercase tracking-wider text-slate-500">Readiness</div>
+              </div>
+            </div>
+            <div class="flex-1 min-w-[200px]">
+              <div class="text-lg font-bold">${r.bandLabel}</div>
+              <p class="text-xs text-slate-500 mt-0.5">Self-assessment from your bank performance — not a PMI exam-pass predictor.</p>
+              <div class="grid grid-cols-3 gap-3 mt-3">
+                <div><div class="text-[10px] uppercase tracking-wider text-slate-500">KA accuracy <span title="Average per-KA accuracy. Punishes uneven study.">ⓘ</span></div><div class="text-lg font-semibold">${r.parts.accuracy}%</div><div class="text-[10px] text-slate-400">${r.parts.kaCount} KA${r.parts.kaCount!==1?'s':''} engaged</div></div>
+                <div><div class="text-[10px] uppercase tracking-wider text-slate-500">Mock avg <span title="Average of your latest 3 mock-exam scores.">ⓘ</span></div><div class="text-lg font-semibold">${r.parts.mocks}%</div><div class="text-[10px] text-slate-400">${r.parts.mockCount} of 3</div></div>
+                <div><div class="text-[10px] uppercase tracking-wider text-slate-500">Coverage <span title="% of bank you've answered at least once.">ⓘ</span></div><div class="text-lg font-semibold">${r.parts.coverage}%</div><div class="text-[10px] text-slate-400">of ${BANK.all.length}</div></div>
+              </div>
+              <div class="mt-2 text-[10px] text-slate-400">Weights: 50% KA accuracy · 30% mocks · 20% coverage</div>
+            </div>
+          </div>
+        </div>`;
+    })()}
+    <div class="grid sm:grid-cols-4 gap-4 mb-6">
+      <div class="rounded-2xl p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+        <div class="text-xs font-semibold uppercase tracking-wider text-slate-500">Accuracy ${mode!=='all'?`<span class="text-brand-500">· ${mode}</span>`:''}</div>
+        <div class="text-3xl font-bold mt-1 ${overall>=61?'text-emerald-600':totalAns?'text-rose-600':'text-slate-400'}">${totalAns?overall+'%':'—'}</div>
+        <div class="text-xs text-slate-500 mt-1">${totalCorrect}/${totalAns} answers</div>
+      </div>
+      <div class="rounded-2xl p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+        <div class="text-xs font-semibold uppercase tracking-wider text-slate-500">Attempts</div>
+        <div class="text-3xl font-bold mt-1">${stats.attempts}</div>
+        <div class="text-xs text-slate-500 mt-1">${stats.attempts?'Avg '+stats.avgPct+'%':'\u2014'}</div>
+      </div>
+      <div class="rounded-2xl p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+        <div class="text-xs font-semibold uppercase tracking-wider text-slate-500">Mastered</div>
+        <div class="text-3xl font-bold mt-1">${computeOverallStats().mastered}</div>
+        <div class="text-xs text-slate-500 mt-1">Wrong queue: ${computeOverallStats().wrongCount}</div>
+      </div>
+      <div class="rounded-2xl p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+        <div class="text-xs font-semibold uppercase tracking-wider text-slate-500">Flagged</div>
+        <div class="text-3xl font-bold mt-1">${Object.keys(STATE.flags).length}</div>
+        <div class="text-xs text-slate-500 mt-1">Marked for review</div>
+      </div>
+    </div>
+
+    ${emptyForFilter ? html`
+      <div class="rounded-2xl p-8 text-center bg-slate-50 dark:bg-slate-900/40 border border-dashed border-slate-300 dark:border-slate-700 mb-6">
+        <p class="text-sm text-slate-500">No <strong>${mode}</strong>-mode attempts yet. Switch tabs or take a test in this mode.</p>
+      </div>
+    ` : html`
+    <div class="rounded-2xl p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 mb-6">
+      <h3 class="font-semibold mb-3">Score trend</h3>
+      <canvas id="trendChart" height="180"></canvas>
+    </div>
+
+    <div class="rounded-2xl p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 mb-6">
+      <h3 class="font-semibold mb-3">Accuracy by Knowledge Area</h3>
+      <canvas id="kaBar" height="220"></canvas>
+    </div>
+    `}
+
+    ${(() => {
+      const cal = computeCalibration();
+      if (!cal.total) return `
+        <div class="rounded-2xl p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 mb-6">
+          <h3 class="font-semibold mb-1">Confidence calibration</h3>
+          <p class="text-sm text-slate-500">Enable <em>"Track my confidence in Study Mode"</em> below, then take some Study-Mode questions. We'll plot how often your stated confidence matches your actual accuracy — and compute a Brier score so you can sharpen your judgment over time.</p>
+        </div>`;
+      const fmt = b => b.n ? Math.round(b.c/b.n*100) : null;
+      const lowAcc = fmt(cal.buckets.low), medAcc = fmt(cal.buckets.med), highAcc = fmt(cal.buckets.high);
+      return `
+        <div class="rounded-2xl p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 mb-6">
+          <div class="flex items-baseline justify-between mb-3 flex-wrap gap-2">
+            <h3 class="font-semibold">Confidence calibration</h3>
+            <span class="text-xs text-slate-500">${cal.total} answer${cal.total!==1?'s':''} tagged · Brier ${cal.brier.toFixed(3)} <span title="Mean squared error between stated confidence (low=0.33, med=0.66, high=0.90) and outcome. Lower is better; <0.15 is well-calibrated.">ⓘ</span></span>
+          </div>
+          <div class="grid sm:grid-cols-3 gap-3">
+            ${[['low','Low','rose',0.33],['med','Medium','amber',0.66],['high','High','emerald',0.90]].map(([k,label,color,target])=>{
+              const b = cal.buckets[k];
+              const acc = b.n ? Math.round(b.c/b.n*100) : null;
+              const targetPct = Math.round(target*100);
+              const off = acc==null ? null : acc - targetPct;
+              return `
+                <div class="rounded-xl border border-slate-200 dark:border-slate-800 p-3">
+                  <div class="text-xs uppercase tracking-wider text-${color}-600 dark:text-${color}-400 font-semibold">${label} confidence</div>
+                  <div class="flex items-baseline gap-2 mt-1">
+                    <div class="text-2xl font-bold">${acc==null?'—':acc+'%'}</div>
+                    <div class="text-xs text-slate-500">actual · ${targetPct}% target</div>
+                  </div>
+                  <div class="text-xs mt-1 ${off==null?'text-slate-400':Math.abs(off)<10?'text-emerald-600':off<0?'text-rose-600':'text-amber-600'}">${off==null?`${b.n} answers`:`${b.n} answers · ${off>0?'+':''}${off}% ${Math.abs(off)<10?'well-calibrated':off<0?'overconfident':'underconfident'}`}</div>
+                </div>`;
+            }).join('')}
+          </div>
+        </div>`;
+    })()}
+
+    <div class="flex flex-wrap gap-2 mb-6">
+      <button id="reset-btn" class="px-4 py-2 rounded-lg border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-sm hover:bg-rose-50 dark:hover:bg-rose-900/30">⚠ Reset all data</button>
+      <button id="exportall-btn" class="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-800 text-sm hover:bg-slate-100 dark:hover:bg-slate-800">⬇ Export all attempts (JSON)</button>
+      <button id="tour-btn" class="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-800 text-sm hover:bg-slate-100 dark:hover:bg-slate-800">🎓 Show walkthrough</button>
+      <label class="ml-auto inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 text-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50" title="In Study Mode, ask for your confidence (Low/Med/High) before revealing the answer. Builds a calibration profile.">
+        <input type="checkbox" id="conf-toggle" ${STATE.settings.confidenceCapture?'checked':''} class="accent-brand-600"/>
+        <span>Track my confidence in Study Mode</span>
+      </label>
+    </div>
+  `));
+
+  const dark = document.documentElement.classList.contains('dark');
+  Chart.defaults.color = dark ? '#cbd5e1' : '#334155';
+  Chart.defaults.borderColor = dark ? '#1e293b' : '#e2e8f0';
+
+  $$('[data-dashmode]').forEach(b => b.onclick = () => {
+    STATE.settings.dashboardMode = b.dataset.dashmode;
+    persist();
+    render();
+  });
+
+  if (!emptyForFilter) {
+    new Chart($('#trendChart'), {
+      type: 'line',
+      data: { labels: trend.map(t=>'#'+t.x),
+        datasets: [{ label:'Score %', data: trend.map(t=>t.y), borderColor:'#6366f1', backgroundColor:'rgba(99,102,241,0.15)', fill:true, tension:0.25, pointRadius:4 }] },
+      options: { scales: { y: { suggestedMin:0, suggestedMax:100, ticks:{ callback:v=>v+'%' } } },
+        plugins: { tooltip: { callbacks: { title:(items)=>trend[items[0].dataIndex].label } } } }
+    });
+
+    const kl = Object.keys(byKA);
+    new Chart($('#kaBar'), {
+      type: 'bar',
+      data: { labels: kl.map(k=>k.replace('Project ','').replace(' Management','')),
+        datasets: [{ label:'Accuracy', data: kl.map(k=>Math.round(byKA[k].c/byKA[k].t*100)),
+          backgroundColor: kl.map(k=>{ const v=byKA[k].c/byKA[k].t; return v>=0.7?'#10b981':v>=0.5?'#f59e0b':'#ef4444'; }) }] },
+      options: { indexAxis:'y', scales:{ x:{ suggestedMax:100, ticks:{ callback:v=>v+'%' } } }, plugins:{ legend:{ display:false } } }
+    });
+  }
+
+  $('#reset-btn').onclick = () => {
+    if (confirm('Erase ALL attempts, mastery, and flags? This cannot be undone.')) {
+      STATE = Store._default(); persist(); toast('Data reset','success'); navigate('/');
+    }
+  };
+  $('#exportall-btn').onclick = () => downloadFile('pmp-data.json', JSON.stringify(STATE, null, 2), 'application/json');
+  $('#tour-btn').onclick = () => showTour(true);
+  const ct = $('#conf-toggle');
+  if (ct) ct.onchange = () => {
+    STATE.settings.confidenceCapture = ct.checked;
+    persist();
+    toast(ct.checked ? 'Confidence tracking on' : 'Confidence tracking off', 'success');
+  };
+});
+
+/* ===========================================================
+   ROUTE: REWORK (wrong-answer queue, shuffled)
+   =========================================================== */
+route('/rework', () => {
+  // Build queue: all wrong qids not yet mastered, plus due-for-review from spaced repetition
+  const wrongIds = new Set();
+  for (const a of STATE.attempts) for (const r of a.responses) if (r.correct === false) wrongIds.add(r.qid);
+  const now = Date.now();
+  const queue = [];
+  for (const id of wrongIds) {
+    const m = STATE.mastery[id] || {};
+    const mastered = (m.correct||0) >= 2 && (m.correct||0) > (m.wrong||0);
+    if (!mastered) queue.push(id);
+    else if (m.due && m.due <= now) queue.push(id); // spaced rep due
+  }
+
+  if (!queue.length) {
+    mount(shell(html`
+      <div class="text-center py-16">
+        <div class="text-5xl mb-3">🎯</div>
+        <h2 class="text-xl font-bold mb-2">Nothing to rework!</h2>
+        <p class="text-slate-500">You've mastered every wrong answer. <a href="#/" class="text-brand-600">Take another test →</a></p>
+      </div>`));
+    return;
+  }
+
+  // Resolve qids to question objects (bank + custom-test questions)
+  const idToQ = {};
+  for (const q of BANK.all) idToQ[q._id] = q;
+  for (const t of (STATE.customTests||[])) for (const q of t.questions) idToQ[q._id] = q;
+  const qs = shuffle(queue.map(id => idToQ[id]).filter(Boolean));
+
+  // Run a lightweight quiz (no time limit, options shuffled, immediate feedback)
+  const session = { idx:0, qs, results:[] };
+
+  const renderRework = () => {
+    const q = session.qs[session.idx];
+    if (!q) {
+      // done
+      const correct = session.results.filter(r=>r.correct).length;
+      mount(shell(html`
+        <div class="text-center py-16">
+          <div class="text-5xl mb-3">✅</div>
+          <h2 class="text-2xl font-bold">Rework session complete</h2>
+          <p class="text-slate-500 mt-1">${correct}/${session.qs.length} correct</p>
+          <div class="mt-6 flex gap-2 justify-center">
+            <a href="#/rework" class="px-4 py-2 rounded-lg bg-brand-600 text-white text-sm">Another round</a>
+            <a href="#/" class="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-800 text-sm">Home</a>
+          </div>
+        </div>`));
+      return;
+    }
+
+    // shuffle options
+    const letters = ['A','B','C','D'];
+    const shuffled = shuffle(letters);
+    const correctNew = shuffled.indexOf(q.correct); // index 0..3 of new position
+    let picked = null;
+
+    const optHtml = shuffled.map((origLetter, idx) => html`
+      <button data-idx="${idx}" data-orig="${origLetter}" class="opt-btn rwk-opt w-full text-left p-4 rounded-xl border-2 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-900">
+        <div class="flex gap-3">
+          <span class="flex-shrink-0 w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold flex items-center justify-center text-sm">${String.fromCharCode(65+idx)}</span>
+          <span class="flex-1 leading-relaxed">${escapeHtml(q.options[origLetter]||'')}</span>
+        </div>
+      </button>`).join('');
+
+    mount(shell(html`
+      <div class="mb-3 flex items-center justify-between">
+        <div>
+          <div class="text-xs uppercase tracking-wider text-brand-600 dark:text-brand-400 font-semibold">Rework · ${session.qs.length-session.idx} left</div>
+          <h1 class="text-lg font-bold">${escapeHtml(q.topic||'')}</h1>
+        </div>
+        <div class="text-sm text-slate-500">${session.idx+1} / ${session.qs.length}</div>
+      </div>
+      <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-soft">
+        <p class="text-base sm:text-lg leading-relaxed">${escapeHtml(q.question)}</p>
+        <div id="rwk-options" class="mt-5 space-y-2.5">${optHtml}</div>
+        <div id="rwk-feedback" class="hidden mt-5"></div>
+      </div>
+      <div class="mt-4 flex justify-end">
+        <button id="rwk-next" class="hidden px-4 py-2 rounded-lg bg-brand-600 text-white text-sm font-semibold">Next →</button>
+      </div>
+    `));
+
+    $$('.rwk-opt').forEach(btn => btn.onclick = () => {
+      if (picked !== null) return;
+      picked = +btn.dataset.idx;
+      const correct = picked === correctNew;
+      // mark mastery
+      const m = STATE.mastery[q._id] || { correct:0, wrong:0, ef:2.5, interval:0, due:0, lastSeen:0 };
+      if (correct) m.correct++; else m.wrong++;
+      m.lastSeen = Date.now();
+      const grade = correct ? 5 : 2;
+      m.ef = Math.max(1.3, m.ef + (0.1 - (5-grade)*(0.08 + (5-grade)*0.02)));
+      m.interval = correct ? (m.interval ? Math.round(m.interval*m.ef) : 1) : 0;
+      m.due = Date.now() + m.interval*86400000;
+      STATE.mastery[q._id] = m;
+      persist();
+      session.results.push({ qid: q._id, correct });
+
+      // mark UI
+      $$('.rwk-opt').forEach((b, i) => {
+        const isCorrect = i === correctNew;
+        const isPicked = i === picked;
+        if (isCorrect) b.className = 'opt-btn rwk-opt w-full text-left p-4 rounded-xl border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-900/30 dark:border-emerald-400';
+        else if (isPicked) b.className = 'opt-btn rwk-opt w-full text-left p-4 rounded-xl border-2 border-rose-500 bg-rose-50 dark:bg-rose-900/30 dark:border-rose-400';
+        else b.className = 'opt-btn rwk-opt w-full text-left p-4 rounded-xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 opacity-60';
+        b.disabled = true;
+      });
+      const fb = $('#rwk-feedback');
+      fb.classList.remove('hidden');
+      fb.innerHTML = html`
+        <div class="rounded-xl ${correct?'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800':'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-800'} border p-4">
+          <div class="font-semibold ${correct?'text-emerald-700 dark:text-emerald-300':'text-rose-700 dark:text-rose-300'} mb-1">${correct?'✓ Correct':'✗ Not quite'} ${isExplanationTruncated(q.explanation) ? truncatedExplBadge : ''}</div>
+          <p class="text-sm leading-relaxed">${escapeHtml(q.explanation||'')}</p>
+          ${q.reference ? `<p class="text-xs text-slate-500 mt-2">${escapeHtml((q.reference||'').replace(/\s+/g,' '))}</p>`:''}
+        </div>`;
+      const nxt = $('#rwk-next'); nxt.classList.remove('hidden');
+      nxt.onclick = () => { session.idx++; renderRework(); };
+    });
+
+    document.onkeydown = (e) => {
+      if (['1','2','3','4'].includes(e.key)) { const b = $$('.rwk-opt')[+e.key-1]; if (b && !b.disabled) b.click(); }
+      else if (e.key === 'Enter') { const n=$('#rwk-next'); if (n && !n.classList.contains('hidden')) n.click(); }
+    };
+  };
+
+  renderRework();
+});
+
+/* ===========================================================
+   ROUTE: DUE TODAY (spaced-repetition queue)
+   ===========================================================
+   Runs ONLY items whose SM-2 `due` timestamp has passed. This is the
+   daily-discipline surface — keep this empty and your retention curve
+   stays healthy. /rework covers all-time wrongs; /due covers today's
+   review obligation. Same UI as /rework with shuffled options. */
+route('/due', () => {
+  const dueIds = computeDueIds();
+  if (!dueIds.length) {
+    mount(shell(html`
+      <div class="text-center py-16">
+        <div class="text-5xl mb-3">✨</div>
+        <h2 class="text-xl font-bold mb-2">Nothing due today</h2>
+        <p class="text-slate-500 mb-1">Your spaced-repetition queue is clear.</p>
+        <p class="text-xs text-slate-400 mb-6">Items appear here as their review intervals come due. Take more tests to grow your queue.</p>
+        <div class="flex gap-2 justify-center">
+          <a href="#/" class="px-4 py-2 rounded-lg bg-brand-600 text-white text-sm font-semibold">Take a test</a>
+          <a href="#/rework" class="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-800 text-sm">Rework wrong answers</a>
+        </div>
+      </div>`));
+    return;
+  }
+
+  const idToQ = {};
+  for (const q of BANK.all) idToQ[q._id] = q;
+  for (const t of (STATE.customTests||[])) for (const q of t.questions) idToQ[q._id] = q;
+  const qs = shuffle(dueIds.map(id => idToQ[id]).filter(Boolean));
+
+  const session = { idx:0, qs, results:[] };
+
+  const renderDue = () => {
+    const q = session.qs[session.idx];
+    if (!q) {
+      const correct = session.results.filter(r=>r.correct).length;
+      mount(shell(html`
+        <div class="text-center py-16">
+          <div class="text-5xl mb-3">✅</div>
+          <h2 class="text-2xl font-bold">Daily review complete</h2>
+          <p class="text-slate-500 mt-1">${correct}/${session.qs.length} correct</p>
+          <p class="text-xs text-slate-400 mt-2">Items you got right today moved further out in your spaced-repetition queue.</p>
+          <div class="mt-6 flex gap-2 justify-center">
+            <a href="#/" class="px-4 py-2 rounded-lg bg-brand-600 text-white text-sm">Home</a>
+            <a href="#/rework" class="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-800 text-sm">Rework wrong</a>
+          </div>
+        </div>`));
+      return;
+    }
+
+    const letters = ['A','B','C','D'];
+    const shuffled = shuffle(letters);
+    const correctNew = shuffled.indexOf(q.correct);
+    let picked = null;
+
+    const optHtml = shuffled.map((origLetter, idx) => html`
+      <button data-idx="${idx}" data-orig="${origLetter}" class="opt-btn due-opt w-full text-left p-4 rounded-xl border-2 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-900">
+        <div class="flex gap-3">
+          <span class="flex-shrink-0 w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold flex items-center justify-center text-sm">${String.fromCharCode(65+idx)}</span>
+          <span class="flex-1 leading-relaxed">${escapeHtml(q.options[origLetter]||'')}</span>
+        </div>
+      </button>`).join('');
+
+    mount(shell(html`
+      <div class="mb-3 flex items-center justify-between">
+        <div>
+          <div class="text-xs uppercase tracking-wider text-amber-600 dark:text-amber-400 font-semibold">⏰ Due today · ${session.qs.length-session.idx} left</div>
+          <h1 class="text-lg font-bold">${escapeHtml(q.topic||'')}</h1>
+        </div>
+        <div class="text-sm text-slate-500">${session.idx+1} / ${session.qs.length}</div>
+      </div>
+      <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-soft">
+        <p class="text-base sm:text-lg leading-relaxed">${escapeHtml(q.question)}</p>
+        <div id="due-options" class="mt-5 space-y-2.5">${optHtml}</div>
+        <div id="due-feedback" class="hidden mt-5"></div>
+      </div>
+      <div class="mt-4 flex justify-end">
+        <button id="due-next" class="hidden px-4 py-2 rounded-lg bg-brand-600 text-white text-sm font-semibold">Next →</button>
+      </div>
+    `));
+
+    $$('.due-opt').forEach(btn => btn.onclick = () => {
+      if (picked !== null) return;
+      picked = +btn.dataset.idx;
+      const correct = picked === correctNew;
+      const m = STATE.mastery[q._id] || { correct:0, wrong:0, ef:2.5, interval:0, due:0, lastSeen:0 };
+      if (correct) m.correct++; else m.wrong++;
+      m.lastSeen = Date.now();
+      const grade = correct ? 5 : 2;
+      m.ef = Math.max(1.3, m.ef + (0.1 - (5-grade)*(0.08 + (5-grade)*0.02)));
+      m.interval = correct ? (m.interval ? Math.round(m.interval*m.ef) : 1) : 0;
+      m.due = Date.now() + m.interval*86400000;
+      STATE.mastery[q._id] = m;
+      persist();
+      session.results.push({ qid: q._id, correct });
+
+      $$('.due-opt').forEach((b, i) => {
+        const isCorrect = i === correctNew;
+        b.disabled = true;
+        if (isCorrect) b.className = b.className.replace(/border-slate-\d+(\s+dark:border-slate-\d+)?/g,'').replace(/hover:[^\s]+/g,'') + ' border-emerald-500 bg-emerald-50 dark:bg-emerald-900/30 dark:border-emerald-400';
+        else if (i === picked) b.className = b.className.replace(/border-slate-\d+(\s+dark:border-slate-\d+)?/g,'').replace(/hover:[^\s]+/g,'') + ' border-rose-500 bg-rose-50 dark:bg-rose-900/30 dark:border-rose-400';
+      });
+
+      const fb = $('#due-feedback');
+      fb.classList.remove('hidden');
+      fb.className = `mt-5 rounded-xl border p-4 ${correct?'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800':'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-800'}`;
+      fb.innerHTML = `
+        <div class="flex items-center gap-2 mb-1.5">
+          <span class="font-semibold ${correct?'text-emerald-700 dark:text-emerald-300':'text-rose-700 dark:text-rose-300'}">${correct?'✓ Correct':'✗ Not quite'}</span>
+          <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">PMBOK 6 source</span>
+          ${isExplanationTruncated(q.explanation) ? truncatedExplBadge : ''}
+        </div>
+        <p class="text-sm leading-relaxed">${escapeHtml(q.explanation||'')}</p>
+        ${q.reference ? `<p class="text-xs text-slate-500 mt-2">${escapeHtml((q.reference||'').replace(/\s+/g,' '))}</p>`:''}`;
+
+      const nxt = $('#due-next');
+      nxt.classList.remove('hidden');
+      nxt.onclick = () => { session.idx++; renderDue(); };
+    });
+
+    document.onkeydown = (e) => {
+      if (['1','2','3','4'].includes(e.key)) { const b = $$('.due-opt')[+e.key-1]; if (b && !b.disabled) b.click(); }
+      else if (e.key === 'Enter') { const n=$('#due-next'); if (n && !n.classList.contains('hidden')) n.click(); }
+    };
+  };
+
+  renderDue();
+});
+
+/* ===========================================================
+   Export helpers
+   =========================================================== */
+function downloadFile(name, data, type='text/plain') {
+  const blob = new Blob([data], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(()=>{ a.remove(); URL.revokeObjectURL(url); }, 100);
+}
+
+function exportCSV(A, test) {
+  const rows = [['#','Question','KA','Your answer','Correct answer','Result','Time (s)','Flagged']];
+  for (let i=0;i<A.responses.length;i++) {
+    const q = test.questions[i], r = A.responses[i];
+    rows.push([
+      i+1,
+      (q.question||'').replace(/\s+/g,' ').slice(0,500),
+      q.topic||'',
+      r.choice||'',
+      q.correct,
+      r.correct===true?'correct':r.correct===false?'wrong':'unanswered',
+      (r.timeMs/1000).toFixed(1),
+      r.flagged?'yes':''
+    ]);
+  }
+  const csv = rows.map(r=>r.map(v=>{
+    const s = String(v??'');
+    return /[",\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
+  }).join(',')).join('\n');
+  downloadFile(`${test.id.replace(/\s+/g,'_')}-${A.id}.csv`, csv, 'text/csv');
+  toast('CSV downloaded','success');
+}
+
+/* ===========================================================
+   STUDY-DAY HELPERS (used by hero streak/calendar)
+   =========================================================== */
+function computeStreak() {
+  const days = Object.keys(STATE.studyDays).sort().reverse();
+  if (!days.length) return 0;
+  let streak = 0;
+  let d = new Date(); d.setHours(0,0,0,0);
+  for (let i=0;i<400;i++) {
+    const key = d.toISOString().slice(0,10);
+    if (STATE.studyDays[key]) { streak++; d.setDate(d.getDate()-1); }
+    else { if (i===0) { d.setDate(d.getDate()-1); continue; } break; }
+  }
+  return streak;
+}
+
+/* ===========================================================
+   GLOBAL QUESTION SEARCH
+   =========================================================== */
+/* ===========================================================
+   ROUTE: WEAK-AREA DRILL
+   ===========================================================
+   Targeted 15q session weighted toward your lowest-accuracy KAs,
+   with previously-wrong items prioritised. Same shuffled-options
+   feedback UI as /rework and /due. */
+route('/drill', () => {
+  const built = buildDrillSession(15);
+  if (!built) {
+    mount(shell(html`
+      <div class="text-center py-16">
+        <div class="text-5xl mb-3">📊</div>
+        <h2 class="text-xl font-bold mb-2">Not enough data yet</h2>
+        <p class="text-slate-500 mb-1">A weak-area drill needs at least one Knowledge Area with 4+ answered questions.</p>
+        <p class="text-xs text-slate-400 mb-6">Take a Knowledge Area Quiz or two and come back.</p>
+        <a href="#/" class="px-4 py-2 rounded-lg bg-brand-600 text-white text-sm font-semibold">Pick a test</a>
+      </div>`));
+    return;
+  }
+
+  const { questions: qs, focus } = built;
+  const session = { idx:0, qs, results:[], focus };
+
+  const renderDrill = () => {
+    const q = session.qs[session.idx];
+    if (!q) {
+      const correct = session.results.filter(r=>r.correct).length;
+      mount(shell(html`
+        <div class="text-center py-16">
+          <div class="text-5xl mb-3">🎯</div>
+          <h2 class="text-2xl font-bold">Drill complete</h2>
+          <p class="text-slate-500 mt-1">${correct}/${session.qs.length} correct on your weakest areas</p>
+          <p class="text-xs text-slate-400 mt-2">Focused: ${session.focus.map(f=>escapeHtml(f.topic)).join(', ')}</p>
+          <div class="mt-6 flex gap-2 justify-center flex-wrap">
+            <a href="#/drill" class="px-4 py-2 rounded-lg bg-brand-600 text-white text-sm font-semibold">Another drill</a>
+            <a href="#/dashboard" class="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-800 text-sm">See dashboard</a>
+            <a href="#/" class="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-800 text-sm">Home</a>
+          </div>
+        </div>`));
+      return;
+    }
+    const letters = ['A','B','C','D'];
+    const shuffled = shuffle(letters);
+    const correctNew = shuffled.indexOf(q.correct);
+    let picked = null;
+    const optHtml = shuffled.map((origLetter, idx) => html`
+      <button data-idx="${idx}" data-orig="${origLetter}" class="opt-btn drill-opt w-full text-left p-4 rounded-xl border-2 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-900">
+        <div class="flex gap-3">
+          <span class="flex-shrink-0 w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold flex items-center justify-center text-sm">${String.fromCharCode(65+idx)}</span>
+          <span class="flex-1 leading-relaxed">${escapeHtml(q.options[origLetter]||'')}</span>
+        </div>
+      </button>`).join('');
+
+    const focusBadges = session.focus.map(f =>
+      `<span class="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300">${escapeHtml(f.topic.replace('Project ','').replace(' Management',''))} ${Math.round(f.acc*100)}%</span>`
+    ).join(' ');
+
+    mount(shell(html`
+      <div class="mb-3 flex items-center justify-between flex-wrap gap-2">
+        <div>
+          <div class="text-xs uppercase tracking-wider text-amber-600 dark:text-amber-400 font-semibold">🎯 Weak-area drill · ${session.qs.length-session.idx} left</div>
+          <h1 class="text-lg font-bold">${escapeHtml(q.topic||'')}</h1>
+          <div class="mt-1 flex flex-wrap gap-1">${focusBadges}</div>
+        </div>
+        <div class="text-sm text-slate-500">${session.idx+1} / ${session.qs.length}</div>
+      </div>
+      <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-soft">
+        <p class="text-base sm:text-lg leading-relaxed">${escapeHtml(q.question)}</p>
+        <div id="drill-options" class="mt-5 space-y-2.5">${optHtml}</div>
+        <div id="drill-feedback" class="hidden mt-5"></div>
+      </div>
+      <div class="mt-4 flex justify-end">
+        <button id="drill-next" class="hidden px-4 py-2 rounded-lg bg-brand-600 text-white text-sm font-semibold">Next →</button>
+      </div>
+    `));
+
+    $$('.drill-opt').forEach(btn => btn.onclick = () => {
+      if (picked !== null) return;
+      picked = +btn.dataset.idx;
+      const correct = picked === correctNew;
+      const m = STATE.mastery[q._id] || { correct:0, wrong:0, ef:2.5, interval:0, due:0, lastSeen:0 };
+      if (correct) m.correct++; else m.wrong++;
+      m.lastSeen = Date.now();
+      const grade = correct ? 5 : 2;
+      m.ef = Math.max(1.3, m.ef + (0.1 - (5-grade)*(0.08 + (5-grade)*0.02)));
+      m.interval = correct ? (m.interval ? Math.round(m.interval*m.ef) : 1) : 0;
+      m.due = Date.now() + m.interval*86400000;
+      STATE.mastery[q._id] = m;
+      persist();
+      session.results.push({ qid: q._id, correct });
+
+      $$('.drill-opt').forEach((b, i) => {
+        const isCorrect = i === correctNew;
+        const isPicked = i === picked;
+        if (isCorrect) b.className = 'opt-btn drill-opt w-full text-left p-4 rounded-xl border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-900/30 dark:border-emerald-400';
+        else if (isPicked) b.className = 'opt-btn drill-opt w-full text-left p-4 rounded-xl border-2 border-rose-500 bg-rose-50 dark:bg-rose-900/30 dark:border-rose-400';
+        else b.className = 'opt-btn drill-opt w-full text-left p-4 rounded-xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 opacity-60';
+        b.disabled = true;
+      });
+      const fb = $('#drill-feedback');
+      fb.classList.remove('hidden');
+      fb.innerHTML = html`
+        <div class="rounded-xl ${correct?'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800':'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-800'} border p-4">
+          <div class="font-semibold ${correct?'text-emerald-700 dark:text-emerald-300':'text-rose-700 dark:text-rose-300'} mb-1">${correct?'✓ Correct':'✗ Not quite'} ${isExplanationTruncated(q.explanation) ? truncatedExplBadge : ''}</div>
+          <p class="text-sm leading-relaxed">${escapeHtml(q.explanation||'')}</p>
+          ${q.reference ? `<p class="text-xs text-slate-500 mt-2">${escapeHtml((q.reference||'').replace(/\s+/g,' '))}</p>`:''}
+        </div>`;
+      const nxt = $('#drill-next'); nxt.classList.remove('hidden');
+      nxt.onclick = () => { session.idx++; renderDrill(); };
+    });
+
+    document.onkeydown = (e) => {
+      if (['1','2','3','4'].includes(e.key)) { const b = $$('.drill-opt')[+e.key-1]; if (b && !b.disabled) b.click(); }
+      else if (e.key === 'Enter') { const n=$('#drill-next'); if (n && !n.classList.contains('hidden')) n.click(); }
+    };
+  };
+
+  renderDrill();
+});
+
+route('/flagged', () => browseQuestions({ flaggedOnly: true }));
+route('/search', () => browseQuestions({}));
+
+/* ===========================================================
+   ROUTE: SETTINGS — sync, backup/restore, danger zone
+   =========================================================== */
+route('/settings', () => {
+  const SYNC = window.PMP_SYNC;
+  const isSignedIn = !!(SYNC && SYNC.user);
+  const syncAvailable = !!(SYNC && SYNC.available);
+  const sizeBytes = (() => { try { return new Blob([JSON.stringify(STATE)]).size; } catch { return 0; } })();
+  const sizeKB = (sizeBytes / 1024).toFixed(1);
+  const lastModStr = STATE.lastModified ? new Date(STATE.lastModified).toLocaleString() : '—';
+  const counts = {
+    attempts: STATE.attempts.length,
+    flags: Object.keys(STATE.flags).length,
+    notes: Object.keys(STATE.qNotes).length + Object.keys(STATE.libNotes).length,
+    bookmarks: Object.keys(STATE.bookmarks).length,
+    customTests: (STATE.customTests || []).length,
+  };
+
+  const syncCard = (() => {
+    if (!syncAvailable) {
+      return html`
+        <div class="rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/30 p-5">
+          <h3 class="font-semibold text-amber-900 dark:text-amber-200 mb-1">Cloud sync not configured</h3>
+          <p class="text-sm text-amber-800 dark:text-amber-300">
+            <code class="text-xs">firebase-config.js</code> still has placeholder values, so the app is running local-only.
+            See <code class="text-xs">SETUP.md</code> for the one-time Firebase setup (free, no credit card).
+            Use the Backup section below to move data between devices in the meantime.
+          </p>
+        </div>`;
+    }
+    if (!isSignedIn) {
+      return html`
+        <div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5">
+          <h3 class="font-semibold mb-1">Cross-device sync</h3>
+          <p class="text-sm text-slate-600 dark:text-slate-400 mb-3">
+            Sign in with Google to sync your progress, attempts, flags, notes, and custom tests across all your devices.
+            Your data lives in your private Firestore document — only you can read or write it.
+          </p>
+          <button id="settings-signin" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium">
+            <svg width="14" height="14" viewBox="0 0 24 24"><path fill="#fff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" opacity=".95"/><path fill="#fff" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" opacity=".8"/><path fill="#fff" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" opacity=".7"/><path fill="#fff" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" opacity=".85"/></svg>
+            Sign in with Google
+          </button>
+        </div>`;
+    }
+    return html`
+      <div class="rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/50 dark:bg-emerald-950/20 p-5">
+        <div class="flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <h3 class="font-semibold text-emerald-900 dark:text-emerald-200 mb-1">Synced</h3>
+            <p class="text-sm text-emerald-800 dark:text-emerald-300">
+              Signed in as <strong>${escapeHtml(SYNC.user.displayName || SYNC.user.email)}</strong>.
+              Changes sync automatically across devices.
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="settings-pull" class="px-3 py-1.5 rounded-lg border border-emerald-300 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 text-sm">Pull from cloud</button>
+            <button id="settings-push" class="px-3 py-1.5 rounded-lg border border-emerald-300 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 text-sm">Push to cloud</button>
+            <button id="settings-signout" class="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm">Sign out</button>
+          </div>
+        </div>
+      </div>`;
+  })();
+
+  mount(shell(html`
+    <div class="space-y-6 max-w-3xl">
+      <div>
+        <h1 class="text-2xl font-bold mb-1">Settings</h1>
+        <p class="text-sm text-slate-500 dark:text-slate-400">Sync, backup, and reset your data.</p>
+      </div>
+
+      ${syncCard}
+
+      <div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5">
+        <h3 class="font-semibold mb-1">Backup &amp; restore</h3>
+        <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
+          Manual JSON export/import. Useful for moving data between origins
+          (e.g. <code class="text-xs">file://</code> → GitHub Pages) or for keeping an offline backup.
+        </p>
+        <dl class="grid grid-cols-2 sm:grid-cols-5 gap-3 text-sm mb-4">
+          <div><dt class="text-xs text-slate-500">Attempts</dt><dd class="font-semibold">${counts.attempts}</dd></div>
+          <div><dt class="text-xs text-slate-500">Flagged</dt><dd class="font-semibold">${counts.flags}</dd></div>
+          <div><dt class="text-xs text-slate-500">Notes</dt><dd class="font-semibold">${counts.notes}</dd></div>
+          <div><dt class="text-xs text-slate-500">Bookmarks</dt><dd class="font-semibold">${counts.bookmarks}</dd></div>
+          <div><dt class="text-xs text-slate-500">Custom tests</dt><dd class="font-semibold">${counts.customTests}</dd></div>
+        </dl>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mb-3">Total size: <strong>${sizeKB} KB</strong> · Last modified: <strong>${lastModStr}</strong></p>
+        <div class="flex flex-wrap items-center gap-2">
+          <button id="settings-export" class="px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium">Download JSON</button>
+          <label class="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm cursor-pointer">
+            Restore from JSON…
+            <input id="settings-import" type="file" accept="application/json,.json" class="hidden">
+          </label>
+          <button id="settings-copy" class="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm">Copy JSON to clipboard</button>
+          <button id="settings-paste" class="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm">Paste JSON…</button>
+        </div>
+      </div>
+
+      <div class="rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50/50 dark:bg-rose-950/20 p-5">
+        <h3 class="font-semibold text-rose-900 dark:text-rose-200 mb-1">Danger zone</h3>
+        <p class="text-sm text-rose-800 dark:text-rose-300 mb-3">
+          Wipe all local data on this device. If you're signed in, this also pushes the empty state to the cloud — affecting all your devices. Cannot be undone.
+        </p>
+        <button id="settings-wipe" class="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-sm font-medium">Erase all data on this device</button>
+      </div>
+    </div>
+  `));
+
+  const applyImported = (parsed) => {
+    if (!parsed || typeof parsed !== 'object' || !('attempts' in parsed)) throw new Error('Not a valid PMP Prep backup');
+    STATE = Object.assign(Store._default(), parsed);
+    STATE.lastModified = Date.now();
+    Store.save(STATE);
+    try { window.PMP_SYNC && window.PMP_SYNC.user && window.PMP_SYNC.push(STATE); } catch {}
+    rebuildCatalog(); applyTheme();
+    toast('Restored ' + (parsed.attempts?.length || 0) + ' attempts', 'success');
+    render();
+  };
+
+  $('#settings-signin')?.addEventListener('click', async () => {
+    try { await SYNC.signIn(); } catch (e) { toast('Sign-in failed: ' + (e.message || e), 'error'); }
+  });
+  $('#settings-signout')?.addEventListener('click', async () => {
+    try { await SYNC.signOut(); toast('Signed out'); render(); } catch (e) { toast('Sign-out failed', 'error'); }
+  });
+  $('#settings-pull')?.addEventListener('click', async () => {
+    try {
+      const cloud = await SYNC.pull();
+      if (!cloud) { toast('No cloud data yet', 'warn'); return; }
+      STATE = Object.assign(Store._default(), cloud);
+      Store.save(STATE);
+      rebuildCatalog(); applyTheme();
+      toast('Pulled from cloud', 'success'); render();
+    } catch (e) { toast('Pull failed: ' + (e.message || e), 'error'); }
+  });
+  $('#settings-push')?.addEventListener('click', async () => {
+    try { STATE.lastModified = Date.now(); Store.save(STATE); await SYNC.push(STATE); toast('Pushed to cloud', 'success'); }
+    catch (e) { toast('Push failed: ' + (e.message || e), 'error'); }
+  });
+  $('#settings-export').addEventListener('click', () => {
+    const blob = new Blob([JSON.stringify(STATE, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const d = new Date(); const stamp = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}-${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}`;
+    a.href = url; a.download = `pmp-prep-backup-${stamp}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+  $('#settings-import').addEventListener('change', async (ev) => {
+    const f = ev.target.files?.[0]; if (!f) return;
+    try {
+      const text = await f.text();
+      if (!confirm('Restore from "' + f.name + '"? This replaces all current data on this device.')) { ev.target.value = ''; return; }
+      applyImported(JSON.parse(text));
+    } catch (e) { toast('Import failed: ' + (e.message || e), 'error'); }
+    ev.target.value = '';
+  });
+  $('#settings-copy').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(JSON.stringify(STATE)); toast('Copied to clipboard', 'success'); }
+    catch (e) { toast('Clipboard blocked — try Download JSON instead', 'error'); }
+  });
+  $('#settings-paste').addEventListener('click', async () => {
+    let text = '';
+    try { text = await navigator.clipboard.readText(); } catch {}
+    if (!text) text = prompt('Paste your backup JSON here:') || '';
+    if (!text.trim()) return;
+    try {
+      if (!confirm('Replace all current data on this device with the pasted JSON?')) return;
+      applyImported(JSON.parse(text));
+    } catch (e) { toast('Paste failed: ' + (e.message || e), 'error'); }
+  });
+  $('#settings-wipe').addEventListener('click', () => {
+    if (!confirm('Erase ALL local data? This cannot be undone.')) return;
+    if (!confirm('Are you absolutely sure? Type-check: this will delete all attempts, flags, notes, and custom tests.')) return;
+    STATE = Store._default();
+    STATE.lastModified = Date.now();
+    Store.save(STATE);
+    try { window.PMP_SYNC && window.PMP_SYNC.user && window.PMP_SYNC.push(STATE); } catch {}
+    rebuildCatalog();
+    toast('All data erased', 'warn');
+    render();
+  });
+});
+
+function browseQuestions(initial) {
+  // gather KAs
+  const kaCounts = {};
+  for (const q of BANK.all) { const k = q.topic || 'Unknown'; kaCounts[k] = (kaCounts[k]||0) + 1; }
+  const kas = Object.keys(kaCounts).sort();
+
+  let qstr = '';
+  let ka = 'all';
+  let flaggedOnly = !!initial.flaggedOnly;
+  let limit = 50;
+
+  const title = flaggedOnly ? 'Flagged questions' : 'Browse questions';
+  mount(shell(html`
+    <h1 class="text-2xl font-bold mb-2">${title}</h1>
+    <p class="text-sm text-slate-500 mb-4">${BANK.all.length} questions in the bank. Filter by KA, search text, or limit to flagged only.</p>
+    <div class="grid grid-cols-1 sm:grid-cols-[1fr_auto_auto] gap-2 mb-4">
+      <input id="q-search" type="search" autofocus placeholder="Search question, options, explanation…" class="px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900" />
+      <select id="ka-filter" class="px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-sm">
+        <option value="all">All KAs (${BANK.all.length})</option>
+        ${kas.map(k => `<option value="${escapeHtml(k)}">${escapeHtml(k)} (${kaCounts[k]})</option>`).join('')}
+      </select>
+      <label class="inline-flex items-center gap-2 px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-sm cursor-pointer">
+        <input id="flag-only" type="checkbox" ${flaggedOnly?'checked':''} class="accent-brand-600"/>
+        <span>⚑ Flagged only</span>
+      </label>
+    </div>
+    <div id="q-results"></div>
+  `));
+
+  const inp = $('#q-search');
+  const sel = $('#ka-filter');
+  const flagChk = $('#flag-only');
+  const out = $('#q-results');
+
+  const render = () => {
+    const re = qstr.length >= 2 ? new RegExp(qstr.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'i') : null;
+    const hits = [];
+    for (const q of BANK.all) {
+      if (ka !== 'all' && (q.topic||'Unknown') !== ka) continue;
+      if (flaggedOnly && !STATE.flags[q._id]) continue;
+      if (re) {
+        const hay = q.question + ' ' + Object.values(q.options||{}).join(' ') + ' ' + (q.explanation||'');
+        if (!re.test(hay)) continue;
+      }
+      hits.push(q);
+    }
+    if (!hits.length) { out.innerHTML = `<p class="text-slate-500 py-8 text-center">No questions match.</p>`; return; }
+    const shown = hits.slice(0, limit);
+    const moreBtn = hits.length > limit ? `<div class="mt-4 text-center"><button id="show-more" class="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm">Show more (${hits.length - limit} remaining)</button></div>` : '';
+    out.innerHTML = `<p class="text-sm text-slate-500 mb-3">${hits.length} question${hits.length>1?'s':''} ${qstr?'matching':''} · showing ${shown.length}</p>` +
+      shown.map(q => {
+        const isFlagged = !!STATE.flags[q._id];
+        const m = STATE.mastery[q._id];
+        const masteryBadge = m ? (m.correct >= 2 && m.correct > m.wrong
+          ? '<span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">Mastered</span>'
+          : m.wrong > 0 ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300">${m.correct}✓ ${m.wrong}✗</span>`
+          : `<span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600">Seen</span>`) : '';
+        let snip = q.question.slice(0, 240);
+        if (re) {
+          const idx = q.question.toLowerCase().indexOf(qstr.toLowerCase());
+          if (idx >= 0) snip = q.question.slice(Math.max(0,idx-50), idx+qstr.length+150);
+        }
+        let snipHtml = escapeHtml(snip);
+        if (re) snipHtml = snipHtml.replace(new RegExp('('+qstr.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'),'<mark class="bg-amber-200 dark:bg-amber-700/60">$1</mark>');
+        return `<div class="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 mb-2">
+          <div class="flex items-center gap-2 flex-wrap text-xs">
+            <span class="text-brand-600 dark:text-brand-400 font-semibold">${escapeHtml(q.section)} · #${q.num}</span>
+            <span class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">${escapeHtml(q.topic||'')}</span>
+            ${isFlagged ? '<span class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">⚑ Flagged</span>' : ''}
+            ${masteryBadge}
+          </div>
+          <div class="text-sm mt-1.5 leading-relaxed">${snipHtml}${q.question.length>snip.length?'…':''}</div>
+          <div class="text-xs mt-1.5"><a class="text-brand-600 hover:underline" href="#/test/${encodeURIComponent(q.section)}">Open this test →</a></div>
+        </div>`;
+      }).join('') + moreBtn;
+    const sm = $('#show-more'); if (sm) sm.onclick = () => { limit += 50; render(); };
+  };
+
+  const trigger = debounce(() => { limit = 50; render(); }, 200);
+  inp.addEventListener('input', e => { qstr = e.target.value.trim(); trigger(); });
+  sel.addEventListener('change', e => { ka = e.target.value; limit = 50; render(); });
+  flagChk.addEventListener('change', e => { flaggedOnly = e.target.checked; limit = 50; render(); });
+  render();
+}
+
+/* ===========================================================
+   KEYBOARD SHORTCUT HELP OVERLAY (?)
+   =========================================================== */
+window.addEventListener('keydown', (e) => {
+  if (e.key === '?' && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName||'')) {
+    e.preventDefault();
+    const existing = document.getElementById('kb-help');
+    if (existing) { existing.remove(); return; }
+    const o = document.createElement('div');
+    o.id = 'kb-help';
+    o.className = 'fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4';
+    o.innerHTML = `
+      <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6">
+        <h3 class="text-lg font-bold mb-4">Keyboard shortcuts</h3>
+        <table class="w-full text-sm">
+          <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
+            <tr><td class="py-2"><kbd class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-xs">1-4</kbd></td><td>Select option A-D</td></tr>
+            <tr><td class="py-2"><kbd class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-xs">←/→</kbd></td><td>Previous / Next question</td></tr>
+            <tr><td class="py-2"><kbd class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-xs">F</kbd></td><td>Flag question</td></tr>
+            <tr><td class="py-2"><kbd class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-xs">Enter</kbd></td><td>Next question</td></tr>
+            <tr><td class="py-2"><kbd class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-xs">?</kbd></td><td>Show / hide this help</td></tr>
+          </tbody>
+        </table>
+        <button id="kb-close" class="mt-5 w-full px-4 py-2 rounded-lg bg-brand-600 text-white font-semibold">Close</button>
+      </div>`;
+    document.body.appendChild(o);
+    o.onclick = (ev) => { if (ev.target === o || ev.target.id === 'kb-close') o.remove(); };
+  }
+});
+
+
+</script>
+</body>
+</html>
