@@ -412,7 +412,9 @@ route('/', () => {
   const calCells = (() => {
     const cells = [];
     const today = new Date(); today.setHours(0,0,0,0);
-    for (let i=27; i>=0; i--) {
+    // Today on the left, older days to the right — friendlier than
+    // GitHub-style oldest-first because your eye lands on "today" first.
+    for (let i=0; i<=27; i++) {
       const d = new Date(today); d.setDate(today.getDate()-i);
       const key = todayKey(d);
       const data = STATE.studyDays[key];
