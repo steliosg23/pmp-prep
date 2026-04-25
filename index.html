@@ -152,6 +152,48 @@ function toast(msg, kind='info') {
 
 /* ---------------- Storage ---------------- */
 const KEY = 'pmpprep.v1';
+
+// IndexedDB layer — survives iOS Safari's aggressive localStorage eviction (ITP,
+// "Clear History and Website Data", tab-close in some private-mode states).
+// We write-through on every save and check for a fresher copy on boot.
+const IDB = (() => {
+  const DB = 'pmpprep'; const STORE = 'state'; const ROW = 'main';
+  function open() {
+    return new Promise((resolve, reject) => {
+      try {
+        const req = indexedDB.open(DB, 1);
+        req.onupgradeneeded = () => req.result.createObjectStore(STORE);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      } catch (e) { reject(e); }
+    });
+  }
+  return {
+    async get() {
+      try {
+        const db = await open();
+        return await new Promise((res, rej) => {
+          const tx = db.transaction(STORE, 'readonly');
+          const r = tx.objectStore(STORE).get(ROW);
+          r.onsuccess = () => res(r.result || null);
+          r.onerror = () => rej(r.error);
+        });
+      } catch { return null; }
+    },
+    async put(value) {
+      try {
+        const db = await open();
+        await new Promise((res, rej) => {
+          const tx = db.transaction(STORE, 'readwrite');
+          tx.objectStore(STORE).put(value, ROW);
+          tx.oncomplete = () => res();
+          tx.onerror = () => rej(tx.error);
+        });
+      } catch {}
+    },
+  };
+})();
+
 const Store = {
   load() {
     try {
@@ -160,7 +202,9 @@ const Store = {
     } catch { return this._default(); }
   },
   save(state) {
-    localStorage.setItem(KEY, JSON.stringify(state));
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {}
+    // Write-through to IDB; fire-and-forget.
+    IDB.put(state);
   },
   _default() {
     return {
@@ -182,6 +226,37 @@ const Store = {
   }
 };
 let STATE = Store.load();
+
+// On boot, async-check IndexedDB for a fresher copy. This recovers the case
+// where iOS Safari wiped localStorage but IDB survived.
+(async () => {
+  try {
+    const idbState = await IDB.get();
+    if (!idbState) {
+      // First boot, or IDB has nothing yet — seed it with whatever localStorage has.
+      if (STATE.lastModified) IDB.put(STATE);
+      return;
+    }
+    const idbMod = idbState.lastModified || 0;
+    const lsMod = STATE.lastModified || 0;
+    if (idbMod > lsMod) {
+      // IDB is newer (localStorage was likely evicted) — restore.
+      STATE = Object.assign(Store._default(), idbState);
+      try { localStorage.setItem(KEY, JSON.stringify(STATE)); } catch {}
+      if (typeof rebuildCatalog === 'function') rebuildCatalog();
+      if (typeof applyTheme === 'function') applyTheme();
+      if (typeof render === 'function') render();
+      if (lsMod === 0 && idbMod > 0) {
+        // localStorage was wiped — surface this so user knows the recovery happened.
+        try { toast('Restored your progress from local backup', 'success'); } catch {}
+      }
+    } else if (lsMod > idbMod) {
+      // localStorage is newer — push to IDB.
+      IDB.put(STATE);
+    }
+  } catch (e) { console.warn('IDB boot check failed', e); }
+})();
+
 // Local save (always). Cloud sync is layered on top via PMP_SYNC.push when signed in.
 const persist = debounce(()=>{
   STATE.lastModified = Date.now();
@@ -1339,7 +1414,7 @@ function renderRunner(test, A) {
             </div>
           </div>
 
-          <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-soft">
+          <div id="question-card" class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-soft scroll-mt-20">
             ${/\[text truncated in source PDF\]/.test(q.question) ? `<div class="mb-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 text-xs font-medium">⚠ Source PDF truncates this question — answer with available context</div>` : ''}
             <p class="text-base sm:text-lg leading-relaxed">${escapeHtml(q.question)}</p>
             <div class="mt-5 space-y-2.5">${optHtml}</div>
@@ -1384,6 +1459,26 @@ function renderRunner(test, A) {
 
     mount(shell(content));
 
+    // After a render that should reorient the user (new question or just-revealed
+    // feedback), scroll the question card to just below the sticky header. We
+    // only do this when renderQ is invoked from a navigation/reveal action — not
+    // from in-place tweaks like option pick, flag, or confidence — to avoid
+    // jarring scroll jumps on every click. The flag is set by callers via
+    // renderQ.__scroll = true before invocation; consumed and cleared here.
+    if (renderQ.__scroll) {
+      renderQ.__scroll = false;
+      requestAnimationFrame(() => {
+        const card = document.getElementById('question-card');
+        if (card) {
+          // Only scroll if the card isn't already nicely in view at the top.
+          const rect = card.getBoundingClientRect();
+          if (rect.top < 0 || rect.top > 120) {
+            card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }
+      });
+    }
+
     // Wire interactions
     $$('.opt-btn').forEach(btn => btn.onclick = () => pick(btn.dataset.letter));
     $$('.conf-btn').forEach(btn => btn.onclick = () => {
@@ -1409,7 +1504,7 @@ function renderRunner(test, A) {
       renderQ();
     };
     $('#end-btn').onclick = () => { if (confirm('End the test now and see results?')) finish(); };
-    $$('[data-jump]').forEach(b => b.onclick = () => { trackTime(); A.idx = +b.dataset.jump; persist(); renderQ(); });
+    $$('[data-jump]').forEach(b => b.onclick = () => { trackTime(); A.idx = +b.dataset.jump; persist(); renderQ.__scroll = true; renderQ(); });
 
     // Timer tick (countdown for exam, elapsed for study)
     if (window.__pmpTimer) clearInterval(window.__pmpTimer);
@@ -1452,7 +1547,7 @@ function renderRunner(test, A) {
       // Re-render to update visual state (selection in exam, or just selection in study).
       renderQ();
     }
-    function prev() { trackTime(); if (A.idx>0) A.idx--; persist(); renderQ(); }
+    function prev() { trackTime(); if (A.idx>0) A.idx--; persist(); renderQ.__scroll = true; renderQ(); }
     function next() {
       trackTime();
       const cur = A.responses[A.idx];
@@ -1462,12 +1557,13 @@ function renderRunner(test, A) {
         // Update mastery immediately on reveal so it counts
         updateMasteryForResponse(q, cur);
         persist();
+        renderQ.__scroll = true;
         renderQ();
         return;
       }
       if (A.idx === test.questions.length-1) {
         if (confirm('Submit the test?')) finish();
-      } else { A.idx++; persist(); renderQ(); }
+      } else { A.idx++; persist(); renderQ.__scroll = true; renderQ(); }
     }
     function toggleFlag() {
       A.responses[A.idx].flagged = !A.responses[A.idx].flagged;

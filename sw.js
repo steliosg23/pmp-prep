@@ -8,7 +8,7 @@
  * one-shot refetch. Firebase Auth domains are network-only (never cached).
  */
 
-const CACHE_VERSION = 'v2026.04.25.2';
+const CACHE_VERSION = 'v2026.04.25.3';
 const APP_CACHE = `pmp-app-${CACHE_VERSION}`;
 const CDN_CACHE = `pmp-cdn-${CACHE_VERSION}`;
 
