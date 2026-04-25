@@ -5,10 +5,10 @@
  * get fresh code after deploys.
  *
  * Bumping CACHE_VERSION on every deploy invalidates all caches and forces a
- * one-shot refetch. Firebase Auth domains are network-only (never cached).
+ * one-shot refetch.
  */
 
-const CACHE_VERSION = 'v2026.04.25.3';
+const CACHE_VERSION = 'v2026.04.25.4';
 const APP_CACHE = `pmp-app-${CACHE_VERSION}`;
 const CDN_CACHE = `pmp-cdn-${CACHE_VERSION}`;
 
@@ -29,15 +29,13 @@ const APP_SHELL = [
   './pmp.ico',
 ];
 
-// Origins that are safe to cache for offline use. Firebase Auth/Firestore
-// endpoints are deliberately excluded — they must always hit the network.
+// Origins that are safe to cache for offline use.
 const RUNTIME_CACHEABLE_ORIGINS = [
   'https://cdn.tailwindcss.com',
   'https://cdn.jsdelivr.net',
   'https://cdnjs.cloudflare.com',
   'https://fonts.googleapis.com',
   'https://fonts.gstatic.com',
-  'https://www.gstatic.com', // Firebase SDK, but only the static .js — auth requests go elsewhere
 ];
 
 self.addEventListener('install', (event) => {
@@ -67,14 +65,6 @@ self.addEventListener('fetch', (event) => {
   if (req.method !== 'GET') return;
 
   const url = new URL(req.url);
-
-  // Never cache Firestore / Identity Toolkit traffic — they must be live.
-  if (url.hostname.endsWith('firestore.googleapis.com') ||
-      url.hostname.endsWith('identitytoolkit.googleapis.com') ||
-      url.hostname.endsWith('securetoken.googleapis.com') ||
-      url.hostname.endsWith('firebaseio.com')) {
-    return; // default browser fetch
-  }
 
   // Same-origin: cache-first with network fallback (offline-capable shell)
   if (url.origin === self.location.origin) {

@@ -31,12 +31,6 @@
   };
 </script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script>
-  if (window['pdfjsLib']) {
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-  }
-</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -72,12 +66,7 @@
 <div id="toast" class="fixed bottom-6 right-6 z-50 space-y-2"></div>
 
 <script src="data.js"></script>
-<!-- Cross-device sync via Firebase is disabled in this build (network restrictions).
-     The app runs local-only; use Settings → Backup & restore to move data between devices.
-     To enable later: uncomment the two lines below and fill in firebase-config.js.
-<script src="firebase-config.js"></script>
-<script type="module" src="firebase-init.js"></script>
--->
+<!-- This is a local-only app. All data lives in this browser; use Settings → Backup & restore to move data between devices. -->
 <script>
   // Service worker registration. Skipped on file:// so local-file dev still works.
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
@@ -219,9 +208,8 @@ const Store = {
       flashState: {},        // cardId -> { ef, interval, due, reps }
       studyDays: {},         // 'YYYY-MM-DD' -> { qs:n, mins:n }
       courseProgress: {},    // courseId -> { chapterId: timestamp }
-      customTests: [],       // user-uploaded tests: {id, name, source, createdAt, questions[]}
       settings: { theme: 'system', sound: false, confidenceCapture: false, tourSeen: false, dashboardMode: 'all' },
-      lastModified: 0        // ms since epoch — bumped on every save; used for cloud-sync conflict resolution
+      lastModified: 0        // ms since epoch — bumped on every save
     };
   }
 };
@@ -257,78 +245,11 @@ let STATE = Store.load();
   } catch (e) { console.warn('IDB boot check failed', e); }
 })();
 
-// Local save (always). Cloud sync is layered on top via PMP_SYNC.push when signed in.
+// Local save (always). This is a local-only app — no cloud sync.
 const persist = debounce(()=>{
   STATE.lastModified = Date.now();
   Store.save(STATE);
-  try { window.PMP_SYNC && window.PMP_SYNC.user && window.PMP_SYNC.push(STATE); } catch(e) { console.warn('sync push failed', e); }
 }, 150);
-
-/* ---------------- Cloud sync glue ---------------- */
-// Subscribe once init has wired up window.PMP_SYNC. The init module dispatches
-// 'pmp-sync-ready' whether or not real Firebase config is present.
-function setupSync() {
-  const SYNC = window.PMP_SYNC;
-  if (!SYNC) return;
-  // Auth state changes: pull cloud state on sign-in, merge by lastModified.
-  SYNC.onAuth(async (user) => {
-    updateAuthUI();
-    if (!user) return;
-    try {
-      const cloud = await SYNC.pull();
-      if (cloud && (cloud.lastModified || 0) > (STATE.lastModified || 0)) {
-        // Cloud is newer — replace local.
-        STATE = Object.assign(Store._default(), cloud);
-        Store.save(STATE);
-        applyTheme();
-        rebuildCatalog();
-        if (typeof router === 'function') router();
-        toast('Synced from cloud', 'success');
-      } else if ((STATE.lastModified || 0) > (cloud?.lastModified || 0)) {
-        // Local newer (or no cloud doc yet) — push it up.
-        await SYNC.push(STATE);
-      }
-    } catch (e) { console.warn('initial sync failed', e); }
-  });
-  // Live updates from another device.
-  SYNC.onRemote((data) => {
-    if (!data) return;
-    if ((data.lastModified || 0) <= (STATE.lastModified || 0)) return;
-    STATE = Object.assign(Store._default(), data);
-    Store.save(STATE);
-    applyTheme();
-    rebuildCatalog();
-    if (typeof router === 'function') router();
-    toast('Updated from another device', 'info');
-  });
-}
-window.addEventListener('pmp-sync-ready', setupSync);
-// In case the module finished before this listener attached:
-if (window.PMP_SYNC) setupSync();
-
-function updateAuthUI() {
-  const btn = document.getElementById('auth-btn');
-  const status = document.getElementById('sync-status');
-  const SYNC = window.PMP_SYNC;
-  if (status) {
-    status.textContent = (SYNC && SYNC.user) ? `Synced as ${SYNC.user.displayName || SYNC.user.email}` : (SYNC && SYNC.available) ? 'Local-only — sign in to sync' : 'Local-only — your data never leaves this browser';
-  }
-  if (!btn) return;
-  if (!SYNC || !SYNC.available) {
-    btn.style.display = 'none';
-    return;
-  }
-  btn.style.display = '';
-  if (SYNC.user) {
-    const name = SYNC.user.displayName || SYNC.user.email || 'Signed in';
-    const initial = (name[0] || '?').toUpperCase();
-    btn.title = `${name} — click to sign out`;
-    btn.innerHTML = `<span class="w-6 h-6 rounded-full bg-brand-600 text-white text-xs font-semibold flex items-center justify-center">${escapeHtml(initial)}</span><span class="hidden md:inline text-xs text-slate-600 dark:text-slate-300 max-w-[120px] truncate">${escapeHtml(name)}</span>`;
-  } else {
-    btn.title = 'Sign in with Google to sync across devices';
-    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg><span class="hidden md:inline">Sign in</span>`;
-  }
-}
 
 /* ---------------- Question id ---------------- */
 const qid = (q) => `${q.section}::${q.num}`;
@@ -368,18 +289,7 @@ function rebuildCatalog() {
     const meta = classifySection(name);
     return { id: name, name, count: qs.length, ...meta, examMin: examMinutesFor(qs.length), questions: qs };
   });
-  const fromCustom = (STATE.customTests || []).map(t => ({
-    id: 'custom::' + t.id,
-    name: t.name,
-    count: t.questions.length,
-    kind: 'custom',
-    defaultMode: 'study',
-    examMin: examMinutesFor(t.questions.length),
-    questions: t.questions,
-    source: t.source || 'Uploaded PDF',
-    createdAt: t.createdAt,
-  }));
-  CATALOG = [...fromBank, ...fromCustom];
+  CATALOG = fromBank;
 }
 rebuildCatalog();
 
@@ -446,8 +356,8 @@ function shell(content, opts={}) {
           <svg class="hidden dark:block" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
           <svg class="block dark:hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
         </button>
-        <button id="auth-btn" class="ml-1 inline-flex items-center gap-2 px-2.5 h-9 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm" style="display:none"></button>
-        <a href="#/settings" class="ml-1 inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800" title="Settings, sync, and backup">
+        <button id="auth-btn" class="hidden"></button>
+        <a href="#/settings" class="ml-1 inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800" title="Settings and backup">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         </a>
       </div>
@@ -460,7 +370,7 @@ function shell(content, opts={}) {
       <span class="text-slate-300 dark:text-slate-700">·</span>
       <span>1044 questions · PMBOK 6 source</span>
       <span class="text-slate-300 dark:text-slate-700">·</span>
-      <span id="sync-status">${(window.PMP_SYNC && window.PMP_SYNC.user) ? 'Synced to your Google account' : (window.PMP_SYNC && window.PMP_SYNC.available) ? 'Local-only — sign in to sync' : 'Local-only — your data never leaves this browser'}</span>
+      <span id="sync-status">Local-only — your data never leaves this browser</span>
       <span class="text-slate-300 dark:text-slate-700">·</span>
       <kbd class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px]">?</kbd> shortcuts
     </footer>
@@ -478,31 +388,14 @@ function mount(node) {
     toast(`Theme: ${STATE.settings.theme}`);
   };
   const ab = $('#auth-btn');
-  if (ab) {
-    ab.onclick = async () => {
-      const SYNC = window.PMP_SYNC;
-      if (!SYNC || !SYNC.available) { toast('Cloud sync not configured', 'warn'); return; }
-      try {
-        if (SYNC.user) {
-          await SYNC.signOut();
-          toast('Signed out');
-        } else {
-          await SYNC.signIn();
-          // onAuth handler will pull cloud state and toast.
-        }
-      } catch (e) { console.warn(e); toast('Sign-in failed: ' + (e.message || e), 'error'); }
-    };
-    updateAuthUI();
-  }
+  if (ab) ab.style.display = 'none';
 }
 
 /* ===========================================================
    ROUTE: HOME (test library)
    =========================================================== */
 route('/', () => {
-  const customSorted = [...CATALOG.filter(t=>t.kind==='custom')].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
   const groups = {
-    'Your uploads': customSorted,
     'Mock Exams': CATALOG.filter(t=>t.kind==='mock'),
     'Knowledge Area Quizzes': CATALOG.filter(t=>t.kind==='ka'),
     'Focus Area': CATALOG.filter(t=>t.kind==='focus'),
@@ -550,7 +443,6 @@ route('/', () => {
               <a href="#/drill" class="inline-flex items-center gap-2 bg-brand-700/40 hover:bg-brand-700/60 ring-1 ring-white/30 px-4 py-2 rounded-lg text-sm" title="15-question drill on your weakest KAs: ${weakAreas.slice(0,3).map(w=>w.topic.replace('Project ','').replace(' Management','')+' ('+Math.round(w.acc*100)+'%)').join(', ')}">
                 🎯 Drill weak areas
               </a>` : ''}
-            <a href="#/upload" class="inline-flex items-center gap-2 bg-brand-700/40 hover:bg-brand-700/60 ring-1 ring-white/30 px-4 py-2 rounded-lg text-sm">⬆ Upload PDF</a>
           </div>
         </div>
         <div class="md:w-80 flex flex-col items-center justify-center gap-3">
@@ -624,22 +516,6 @@ route('/', () => {
   if (!STATE.settings.tourSeen && !STATE.attempts.length) {
     setTimeout(() => showTour(false), 350);
   }
-
-  $$('[data-del-custom]').forEach(b => b.onclick = (e) => {
-    e.preventDefault(); e.stopPropagation();
-    const id = b.dataset.delCustom;
-    const t = STATE.customTests.find(x => x.id === id);
-    if (!t) return;
-    if (!confirm(`Delete uploaded test “${t.name}” and all its questions?\n\nAttempts of this test will remain in your history but the test won't be retakeable.`)) return;
-    STATE.customTests = STATE.customTests.filter(x => x.id !== id);
-    if (STATE.currentAttempt && STATE.currentAttempt.testId === 'custom::' + id) {
-      STATE.currentAttempt = null;
-    }
-    persist();
-    rebuildCatalog();
-    toast('Upload deleted', 'success');
-    render();
-  });
 });
 
 function testCard(t) {
@@ -648,17 +524,12 @@ function testCard(t) {
   const last = at.length ? at[at.length-1] : null;
   const inProg = STATE.currentAttempt && STATE.currentAttempt.testId === t.id;
   const passColor = best!=null ? (best>=61 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400') : 'text-slate-400';
-  const kindLabel = t.kind === 'mock' ? 'Mock Exam' : t.kind==='ka' ? 'KA Quiz' : t.kind==='focus' ? 'Focus Area' : t.kind==='custom' ? 'Your upload' : 'Test';
-  const isCustom = t.kind === 'custom';
-  const dateStr = isCustom && t.createdAt ? new Date(t.createdAt).toLocaleDateString() : '';
+  const kindLabel = t.kind === 'mock' ? 'Mock Exam' : t.kind==='ka' ? 'KA Quiz' : t.kind==='focus' ? 'Focus Area' : 'Test';
   return html`
     <div class="card-hover group relative rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-brand-400 dark:hover:border-brand-500 hover:shadow-lift overflow-hidden">
-      ${isCustom ? html`<button data-del-custom="${escapeHtml(t.id)}" title="Delete this upload" class="absolute top-2 right-2 z-10 w-7 h-7 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/30 flex items-center justify-center">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-      </button>` : ''}
       <a href="#/test/${encodeURIComponent(t.id)}" class="block p-4">
         ${inProg ? html`<span class="absolute top-3 right-3 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">In progress</span>` : ''}
-        <div class="text-[10px] font-semibold uppercase tracking-[0.12em] ${isCustom?'text-amber-600 dark:text-amber-400':'text-brand-600 dark:text-brand-400'}">${kindLabel}</div>
+        <div class="text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-600 dark:text-brand-400">${kindLabel}</div>
         <h3 class="font-semibold mt-1.5 leading-snug pr-16">${escapeHtml(t.name)}</h3>
         <div class="flex items-center gap-3 mt-3 text-sm text-slate-600 dark:text-slate-400">
           <span>${t.count} q</span>
@@ -667,7 +538,7 @@ function testCard(t) {
           ${at.length ? html`<span class="text-slate-300 dark:text-slate-700">·</span><span class="${passColor} font-semibold">${best}% best</span>` : ''}
         </div>
         <div class="mt-3 flex items-center justify-between text-xs text-slate-500 dark:text-slate-500">
-          <span>${isCustom ? `Uploaded ${dateStr}` : (at.length ? `${at.length} attempt${at.length>1?'s':''}` : 'Not yet attempted')}</span>
+          <span>${at.length ? `${at.length} attempt${at.length>1?'s':''}` : 'Not yet attempted'}</span>
           <span class="text-brand-600 dark:text-brand-400 group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">Start <span aria-hidden="true">→</span></span>
         </div>
       </a>
@@ -915,7 +786,6 @@ function buildDrillSession(target=15) {
   // Source pool: full bank + custom-test questions, restricted to focus topics.
   const pool = [];
   for (const q of BANK.all) if (focusTopics.has(q.topic)) pool.push(q);
-  for (const t of (STATE.customTests||[])) for (const q of t.questions) if (focusTopics.has(q.topic)) pool.push(q);
   if (!pool.length) return null;
   // Prioritise: items previously wrong > items unanswered > items answered correctly.
   // Build a score per question; lower = more important to drill.
@@ -937,258 +807,7 @@ function buildDrillSession(target=15) {
   return { questions: shuffle(picked), focus };
 }
 
-/* ===========================================================
-   PDF UPLOAD: parser + route
-   ===========================================================
-   Parser is regex-based and lossy by design. It handles patterns
-   common to PMP/CAPM mock-exam PDFs:
-     - Question lines starting with "1." / "1)" / "Q1." etc.
-     - Options labelled "A." "B." "C." "D." or "A)" "B)" etc.
-     - Answer key inline ("Correct Answer: B" / "Answer: B") or
-       at the end of a question's explanation block.
-   Garbage in → garbage out. The preview lets the user reject
-   bad parses before saving.                                       */
 
-async function extractPdfText(file) {
-  if (!window.pdfjsLib) throw new Error('PDF.js failed to load. Check your internet connection.');
-  const buf = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
-  const pages = [];
-  for (let i = 1; i <= pdf.numPages; i++) {
-    const page = await pdf.getPage(i);
-    const content = await page.getTextContent();
-    // Reconstruct lines using each item's y position
-    const byY = new Map();
-    for (const it of content.items) {
-      const y = Math.round(it.transform[5]);
-      if (!byY.has(y)) byY.set(y, []);
-      byY.get(y).push(it.str);
-    }
-    const ys = [...byY.keys()].sort((a,b)=>b-a); // top to bottom
-    const lines = ys.map(y => byY.get(y).join(' ').replace(/\s+/g,' ').trim()).filter(Boolean);
-    pages.push(lines.join('\n'));
-  }
-  return pages.join('\n\n');
-}
-
-function parseQuestionsFromText(text) {
-  // Normalise
-  let t = text.replace(/\r/g,'').replace(/\u00A0/g,' ');
-
-  // Try to detect "Correct Answer: X" markers as anchors.
-  // Each question block: starts with "<num>." or "<num>)" or "Q<num>."
-  // Split by question-number-at-line-start.
-  const blocks = [];
-  const lines = t.split('\n');
-  let cur = null;
-  const qStart = /^\s*(?:Q\s*)?(\d{1,3})\s*[\.\)]\s+(.+)$/i;
-  for (const ln of lines) {
-    const m = ln.match(qStart);
-    // Heuristic: a "question start" must have meaningful text after the number
-    // and shouldn't be a page footer like "Page 1." We require length > 12.
-    if (m && m[2].length > 12) {
-      if (cur) blocks.push(cur);
-      cur = { num: parseInt(m[1],10), raw: m[2] + '\n' };
-    } else if (cur) {
-      cur.raw += ln + '\n';
-    }
-  }
-  if (cur) blocks.push(cur);
-
-  const out = [];
-  const warnings = [];
-  for (const b of blocks) {
-    const parsed = parseSingleQuestion(b.num, b.raw);
-    if (parsed) out.push(parsed);
-    else warnings.push(`Q${b.num}: could not extract options/answer`);
-  }
-  return { questions: out, warnings, blockCount: blocks.length };
-}
-
-function parseSingleQuestion(num, raw) {
-  // Split out options. Look for "A." / "A)" markers.
-  // We capture from "A" up to either the answer key or the end.
-  const optRe = /(^|\n|\s)([ABCD])\s*[\.\)]\s+/g;
-  const matches = [];
-  let m;
-  while ((m = optRe.exec(raw))) {
-    matches.push({ letter: m[2], idx: m.index + m[1].length });
-  }
-  // Need at least 4 distinct letters in order
-  const want = ['A','B','C','D'];
-  const inOrder = matches.filter((mm, i) => mm.letter === want[i % 4]);
-  if (inOrder.length < 4) return null;
-  const a = inOrder[0], b = inOrder[1], c = inOrder[2], d = inOrder[3];
-
-  const question = raw.slice(0, a.idx).replace(/\s+/g,' ').trim();
-  if (question.length < 8) return null;
-
-  // Slice to D's end — next anchor is end of raw
-  const optAtext = raw.slice(a.idx + 2, b.idx).replace(/^[\.\)]\s*/,'').replace(/\s+/g,' ').trim();
-  const optBtext = raw.slice(b.idx + 2, c.idx).replace(/^[\.\)]\s*/,'').replace(/\s+/g,' ').trim();
-  const optCtext = raw.slice(c.idx + 2, d.idx).replace(/^[\.\)]\s*/,'').replace(/\s+/g,' ').trim();
-  // For D, look for the next "answer key" marker or end
-  const tail = raw.slice(d.idx + 2);
-  const ansRe = /(?:Correct\s*Answer|Answer)\s*[:\-]?\s*([ABCD])\b/i;
-  const am = tail.match(ansRe);
-  let optDtext, explanation = '', correct = null;
-  if (am) {
-    optDtext = tail.slice(0, am.index).replace(/^[\.\)]\s*/,'').replace(/\s+/g,' ').trim();
-    correct = am[1].toUpperCase();
-    explanation = tail.slice(am.index + am[0].length).replace(/\s+/g,' ').trim();
-  } else {
-    // No answer key found — try a trailing "(B)" / "(C)" pattern
-    const fallback = tail.match(/\(([ABCD])\)\s*$/);
-    if (fallback) {
-      optDtext = tail.slice(0, fallback.index).replace(/^[\.\)]\s*/,'').replace(/\s+/g,' ').trim();
-      correct = fallback[1];
-    } else {
-      optDtext = tail.replace(/^[\.\)]\s*/,'').replace(/\s+/g,' ').trim();
-    }
-  }
-
-  if (!optAtext || !optBtext || !optCtext || !optDtext) return null;
-  if (!correct) return null; // require an answer; we don't fabricate
-
-  // Strip trailing PMBOK reference into its own field if possible
-  const refMatch = explanation.match(/\[(PMBOK[^\]]+|Page\s+\d+[^\]]*)\]\s*$/i);
-  let reference = '';
-  if (refMatch) {
-    reference = refMatch[0];
-    explanation = explanation.slice(0, refMatch.index).trim();
-  }
-
-  return {
-    num,
-    question,
-    options: { A: optAtext, B: optBtext, C: optCtext, D: optDtext },
-    correct,
-    explanation,
-    reference,
-    topic: ''
-  };
-}
-
-route('/upload', () => {
-  let parsed = null;     // { questions, warnings, blockCount }
-  let fileName = '';
-  let fileBytes = 0;
-
-  const view = () => html`
-    <div class="mb-6">
-      <a href="#/" class="text-sm text-brand-600 dark:text-brand-400 hover:underline">← Back to tests</a>
-      <h1 class="text-2xl font-bold mt-1">Upload PDF</h1>
-      <p class="text-sm text-slate-500 mt-1">Auto-extract questions from a PMP/CAPM mock-exam PDF. The parser is intentionally simple — review the count below before saving.</p>
-    </div>
-
-    <div class="rounded-2xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-4 mb-6 text-sm text-amber-900 dark:text-amber-200">
-      <strong>Heads-up.</strong> The parser only saves questions where it could find <em>all four options and a clear answer key</em> (e.g. "Correct Answer: B"). Anything ambiguous is dropped. If the count looks wrong, your PDF likely uses a different format and you'll need a structured import.
-    </div>
-
-    <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 mb-6">
-      <label class="block">
-        <span class="text-sm font-semibold">PDF file</span>
-        <input id="pdf-file" type="file" accept="application/pdf" class="mt-2 block w-full text-sm text-slate-600 dark:text-slate-300 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-brand-600 file:text-white file:font-semibold hover:file:bg-brand-700" />
-      </label>
-      <div id="pdf-status" class="mt-3 text-sm text-slate-500"></div>
-    </div>
-
-    <div id="upload-preview"></div>
-  `;
-
-  mount(shell(view()));
-
-  const setStatus = (html2) => { const s = $('#pdf-status'); if (s) s.innerHTML = html2; };
-  const renderPreview = () => {
-    const wrap = $('#upload-preview');
-    if (!wrap) return;
-    if (!parsed) { wrap.innerHTML = ''; return; }
-    const { questions, warnings, blockCount } = parsed;
-    const sample = questions.slice(0, 3).map(q => html`
-      <div class="rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 p-3">
-        <div class="text-xs text-slate-500 mb-1">#${q.num} · answer: <strong class="text-emerald-700 dark:text-emerald-400">${q.correct}</strong></div>
-        <div class="text-sm font-medium">${escapeHtml(q.question.slice(0, 200))}${q.question.length>200?'…':''}</div>
-        <div class="mt-2 text-xs text-slate-600 dark:text-slate-400 space-y-0.5">
-          <div><strong>A.</strong> ${escapeHtml(q.options.A.slice(0,140))}</div>
-          <div><strong>B.</strong> ${escapeHtml(q.options.B.slice(0,140))}</div>
-          <div><strong>C.</strong> ${escapeHtml(q.options.C.slice(0,140))}</div>
-          <div><strong>D.</strong> ${escapeHtml(q.options.D.slice(0,140))}</div>
-        </div>
-      </div>`).join('');
-    const okPct = blockCount ? Math.round(questions.length * 100 / blockCount) : 0;
-    wrap.innerHTML = html`
-      <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 mb-6">
-        <div class="flex items-center justify-between mb-4 gap-4 flex-wrap">
-          <div>
-            <h2 class="text-lg font-bold">Parse preview</h2>
-            <p class="text-sm text-slate-500">${escapeHtml(fileName)} · ${(fileBytes/1024).toFixed(0)} KB</p>
-          </div>
-          <div class="text-right">
-            <div class="text-3xl font-bold ${questions.length>0?'text-emerald-600':'text-rose-600'}">${questions.length}</div>
-            <div class="text-xs text-slate-500">of ${blockCount} candidate blocks (${okPct}%)</div>
-          </div>
-        </div>
-
-        ${questions.length === 0 ? html`<p class="text-sm text-rose-600">No questions could be extracted. The PDF format isn't recognised. Try a different source or a structured (JSON) import.</p>` : html`
-          <div class="space-y-3 mb-5">${sample}${questions.length>3?html`<p class="text-xs text-slate-500 italic">…and ${questions.length-3} more</p>`:''}</div>
-
-          <label class="block mb-3">
-            <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Test name</span>
-            <input id="test-name" type="text" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-sm" value="${escapeHtml(fileName.replace(/\.pdf$/i,''))}" />
-          </label>
-
-          ${warnings.length ? html`<details class="mb-4 text-xs text-slate-500"><summary class="cursor-pointer">⚠ ${warnings.length} block${warnings.length>1?'s':''} skipped</summary><ul class="mt-2 space-y-0.5 list-disc list-inside">${warnings.slice(0,30).map(w=>`<li>${escapeHtml(w)}</li>`).join('')}${warnings.length>30?`<li>…and ${warnings.length-30} more</li>`:''}</ul></details>` : ''}
-
-          <div class="flex gap-2">
-            <button id="save-upload" class="px-4 py-2 rounded-lg bg-brand-600 text-white text-sm font-semibold hover:bg-brand-700">💾 Save ${questions.length} questions as a new test</button>
-            <button id="cancel-upload" class="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-800 text-sm hover:bg-slate-100 dark:hover:bg-slate-800">Cancel</button>
-          </div>
-        `}
-      </div>
-    `;
-    const sb = $('#save-upload'), cb = $('#cancel-upload');
-    if (sb) sb.onclick = saveUpload;
-    if (cb) cb.onclick = () => { parsed = null; fileName=''; fileBytes=0; renderPreview(); $('#pdf-file').value=''; setStatus(''); };
-  };
-
-  function saveUpload() {
-    const name = ($('#test-name').value || fileName.replace(/\.pdf$/i,'') || 'Untitled upload').trim();
-    if (!parsed || !parsed.questions.length) return;
-    const id = 't_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,7);
-    const sectionKey = 'custom::' + id;
-    const questions = parsed.questions.map(q => {
-      const qq = { ...q, section: sectionKey };
-      qq._id = qid(qq);
-      return qq;
-    });
-    STATE.customTests = STATE.customTests || [];
-    STATE.customTests.push({ id, name, source: fileName, createdAt: Date.now(), questions });
-    persist();
-    rebuildCatalog();
-    toast(`Saved "${name}" — ${questions.length} questions`, 'success');
-    navigate('/');
-  }
-
-  $('#pdf-file').onchange = async (ev) => {
-    const file = ev.target.files && ev.target.files[0];
-    if (!file) return;
-    fileName = file.name;
-    fileBytes = file.size;
-    setStatus('Reading PDF…');
-    try {
-      const text = await extractPdfText(file);
-      setStatus('Parsing questions…');
-      parsed = parseQuestionsFromText(text);
-      setStatus(`Extracted ${parsed.questions.length} question${parsed.questions.length===1?'':'s'} from ${parsed.blockCount} candidate blocks.`);
-      renderPreview();
-    } catch (e) {
-      console.error(e);
-      setStatus(`<span class="text-rose-600">Failed: ${escapeHtml(e.message || String(e))}</span>`);
-      parsed = null;
-      renderPreview();
-    }
-  };
-});
 
 /* ===========================================================
    ROUTE: TEST (taking) — mode-aware
@@ -2190,7 +1809,6 @@ route('/rework', () => {
   // Resolve qids to question objects (bank + custom-test questions)
   const idToQ = {};
   for (const q of BANK.all) idToQ[q._id] = q;
-  for (const t of (STATE.customTests||[])) for (const q of t.questions) idToQ[q._id] = q;
   const qs = shuffle(queue.map(id => idToQ[id]).filter(Boolean));
 
   // Run a lightweight quiz (no time limit, options shuffled, immediate feedback)
@@ -2318,7 +1936,6 @@ route('/due', () => {
 
   const idToQ = {};
   for (const q of BANK.all) idToQ[q._id] = q;
-  for (const t of (STATE.customTests||[])) for (const q of t.questions) idToQ[q._id] = q;
   const qs = shuffle(dueIds.map(id => idToQ[id]).filter(Boolean));
 
   const session = { idx:0, qs, results:[] };
@@ -2597,12 +2214,9 @@ route('/flagged', () => browseQuestions({ flaggedOnly: true }));
 route('/search', () => browseQuestions({}));
 
 /* ===========================================================
-   ROUTE: SETTINGS — sync, backup/restore, danger zone
+   ROUTE: SETTINGS — backup/restore, danger zone
    =========================================================== */
 route('/settings', () => {
-  const SYNC = window.PMP_SYNC;
-  const isSignedIn = !!(SYNC && SYNC.user);
-  const syncAvailable = !!(SYNC && SYNC.available);
   const sizeBytes = (() => { try { return new Blob([JSON.stringify(STATE)]).size; } catch { return 0; } })();
   const sizeKB = (sizeBytes / 1024).toFixed(1);
   const lastModStr = STATE.lastModified ? new Date(STATE.lastModified).toLocaleString() : '—';
@@ -2611,62 +2225,21 @@ route('/settings', () => {
     flags: Object.keys(STATE.flags).length,
     notes: Object.keys(STATE.qNotes).length + Object.keys(STATE.libNotes).length,
     bookmarks: Object.keys(STATE.bookmarks).length,
-    customTests: (STATE.customTests || []).length,
   };
-
-  const syncCard = (() => {
-    if (!syncAvailable) {
-      return html`
-        <div class="rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/30 p-5">
-          <h3 class="font-semibold text-amber-900 dark:text-amber-200 mb-1">Cloud sync not configured</h3>
-          <p class="text-sm text-amber-800 dark:text-amber-300">
-            <code class="text-xs">firebase-config.js</code> still has placeholder values, so the app is running local-only.
-            See <code class="text-xs">SETUP.md</code> for the one-time Firebase setup (free, no credit card).
-            Use the Backup section below to move data between devices in the meantime.
-          </p>
-        </div>`;
-    }
-    if (!isSignedIn) {
-      return html`
-        <div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5">
-          <h3 class="font-semibold mb-1">Cross-device sync</h3>
-          <p class="text-sm text-slate-600 dark:text-slate-400 mb-3">
-            Sign in with Google to sync your progress, attempts, flags, notes, and custom tests across all your devices.
-            Your data lives in your private Firestore document — only you can read or write it.
-          </p>
-          <button id="settings-signin" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium">
-            <svg width="14" height="14" viewBox="0 0 24 24"><path fill="#fff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" opacity=".95"/><path fill="#fff" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" opacity=".8"/><path fill="#fff" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" opacity=".7"/><path fill="#fff" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" opacity=".85"/></svg>
-            Sign in with Google
-          </button>
-        </div>`;
-    }
-    return html`
-      <div class="rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/50 dark:bg-emerald-950/20 p-5">
-        <div class="flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <h3 class="font-semibold text-emerald-900 dark:text-emerald-200 mb-1">Synced</h3>
-            <p class="text-sm text-emerald-800 dark:text-emerald-300">
-              Signed in as <strong>${escapeHtml(SYNC.user.displayName || SYNC.user.email)}</strong>.
-              Changes sync automatically across devices.
-            </p>
-          </div>
-          <div class="flex items-center gap-2">
-            <button id="settings-pull" class="px-3 py-1.5 rounded-lg border border-emerald-300 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 text-sm">Pull from cloud</button>
-            <button id="settings-push" class="px-3 py-1.5 rounded-lg border border-emerald-300 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 text-sm">Push to cloud</button>
-            <button id="settings-signout" class="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm">Sign out</button>
-          </div>
-        </div>
-      </div>`;
-  })();
 
   mount(shell(html`
     <div class="space-y-6 max-w-3xl">
       <div>
         <h1 class="text-2xl font-bold mb-1">Settings</h1>
-        <p class="text-sm text-slate-500 dark:text-slate-400">Sync, backup, and reset your data.</p>
+        <p class="text-sm text-slate-500 dark:text-slate-400">Backup and reset your data.</p>
       </div>
 
-      ${syncCard}
+      <div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5">
+        <h3 class="font-semibold mb-1">Local-only app</h3>
+        <p class="text-sm text-slate-600 dark:text-slate-400">
+          Your progress lives in this browser only — there is no cloud sync. Use Backup &amp; restore below to move data between devices or browsers.
+        </p>
+      </div>
 
       <div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5">
         <h3 class="font-semibold mb-1">Backup &amp; restore</h3>
@@ -2674,12 +2247,11 @@ route('/settings', () => {
           Manual JSON export/import. Useful for moving data between origins
           (e.g. <code class="text-xs">file://</code> → GitHub Pages) or for keeping an offline backup.
         </p>
-        <dl class="grid grid-cols-2 sm:grid-cols-5 gap-3 text-sm mb-4">
+        <dl class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm mb-4">
           <div><dt class="text-xs text-slate-500">Attempts</dt><dd class="font-semibold">${counts.attempts}</dd></div>
           <div><dt class="text-xs text-slate-500">Flagged</dt><dd class="font-semibold">${counts.flags}</dd></div>
           <div><dt class="text-xs text-slate-500">Notes</dt><dd class="font-semibold">${counts.notes}</dd></div>
           <div><dt class="text-xs text-slate-500">Bookmarks</dt><dd class="font-semibold">${counts.bookmarks}</dd></div>
-          <div><dt class="text-xs text-slate-500">Custom tests</dt><dd class="font-semibold">${counts.customTests}</dd></div>
         </dl>
         <p class="text-xs text-slate-500 dark:text-slate-400 mb-3">Total size: <strong>${sizeKB} KB</strong> · Last modified: <strong>${lastModStr}</strong></p>
         <div class="flex flex-wrap items-center gap-2">
@@ -2696,7 +2268,7 @@ route('/settings', () => {
       <div class="rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50/50 dark:bg-rose-950/20 p-5">
         <h3 class="font-semibold text-rose-900 dark:text-rose-200 mb-1">Danger zone</h3>
         <p class="text-sm text-rose-800 dark:text-rose-300 mb-3">
-          Wipe all local data on this device. If you're signed in, this also pushes the empty state to the cloud — affecting all your devices. Cannot be undone.
+          Wipe all local data on this device. Cannot be undone.
         </p>
         <button id="settings-wipe" class="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-sm font-medium">Erase all data on this device</button>
       </div>
@@ -2708,32 +2280,11 @@ route('/settings', () => {
     STATE = Object.assign(Store._default(), parsed);
     STATE.lastModified = Date.now();
     Store.save(STATE);
-    try { window.PMP_SYNC && window.PMP_SYNC.user && window.PMP_SYNC.push(STATE); } catch {}
     rebuildCatalog(); applyTheme();
     toast('Restored ' + (parsed.attempts?.length || 0) + ' attempts', 'success');
     render();
   };
 
-  $('#settings-signin')?.addEventListener('click', async () => {
-    try { await SYNC.signIn(); } catch (e) { toast('Sign-in failed: ' + (e.message || e), 'error'); }
-  });
-  $('#settings-signout')?.addEventListener('click', async () => {
-    try { await SYNC.signOut(); toast('Signed out'); render(); } catch (e) { toast('Sign-out failed', 'error'); }
-  });
-  $('#settings-pull')?.addEventListener('click', async () => {
-    try {
-      const cloud = await SYNC.pull();
-      if (!cloud) { toast('No cloud data yet', 'warn'); return; }
-      STATE = Object.assign(Store._default(), cloud);
-      Store.save(STATE);
-      rebuildCatalog(); applyTheme();
-      toast('Pulled from cloud', 'success'); render();
-    } catch (e) { toast('Pull failed: ' + (e.message || e), 'error'); }
-  });
-  $('#settings-push')?.addEventListener('click', async () => {
-    try { STATE.lastModified = Date.now(); Store.save(STATE); await SYNC.push(STATE); toast('Pushed to cloud', 'success'); }
-    catch (e) { toast('Push failed: ' + (e.message || e), 'error'); }
-  });
   $('#settings-export').addEventListener('click', () => {
     const blob = new Blob([JSON.stringify(STATE, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -2772,7 +2323,6 @@ route('/settings', () => {
     STATE = Store._default();
     STATE.lastModified = Date.now();
     Store.save(STATE);
-    try { window.PMP_SYNC && window.PMP_SYNC.user && window.PMP_SYNC.push(STATE); } catch {}
     rebuildCatalog();
     toast('All data erased', 'warn');
     render();
