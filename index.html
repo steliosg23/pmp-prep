@@ -72,24 +72,29 @@
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./sw.js').then((reg) => {
-        // Detect a waiting/new worker and surface an update prompt.
-        const showUpdate = () => {
-          if (!reg.waiting) return;
-          const t = document.createElement('div');
-          t.className = 'bg-brand-700 text-white px-4 py-3 rounded-lg shadow-lift text-sm fade-in flex items-center gap-3';
-          t.innerHTML = '<span>New version available</span><button class="px-2 py-1 rounded bg-white/20 hover:bg-white/30 font-semibold">Reload</button>';
-          t.querySelector('button').onclick = () => {
-            reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-            // The controllerchange listener below triggers reload.
-          };
-          document.getElementById('toast').appendChild(t);
+        // When a new worker is installed and waiting, auto-activate it.
+        // sw.js calls skipWaiting() on install and clients.claim() on activate,
+        // so this controllerchange will fire and trigger reload below.
+        const activateWaiting = () => {
+          if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
         };
-        if (reg.waiting) showUpdate();
+        if (reg.waiting) activateWaiting();
         reg.addEventListener('updatefound', () => {
           const nw = reg.installing;
           if (!nw) return;
-          nw.addEventListener('statechange', () => { if (nw.state === 'installed' && navigator.serviceWorker.controller) showUpdate(); });
+          nw.addEventListener('statechange', () => {
+            if (nw.state === 'installed' && navigator.serviceWorker.controller) activateWaiting();
+          });
         });
+
+        // Poll for new versions: every 60s while the page is open, and
+        // immediately when the tab regains focus / becomes visible. Without
+        // this, the browser only checks for updates on initial load — which
+        // is why deploys felt "stuck" until a manual hard refresh.
+        const poll = () => { try { reg.update(); } catch (_) {} };
+        setInterval(poll, 60_000);
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) poll(); });
+        window.addEventListener('focus', poll);
       }).catch((err) => console.warn('SW registration failed:', err));
 
       let reloaded = false;
