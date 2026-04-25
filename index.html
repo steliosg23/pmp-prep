@@ -248,13 +248,133 @@ let STATE = Store.load();
       IDB.put(STATE);
     }
   } catch (e) { console.warn('IDB boot check failed', e); }
+  // After local recovery, attempt cloud sync (no-op if not connected).
+  syncPullOnBoot();
 })();
+// Also pull when the device comes back online or the tab regains focus —
+// catches the case where you finished a test on the iPad while the laptop
+// tab was idle.
+window.addEventListener('online', () => syncPullOnBoot());
+document.addEventListener('visibilitychange', () => { if (!document.hidden) syncPullOnBoot(); });
 
-// Local save (always). This is a local-only app — no cloud sync.
+// Local save (always). After saving locally, the cloud-sync layer (if
+// connected) debounces a push to the user's private GitHub Gist.
 const persist = debounce(()=>{
   STATE.lastModified = Date.now();
   Store.save(STATE);
+  syncPushSoon();
 }, 150);
+
+/* ===========================================================
+   CLOUD SYNC — private GitHub Gist
+   ===========================================================
+   Strategy: a single private Gist holds the full STATE JSON. Token + gist id
+   live in localStorage (NOT inside STATE — otherwise pushing the state would
+   leak the token). On boot we pull and last-writer-wins merge by
+   `lastModified`. On every persist() we debounce a push by 5s.
+   No data ever leaves the user's own GitHub account. */
+const Sync = (() => {
+  const TOKEN_KEY  = 'pmp_gist_token';
+  const GIST_KEY   = 'pmp_gist_id';
+  const LSYNC_KEY  = 'pmp_gist_last_sync';
+  const FILENAME   = 'pmp-prep-state.json';
+  const DESCRIPTION = 'PMP Prep — private progress sync (do not share)';
+  const lsGet = (k) => { try { return localStorage.getItem(k) || ''; } catch { return ''; } };
+  const lsSet = (k, v) => { try { v ? localStorage.setItem(k, v) : localStorage.removeItem(k); } catch {} };
+  const getToken  = () => lsGet(TOKEN_KEY);
+  const getGistId = () => lsGet(GIST_KEY);
+  const getLastSync = () => parseInt(lsGet(LSYNC_KEY) || '0', 10);
+  const isConnected = () => !!(getToken() && getGistId());
+  const headers = () => ({
+    'Authorization': 'token ' + getToken(),
+    'Accept': 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+  });
+  async function connect(token) {
+    if (!token || !/^(ghp_|github_pat_)/.test(token)) {
+      throw new Error('Token must start with ghp_ or github_pat_');
+    }
+    lsSet(TOKEN_KEY, token);
+    // Look for an existing gist with our filename so re-connecting on a
+    // second device finds the same one instead of creating a duplicate.
+    const list = await fetch('https://api.github.com/gists?per_page=100', { headers: headers() });
+    if (!list.ok) {
+      lsSet(TOKEN_KEY, '');
+      if (list.status === 401) throw new Error('Invalid or expired token');
+      throw new Error('GitHub error ' + list.status);
+    }
+    const gists = await list.json();
+    const found = gists.find(g => g.files && g.files[FILENAME]);
+    if (found) { lsSet(GIST_KEY, found.id); return { id: found.id, created: false }; }
+    const create = await fetch('https://api.github.com/gists', {
+      method: 'POST',
+      headers: { ...headers(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        description: DESCRIPTION, public: false,
+        files: { [FILENAME]: { content: JSON.stringify({ lastModified: 0, placeholder: true }) } },
+      }),
+    });
+    if (!create.ok) throw new Error('Create failed: ' + create.status);
+    const g = await create.json();
+    lsSet(GIST_KEY, g.id);
+    return { id: g.id, created: true };
+  }
+  async function pull() {
+    if (!isConnected()) throw new Error('Not connected');
+    const r = await fetch('https://api.github.com/gists/' + getGistId(), { headers: headers() });
+    if (!r.ok) throw new Error('Pull failed: ' + r.status);
+    const g = await r.json();
+    const f = g.files && g.files[FILENAME];
+    if (!f) throw new Error('Gist file missing');
+    let content = f.content;
+    if (f.truncated && f.raw_url) {
+      const raw = await fetch(f.raw_url);
+      if (raw.ok) content = await raw.text();
+    }
+    return JSON.parse(content);
+  }
+  async function push(state) {
+    if (!isConnected()) throw new Error('Not connected');
+    const r = await fetch('https://api.github.com/gists/' + getGistId(), {
+      method: 'PATCH',
+      headers: { ...headers(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ files: { [FILENAME]: { content: JSON.stringify(state) } } }),
+    });
+    if (!r.ok) throw new Error('Push failed: ' + r.status);
+    lsSet(LSYNC_KEY, String(Date.now()));
+  }
+  function disconnect() { lsSet(TOKEN_KEY,''); lsSet(GIST_KEY,''); lsSet(LSYNC_KEY,''); }
+  return { isConnected, connect, pull, push, disconnect, getGistId, getToken, getLastSync };
+})();
+const syncPushSoon = debounce(async () => {
+  if (!Sync.isConnected() || !navigator.onLine) return;
+  try { await Sync.push(STATE); }
+  catch (e) { console.warn('Sync push failed:', e.message); }
+}, 5000);
+async function syncPullOnBoot() {
+  if (!Sync.isConnected() || !navigator.onLine) return;
+  try {
+    const remote = await Sync.pull();
+    if (!remote || remote.placeholder) {
+      // Empty gist on this device pair — push our state so the other side has a baseline.
+      if (STATE.lastModified) await Sync.push(STATE);
+      return;
+    }
+    const remoteMod = remote.lastModified || 0;
+    const localMod  = STATE.lastModified  || 0;
+    if (remoteMod > localMod) {
+      STATE = Object.assign(Store._default(), remote);
+      Store.save(STATE);
+      try { IDB.put(STATE); } catch {}
+      if (typeof rebuildCatalog === 'function') rebuildCatalog();
+      if (typeof applyTheme === 'function') applyTheme();
+      if (typeof render === 'function') render();
+      try { toast('Synced from cloud', 'success'); } catch {}
+    } else if (localMod > remoteMod) {
+      await Sync.push(STATE);
+    }
+  } catch (e) { console.warn('Sync pull failed:', e.message); }
+}
 
 /* ---------------- Question id ---------------- */
 const qid = (q) => `${q.section}::${q.num}`;
@@ -2265,8 +2385,30 @@ route('/settings', () => {
       <div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5">
         <h3 class="font-semibold mb-1">Local-only app</h3>
         <p class="text-sm text-slate-600 dark:text-slate-400">
-          Your progress lives in this browser only — there is no cloud sync. Use Backup &amp; restore below to move data between devices or browsers.
+          Progress is saved in this browser. To study on multiple devices,
+          connect a free GitHub Gist below — or use Backup &amp; restore for
+          one-off transfers.
         </p>
+      </div>
+
+      <div id="sync-card" class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5">
+        <h3 class="font-semibold mb-1">Cloud sync (private GitHub Gist)</h3>
+        <p class="text-sm text-slate-600 dark:text-slate-400 mb-3">
+          Stores your progress in a <strong>private gist</strong> on your own GitHub account.
+          Free, no card, no third-party server. Connect each device once with a Personal Access Token.
+        </p>
+        <details class="text-xs text-slate-600 dark:text-slate-400 mb-3">
+          <summary class="cursor-pointer text-brand-600 dark:text-brand-400 font-medium">How to create a token (2 min)</summary>
+          <ol class="list-decimal pl-5 mt-2 space-y-1 leading-relaxed">
+            <li>Open <a class="underline" target="_blank" rel="noopener" href="https://github.com/settings/personal-access-tokens/new">github.com/settings/personal-access-tokens/new</a></li>
+            <li>Token name: <code>PMP Prep sync</code> · Expiration: <code>1 year</code> (or longer)</li>
+            <li>Resource owner: your account · Repository access: <code>Public Repositories (read-only)</code> is fine</li>
+            <li>Permissions → Account permissions → <strong>Gists</strong> → <strong>Read and write</strong></li>
+            <li>Generate, copy the token (starts with <code>github_pat_</code> or <code>ghp_</code>), paste below</li>
+          </ol>
+        </details>
+        <div id="sync-status" class="text-xs mb-3"></div>
+        <div id="sync-controls" class="space-y-2"></div>
       </div>
 
       <div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5">
@@ -2355,6 +2497,70 @@ route('/settings', () => {
     toast('All data erased', 'warn');
     render();
   });
+
+  // ---------- Cloud sync UI ----------
+  const renderSync = () => {
+    const status = $('#sync-status');
+    const ctl = $('#sync-controls');
+    if (!status || !ctl) return;
+    if (Sync.isConnected()) {
+      const last = Sync.getLastSync();
+      const lastStr = last ? new Date(last).toLocaleString() : 'never';
+      status.innerHTML = `<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300 font-medium">● Connected</span>
+        <span class="text-slate-500 ml-2">Gist <code class="text-[10px]">${escapeHtml(Sync.getGistId())}</code> · last sync ${lastStr}</span>`;
+      ctl.innerHTML = `
+        <div class="flex flex-wrap gap-2">
+          <button id="sync-pull" class="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm">⬇ Pull now</button>
+          <button id="sync-push" class="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm">⬆ Push now</button>
+          <button id="sync-disconnect" class="px-3 py-1.5 rounded-lg border border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-sm">Disconnect</button>
+        </div>`;
+      $('#sync-pull').onclick = async () => {
+        try {
+          const remote = await Sync.pull();
+          if (!remote || remote.placeholder) { toast('Cloud is empty', 'warn'); return; }
+          if (!confirm('Replace local data with cloud version?\n\nLocal last modified: ' + (STATE.lastModified ? new Date(STATE.lastModified).toLocaleString() : 'never') + '\nCloud last modified: ' + (remote.lastModified ? new Date(remote.lastModified).toLocaleString() : 'never'))) return;
+          STATE = Object.assign(Store._default(), remote);
+          Store.save(STATE);
+          try { IDB.put(STATE); } catch {}
+          rebuildCatalog(); applyTheme();
+          toast('Pulled from cloud', 'success');
+          render();
+        } catch (e) { toast('Pull failed: ' + e.message, 'error'); }
+      };
+      $('#sync-push').onclick = async () => {
+        try { await Sync.push(STATE); toast('Pushed to cloud', 'success'); renderSync(); }
+        catch (e) { toast('Push failed: ' + e.message, 'error'); }
+      };
+      $('#sync-disconnect').onclick = () => {
+        if (!confirm('Disconnect this device? Cloud gist is kept; your other devices keep syncing.')) return;
+        Sync.disconnect(); toast('Disconnected', 'warn'); renderSync();
+      };
+    } else {
+      status.innerHTML = `<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium">○ Not connected</span>`;
+      ctl.innerHTML = `
+        <div class="flex flex-col sm:flex-row gap-2">
+          <input id="sync-token" type="password" autocomplete="off" placeholder="github_pat_…" class="flex-1 px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-mono"/>
+          <button id="sync-connect" class="px-4 py-2 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold">Connect</button>
+        </div>`;
+      $('#sync-connect').onclick = async () => {
+        const tok = $('#sync-token').value.trim();
+        if (!tok) { toast('Paste your token first', 'warn'); return; }
+        const btn = $('#sync-connect');
+        btn.disabled = true; btn.textContent = 'Connecting…';
+        try {
+          const r = await Sync.connect(tok);
+          toast(r.created ? 'Connected — created new gist' : 'Connected — found existing gist', 'success');
+          // Pull on first connect so a freshly-paired device gets data instantly.
+          await syncPullOnBoot();
+          renderSync();
+        } catch (e) {
+          toast('Connect failed: ' + e.message, 'error');
+          btn.disabled = false; btn.textContent = 'Connect';
+        }
+      };
+    }
+  };
+  renderSync();
 });
 
 function browseQuestions(initial) {
