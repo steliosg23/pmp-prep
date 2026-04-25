@@ -351,28 +351,126 @@ const syncPushSoon = debounce(async () => {
   try { await Sync.push(STATE); }
   catch (e) { console.warn('Sync push failed:', e.message); }
 }, 5000);
+// Cloud-sync conflict rule: MERGE both sides so neither device ever loses
+// data. Like a Google-account sync: any test you finish, any flag you toggle,
+// any note you write — on either device — ends up on both. Concretely:
+//   • attempts: union by id (each attempt has a unique id)
+//   • flags / bookmarks: union (true wins)
+//   • mastery / flashState: per-key, keep the record with the latest lastSeen
+//   • qNotes / libNotes: per-key, keep the longer text (notes grow over time)
+//   • studyDays: per-day, take max(qs) + max(mins) so multi-device days don't double-count
+//   • courseProgress: per-course/chapter, take the later timestamp
+//   • readPos: take whichever side was modified last
+//   • settings: take whichever side was modified last
+//   • currentAttempt: keep this device's (in-progress tests don't migrate cleanly)
+// Trade-off: deleting a flag/note on one device may be re-introduced if the
+// other device still has it. For PMP study data this is acceptable —
+// additive merge is far safer than silent overwrites.
+function mergeStates(local, remote) {
+  const out = Store._default();
+  // attempts: union by id
+  const seen = new Set();
+  const allA = [...(local.attempts||[]), ...(remote.attempts||[])];
+  out.attempts = [];
+  for (const a of allA) {
+    if (!a || !a.id) continue;
+    if (seen.has(a.id)) continue;
+    seen.add(a.id);
+    out.attempts.push(a);
+  }
+  out.attempts.sort((x,y) => (x.startedAt||0) - (y.startedAt||0));
+  // currentAttempt: keep local's
+  out.currentAttempt = local.currentAttempt || null;
+  // flags & bookmarks: union (true wins)
+  out.flags = Object.assign({}, remote.flags||{}, local.flags||{});
+  out.bookmarks = Object.assign({}, remote.bookmarks||{}, local.bookmarks||{});
+  // mastery & flashState: per-key, latest lastSeen wins
+  const mergeByLastSeen = (a, b) => {
+    const merged = {};
+    const keys = new Set([...Object.keys(a||{}), ...Object.keys(b||{})]);
+    for (const k of keys) {
+      const x = a && a[k]; const y = b && b[k];
+      if (!x) merged[k] = y;
+      else if (!y) merged[k] = x;
+      else merged[k] = ((x.lastSeen||0) >= (y.lastSeen||0)) ? x : y;
+    }
+    return merged;
+  };
+  out.mastery = mergeByLastSeen(local.mastery, remote.mastery);
+  out.flashState = mergeByLastSeen(local.flashState, remote.flashState);
+  // qNotes & libNotes: per-key, longer text wins (notes grow)
+  const mergeNotes = (a, b) => {
+    const merged = {};
+    const keys = new Set([...Object.keys(a||{}), ...Object.keys(b||{})]);
+    for (const k of keys) {
+      const x = (a && a[k]) || ''; const y = (b && b[k]) || '';
+      merged[k] = (x.length >= y.length) ? x : y;
+    }
+    return merged;
+  };
+  out.qNotes = mergeNotes(local.qNotes, remote.qNotes);
+  out.libNotes = mergeNotes(local.libNotes, remote.libNotes);
+  // studyDays: per-day max
+  out.studyDays = {};
+  const dayKeys = new Set([...Object.keys(local.studyDays||{}), ...Object.keys(remote.studyDays||{})]);
+  for (const k of dayKeys) {
+    const x = (local.studyDays||{})[k] || {qs:0,mins:0};
+    const y = (remote.studyDays||{})[k] || {qs:0,mins:0};
+    out.studyDays[k] = { qs: Math.max(x.qs||0, y.qs||0), mins: Math.max(x.mins||0, y.mins||0) };
+  }
+  // courseProgress: per-course/chapter, max timestamp
+  out.courseProgress = {};
+  const cpKeys = new Set([...Object.keys(local.courseProgress||{}), ...Object.keys(remote.courseProgress||{})]);
+  for (const c of cpKeys) {
+    const x = (local.courseProgress||{})[c] || {};
+    const y = (remote.courseProgress||{})[c] || {};
+    const merged = {};
+    const chKeys = new Set([...Object.keys(x), ...Object.keys(y)]);
+    for (const ch of chKeys) merged[ch] = Math.max(x[ch]||0, y[ch]||0);
+    out.courseProgress[c] = merged;
+  }
+  // readPos & settings: whichever side was modified last
+  const localNewer = (local.lastModified||0) >= (remote.lastModified||0);
+  out.readPos = localNewer ? (local.readPos||{}) : (remote.readPos||{});
+  out.settings = Object.assign({}, remote.settings||{}, localNewer ? (local.settings||{}) : {});
+  out.lastModified = Math.max(local.lastModified||0, remote.lastModified||0);
+  return out;
+}
+function summariseState(state) {
+  const arr = (state && state.attempts) || [];
+  let lastAt = 0;
+  for (const a of arr) { const t = (a && a.endedAt) || 0; if (t > lastAt) lastAt = t; }
+  return {
+    attempts: arr.length,
+    lastAttempt: lastAt ? new Date(lastAt).toLocaleString() : 'never',
+    lastModified: state && state.lastModified ? new Date(state.lastModified).toLocaleString() : 'never',
+  };
+}
 async function syncPullOnBoot() {
   if (!Sync.isConnected() || !navigator.onLine) return;
   try {
     const remote = await Sync.pull();
     if (!remote || remote.placeholder) {
-      // Empty gist on this device pair — push our state so the other side has a baseline.
-      if (STATE.lastModified) await Sync.push(STATE);
+      if ((STATE.attempts||[]).length || STATE.lastModified) await Sync.push(STATE);
       return;
     }
-    const remoteMod = remote.lastModified || 0;
-    const localMod  = STATE.lastModified  || 0;
-    if (remoteMod > localMod) {
-      STATE = Object.assign(Store._default(), remote);
+    // Merge instead of overwrite — neither side ever loses data.
+    const before = STATE.attempts.length;
+    const merged = mergeStates(STATE, remote);
+    const changed = JSON.stringify(merged) !== JSON.stringify(STATE);
+    if (changed) {
+      STATE = merged;
+      STATE.lastModified = Date.now();
       Store.save(STATE);
       try { IDB.put(STATE); } catch {}
       if (typeof rebuildCatalog === 'function') rebuildCatalog();
       if (typeof applyTheme === 'function') applyTheme();
       if (typeof render === 'function') render();
-      try { toast('Synced from cloud', 'success'); } catch {}
-    } else if (localMod > remoteMod) {
-      await Sync.push(STATE);
+      const gained = STATE.attempts.length - before;
+      if (gained > 0) { try { toast('Synced ' + gained + ' new attempt' + (gained>1?'s':'') + ' from cloud', 'success'); } catch {} }
     }
+    // Push merged state up so the cloud also has the union.
+    await Sync.push(STATE);
   } catch (e) { console.warn('Sync pull failed:', e.message); }
 }
 
@@ -2487,12 +2585,19 @@ route('/settings', () => {
       applyImported(JSON.parse(text));
     } catch (e) { toast('Paste failed: ' + (e.message || e), 'error'); }
   });
-  $('#settings-wipe').addEventListener('click', () => {
+  $('#settings-wipe').addEventListener('click', async () => {
     if (!confirm('Erase ALL local data? This cannot be undone.')) return;
     if (!confirm('Are you absolutely sure? Type-check: this will delete all attempts, flags, notes, and custom tests.')) return;
     STATE = Store._default();
     STATE.lastModified = Date.now();
     Store.save(STATE);
+    try { IDB.put(STATE); } catch {}
+    // Also wipe the cloud gist if connected — otherwise the next merge would
+    // restore everything from cloud and the wipe would feel like it failed.
+    if (Sync.isConnected()) {
+      try { await Sync.push({ lastModified: 0, placeholder: true }); }
+      catch (e) { console.warn('Cloud wipe failed:', e.message); }
+    }
     rebuildCatalog();
     toast('All data erased', 'warn');
     render();
@@ -2518,12 +2623,15 @@ route('/settings', () => {
         try {
           const remote = await Sync.pull();
           if (!remote || remote.placeholder) { toast('Cloud is empty', 'warn'); return; }
-          if (!confirm('Replace local data with cloud version?\n\nLocal last modified: ' + (STATE.lastModified ? new Date(STATE.lastModified).toLocaleString() : 'never') + '\nCloud last modified: ' + (remote.lastModified ? new Date(remote.lastModified).toLocaleString() : 'never'))) return;
-          STATE = Object.assign(Store._default(), remote);
+          const before = STATE.attempts.length;
+          STATE = mergeStates(STATE, remote);
+          STATE.lastModified = Date.now();
           Store.save(STATE);
           try { IDB.put(STATE); } catch {}
+          await Sync.push(STATE);
           rebuildCatalog(); applyTheme();
-          toast('Pulled from cloud', 'success');
+          const gained = STATE.attempts.length - before;
+          toast(gained > 0 ? ('Merged — ' + gained + ' new attempt' + (gained>1?'s':'') + ' from cloud') : 'Already in sync', 'success');
           render();
         } catch (e) { toast('Pull failed: ' + e.message, 'error'); }
       };
@@ -2548,10 +2656,11 @@ route('/settings', () => {
         const btn = $('#sync-connect');
         btn.disabled = true; btn.textContent = 'Connecting…';
         try {
-          const r = await Sync.connect(tok);
-          toast(r.created ? 'Connected — created new gist' : 'Connected — found existing gist', 'success');
-          // Pull on first connect so a freshly-paired device gets data instantly.
+          await Sync.connect(tok);
+          // Auto-merge: pull cloud, union with local, push merged result.
+          // No prompts — like a Google account. Neither side loses data.
           await syncPullOnBoot();
+          toast('Connected — merged with cloud', 'success');
           renderSync();
         } catch (e) {
           toast('Connect failed: ' + e.message, 'error');
