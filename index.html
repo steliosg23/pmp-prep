@@ -279,9 +279,10 @@ function classifySection(name) {
 }
 
 // PMI pacing: CAPM = 150q/180min, PMP = 180q/230min ≈ 75 sec/question.
-// Exam Mode uses this for any test length so timing scales realistically.
+// Per user override: every Exam-mode test gets a flat 60-minute timer
+// regardless of question count.
 const SEC_PER_Q_EXAM = 75;
-const examMinutesFor = (count) => Math.max(5, Math.ceil(count * SEC_PER_Q_EXAM / 60));
+const examMinutesFor = (count) => 60;
 
 let CATALOG = [];
 function rebuildCatalog() {
@@ -403,6 +404,7 @@ route('/', () => {
 
   const stats = computeOverallStats();
   const streak = computeStreak();
+  const examsDone = computeExamsDone();
   const dueIds = computeDueIds();
   const weakAreas = computeWeakAreas();
   const readiness = computeReadiness();
@@ -412,7 +414,7 @@ route('/', () => {
     const today = new Date(); today.setHours(0,0,0,0);
     for (let i=27; i>=0; i--) {
       const d = new Date(today); d.setDate(today.getDate()-i);
-      const key = d.toISOString().slice(0,10);
+      const key = todayKey(d);
       const data = STATE.studyDays[key];
       const intensity = !data ? 0 : data.qs >= 30 ? 4 : data.qs >= 15 ? 3 : data.qs >= 5 ? 2 : 1;
       const colors = ['bg-white/10','bg-amber-300/40','bg-amber-300/70','bg-amber-300','bg-amber-200'];
@@ -465,8 +467,8 @@ route('/', () => {
       </div>
       <div class="mt-5 pt-5 border-t border-white/15 grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
         <div class="text-center">
-          <div class="text-2xl font-bold tracking-tight">${stats.attempts}</div>
-          <div class="text-[10px] text-brand-100 uppercase tracking-wider mt-0.5">Attempts</div>
+          <div class="text-2xl font-bold tracking-tight">${examsDone}</div>
+          <div class="text-[10px] text-brand-100 uppercase tracking-wider mt-0.5">Exams done</div>
         </div>
         <div class="text-center">
           <div class="text-2xl font-bold tracking-tight">${stats.avgPct}%</div>
@@ -485,7 +487,7 @@ route('/', () => {
         <div class="flex items-center gap-2.5">
           <span class="text-2xl ${streak>=3?'drop-shadow-[0_0_6px_rgba(251,146,60,0.7)]':''}">${streak?'🔥':'✨'}</span>
           <div>
-            <div class="text-lg font-bold leading-none tracking-tight">${streak}-day streak</div>
+            <div class="text-lg font-bold leading-none tracking-tight">${streak}-day study streak</div>
             <div class="text-[11px] text-brand-100/80 mt-1">${streak ? 'Keep it alive' : 'Start today'}</div>
           </div>
         </div>
@@ -1175,6 +1177,8 @@ function renderRunner(test, A) {
         cur.revealed = true;
         // Update mastery immediately on reveal so it counts
         updateMasteryForResponse(q, cur);
+        // Credit the study streak: each revealed question = 1 study unit today.
+        markStudyToday(1, 0);
         persist();
         renderQ.__scroll = true;
         renderQ();
@@ -1215,11 +1219,10 @@ function renderRunner(test, A) {
     A2.total = test.questions.length;
     STATE.attempts.push(A2);
     STATE.currentAttempt = null;
-    const today = new Date().toISOString().slice(0,10);
-    const d = STATE.studyDays[today] || { qs:0, mins:0 };
-    d.qs += A2.responses.filter(r => r.choice).length;
-    d.mins += Math.round((A2.endedAt - A2.startedAt)/60000);
-    STATE.studyDays[today] = d;
+    markStudyToday(
+      A2.responses.filter(r => r.choice).length,
+      Math.round((A2.endedAt - A2.startedAt)/60000)
+    );
     persist();
     navigate('/results/'+encodeURIComponent(A2.id));
   };
@@ -2074,17 +2077,35 @@ function exportCSV(A, test) {
 /* ===========================================================
    STUDY-DAY HELPERS (used by hero streak/calendar)
    =========================================================== */
+// Local-date key: 'YYYY-MM-DD' in the user's timezone. We deliberately do NOT
+// use toISOString() here because it returns UTC, which mis-attributes activity
+// to the wrong day for users east/west of UTC (e.g., Greece is UTC+2/+3).
+function todayKey(date) {
+  const d = date || new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+// Record activity for today. Called from Study Mode (on reveal) and Exam Mode
+// (on finish). qs = questions answered to credit; mins = minutes elapsed.
+function markStudyToday(qs, mins) {
+  const key = todayKey();
+  const e = STATE.studyDays[key] || { qs:0, mins:0 };
+  e.qs += qs|0;
+  e.mins += mins|0;
+  STATE.studyDays[key] = e;
+}
 function computeStreak() {
-  const days = Object.keys(STATE.studyDays).sort().reverse();
-  if (!days.length) return 0;
+  if (!Object.keys(STATE.studyDays).length) return 0;
   let streak = 0;
   let d = new Date(); d.setHours(0,0,0,0);
   for (let i=0;i<400;i++) {
-    const key = d.toISOString().slice(0,10);
+    const key = todayKey(d);
     if (STATE.studyDays[key]) { streak++; d.setDate(d.getDate()-1); }
     else { if (i===0) { d.setDate(d.getDate()-1); continue; } break; }
   }
   return streak;
+}
+function computeExamsDone() {
+  return (STATE.attempts||[]).filter(a => a.mode === 'exam').length;
 }
 
 /* ===========================================================
