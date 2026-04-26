@@ -116,6 +116,54 @@ const $ = (sel, root=document) => root.querySelector(sel);
 const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
 const html = (strings, ...values) => strings.reduce((acc,s,i)=>acc+s+(values[i]??''),'');
 const escapeHtml = (s='') => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+// Render text with user highlights. `ranges` is an array of [start,end] index
+// pairs into the raw text. Overlapping/adjacent ranges are merged.
+function renderHighlighted(text='', ranges) {
+  text = String(text);
+  if (!Array.isArray(ranges) || !ranges.length) return escapeHtml(text);
+  const norm = ranges
+    .map(r => [Math.max(0, Math.min(text.length, r[0]|0)), Math.max(0, Math.min(text.length, r[1]|0))])
+    .filter(r => r[1] > r[0])
+    .sort((a,b) => a[0]-b[0]);
+  const merged = [];
+  for (const r of norm) {
+    if (merged.length && r[0] <= merged[merged.length-1][1]) {
+      merged[merged.length-1][1] = Math.max(merged[merged.length-1][1], r[1]);
+    } else merged.push([r[0], r[1]]);
+  }
+  let out = '', cur = 0;
+  for (const [s,e] of merged) {
+    if (s > cur) out += escapeHtml(text.slice(cur, s));
+    out += '<mark class="bg-amber-200 dark:bg-amber-500/40 text-inherit rounded px-0.5">' + escapeHtml(text.slice(s, e)) + '</mark>';
+    cur = e;
+  }
+  if (cur < text.length) out += escapeHtml(text.slice(cur));
+  return out;
+}
+
+// Map a Selection to character offsets within `container`'s textContent.
+// Returns [start,end] or null if selection is empty/outside the container.
+function selectionOffsetsIn(container) {
+  const sel = window.getSelection && window.getSelection();
+  if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return null;
+  const range = sel.getRangeAt(0);
+  if (!container.contains(range.startContainer) || !container.contains(range.endContainer)) return null;
+  const offsetTo = (node, offset) => {
+    let count = 0;
+    const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null);
+    let n;
+    while ((n = walker.nextNode())) {
+      if (n === node) return count + offset;
+      count += n.nodeValue.length;
+    }
+    return count;
+  };
+  let s = offsetTo(range.startContainer, range.startOffset);
+  let e = offsetTo(range.endContainer, range.endOffset);
+  if (e < s) [s,e] = [e,s];
+  return s === e ? null : [s,e];
+}
 // Detect explanations truncated mid-sentence in the source PDF (~40/1044 affected).
 // Heuristic: text doesn't end with terminal punctuation AND ends with a comma or connector word.
 const isExplanationTruncated = (s='') => {
@@ -1176,10 +1224,12 @@ function renderRunner(test, A) {
     // && useConfidence is the picker shown.
     const askConfidence = useConfidence && !!r.choice && !r.revealed && !r.confidence;
 
+    if (!Array.isArray(r.struck)) r.struck = [];
     const optHtml = ['A','B','C','D'].map(letter => {
       const selected = r.choice === letter;
       const isAnswer = q.correct === letter;
       const eliminated = r.peekedLetter === letter && !showFeedback;
+      const struck = !showFeedback && r.struck.includes(letter);
       let cls;
       if (showFeedback) {
         if (isAnswer)             cls = 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/30 dark:border-emerald-400';
@@ -1187,6 +1237,8 @@ function renderRunner(test, A) {
         else                      cls = 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 opacity-60';
       } else if (eliminated) {
         cls = 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 opacity-40 line-through';
+      } else if (struck) {
+        cls = 'border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 opacity-50 line-through';
       } else {
         cls = selected ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/30 dark:border-brand-400'
                        : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-900';
@@ -1195,13 +1247,17 @@ function renderRunner(test, A) {
                     : showFeedback && selected ? 'bg-rose-600 text-white'
                     : selected                 ? 'bg-brand-600 text-white'
                     :                            'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300';
+      const canStrike = !showFeedback && !eliminated;
       return html`
-        <button data-letter="${letter}" ${showFeedback||eliminated?'disabled':''} class="opt-btn w-full text-left p-4 rounded-xl border-2 ${cls}">
-          <div class="flex gap-3">
-            <span class="flex-shrink-0 w-7 h-7 rounded-full ${badgeBg} font-semibold flex items-center justify-center text-sm">${letter}</span>
-            <span class="flex-1 leading-relaxed">${escapeHtml(q.options[letter]||'')}</span>
-          </div>
-        </button>`;
+        <div class="opt-row relative">
+          <button data-letter="${letter}" ${showFeedback||eliminated?'disabled':''} class="opt-btn w-full text-left p-4 pr-12 rounded-xl border-2 ${cls}" title="Right-click (or Shift+${'ABCD'.indexOf(letter)+1}) to strike out">
+            <div class="flex gap-3">
+              <span class="flex-shrink-0 w-7 h-7 rounded-full ${badgeBg} font-semibold flex items-center justify-center text-sm">${letter}</span>
+              <span class="flex-1 leading-relaxed">${escapeHtml(q.options[letter]||'')}</span>
+            </div>
+          </button>
+          ${canStrike ? `<span data-strike="${letter}" role="button" tabindex="0" aria-label="Strike out option ${letter}" title="Strike out (Shift+${'ABCD'.indexOf(letter)+1})" class="strike-toggle absolute top-2 right-2 w-7 h-7 rounded-md flex items-center justify-center text-xs font-bold cursor-pointer select-none ${struck?'bg-rose-500 text-white':'bg-slate-100 hover:bg-rose-100 text-slate-500 hover:text-rose-600 dark:bg-slate-800 dark:hover:bg-rose-900/40 dark:text-slate-400 dark:hover:text-rose-300'}">${struck?'↺':'✕'}</span>`:''}
+        </div>`;
     }).join('');
 
     const dots = A.responses.map((rr,i)=>{
@@ -1261,15 +1317,17 @@ function renderRunner(test, A) {
               </div>
               <div class="text-sm text-slate-500">Question <strong class="text-slate-900 dark:text-slate-100">${A.idx+1}</strong> of ${test.questions.length} · <span class="text-slate-700 dark:text-slate-300">${escapeHtml(q.topic||'—')}</span></div>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 flex-wrap justify-end">
               ${timerHtml}
+              <button id="hl-btn" class="px-3 py-1.5 rounded-lg text-sm border border-slate-200 dark:border-slate-800 hover:bg-amber-50 dark:hover:bg-amber-900/20" title="Highlight selected text in the question (H). Click with no selection to clear all highlights.">🖍 Highlight</button>
+              <button id="calc-btn" class="px-3 py-1.5 rounded-lg text-sm border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800" title="Open calculator (K)">🧮 Calc</button>
               <button id="flag-btn" class="px-3 py-1.5 rounded-lg text-sm border ${r.flagged?'bg-amber-100 dark:bg-amber-900/40 border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-200':'border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'}" title="Flag (F)">⚑ Flag</button>
             </div>
           </div>
 
           <div id="question-card" class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-soft scroll-mt-20">
             ${/\[text truncated in source PDF\]/.test(q.question) ? `<div class="mb-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 text-xs font-medium">⚠ Source PDF truncates this question — answer with available context</div>` : ''}
-            <p class="text-base sm:text-lg leading-relaxed">${escapeHtml(q.question)}</p>
+            <p id="question-text" class="text-base sm:text-lg leading-relaxed">${renderHighlighted(q.question, r.highlights)}</p>
             <div class="mt-5 space-y-2.5">${optHtml}</div>
             ${confidencePanel}
             ${feedbackPanel}
@@ -1304,7 +1362,7 @@ function renderRunner(test, A) {
             </div>
             <div class="mt-3 pt-3 border-t border-slate-200 dark:border-slate-800 text-xs text-slate-500">
               <div class="font-semibold text-slate-700 dark:text-slate-300 mb-1">Shortcuts</div>
-              <div>1–4 select · ←/→ nav · F flag · ${!isExam?'P peek · ':''}Enter ${isExam?'next':'submit/next'}</div>
+              <div>1–4 select · Shift+1–4 strike · H highlight · ←/→ nav · F flag · ${!isExam?'P peek · ':''}Enter ${isExam?'next':'submit/next'}</div>
             </div>
           </div>
         </aside>
@@ -1333,7 +1391,19 @@ function renderRunner(test, A) {
     }
 
     // Wire interactions
-    $$('.opt-btn').forEach(btn => btn.onclick = () => pick(btn.dataset.letter));
+    $$('.opt-btn').forEach(btn => {
+      btn.onclick = () => pick(btn.dataset.letter);
+      btn.oncontextmenu = (ev) => { ev.preventDefault(); toggleStrike(btn.dataset.letter); };
+    });
+    $$('.strike-toggle').forEach(s => {
+      const fire = (ev) => { ev.preventDefault(); ev.stopPropagation(); toggleStrike(s.dataset.strike); };
+      s.onclick = fire;
+      s.onkeydown = (ev) => { if (ev.key === 'Enter' || ev.key === ' ') fire(ev); };
+    });
+    const hlBtn = $('#hl-btn');
+    if (hlBtn) hlBtn.onclick = () => { if (!addHighlightFromSelection()) clearHighlights(); };
+    const calcBtn = $('#calc-btn');
+    if (calcBtn) calcBtn.onclick = () => toggleCalculator();
     $$('.conf-btn').forEach(btn => btn.onclick = () => {
       A.responses[A.idx].confidence = btn.dataset.conf;
       persist();
@@ -1376,11 +1446,19 @@ function renderRunner(test, A) {
     // Keyboard
     document.onkeydown = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-      if (['1','2','3','4'].includes(e.key)) { pick(['A','B','C','D'][+e.key-1]); }
+      if (['1','2','3','4'].includes(e.key)) {
+        if (e.shiftKey) { toggleStrike(['A','B','C','D'][+e.key-1]); }
+        else { pick(['A','B','C','D'][+e.key-1]); }
+      }
       else if (e.key === 'ArrowRight' || e.key === 'Enter') { next(); }
       else if (e.key === 'ArrowLeft') { prev(); }
       else if (e.key.toLowerCase() === 'f') { toggleFlag(); }
+      else if (e.key.toLowerCase() === 'h') {
+        // With selection: add a highlight. Without selection: clear all highlights.
+        if (!addHighlightFromSelection()) clearHighlights();
+      }
       else if (e.key.toLowerCase() === 'p' && !isExam) { const pb = $('#peek-btn'); if (pb) pb.click(); }
+      else if (e.key.toLowerCase() === 'k') { toggleCalculator(); }
     };
 
     function trackTime() {
@@ -1394,11 +1472,52 @@ function renderRunner(test, A) {
       // Block picking an eliminated option.
       if (A.responses[A.idx].peekedLetter === letter) return;
       trackTime();
-      A.responses[A.idx].choice = letter;
-      A.responses[A.idx].correct = letter === q.correct;
+      // Picking a struck option clears the strike (user changed their mind).
+      const cur = A.responses[A.idx];
+      if (Array.isArray(cur.struck) && cur.struck.includes(letter)) {
+        cur.struck = cur.struck.filter(L => L !== letter);
+      }
+      cur.choice = letter;
+      cur.correct = letter === q.correct;
       persist();
       // Re-render to update visual state (selection in exam, or just selection in study).
       renderQ();
+    }
+    function toggleStrike(letter) {
+      const cur = A.responses[A.idx];
+      if (!isExam && cur.revealed) return;
+      if (cur.peekedLetter === letter) return;
+      if (!Array.isArray(cur.struck)) cur.struck = [];
+      if (cur.struck.includes(letter)) {
+        cur.struck = cur.struck.filter(L => L !== letter);
+      } else {
+        cur.struck.push(letter);
+        // If user struck out their currently selected answer, clear the choice.
+        if (cur.choice === letter) { cur.choice = null; cur.correct = null; }
+      }
+      persist();
+      renderQ();
+    }
+    function addHighlightFromSelection() {
+      const cur = A.responses[A.idx];
+      const container = document.getElementById('question-text');
+      if (!container) return false;
+      const off = selectionOffsetsIn(container);
+      if (!off) return false;
+      if (!Array.isArray(cur.highlights)) cur.highlights = [];
+      cur.highlights.push(off);
+      window.getSelection && window.getSelection().removeAllRanges();
+      persist();
+      renderQ();
+      return true;
+    }
+    function clearHighlights() {
+      const cur = A.responses[A.idx];
+      if (!Array.isArray(cur.highlights) || !cur.highlights.length) return false;
+      cur.highlights = [];
+      persist();
+      renderQ();
+      return true;
     }
     function prev() { trackTime(); if (A.idx>0) A.idx--; persist(); renderQ.__scroll = true; renderQ(); }
     function next() {
@@ -2772,6 +2891,172 @@ function browseQuestions(initial) {
 }
 
 /* ===========================================================
+   FLOATING CALCULATOR (K)
+   Basic 4-function with parentheses, percent, decimals.
+   Draggable by header, position persisted in sessionStorage.
+   =========================================================== */
+function toggleCalculator() {
+  const existing = document.getElementById('pmp-calc');
+  if (existing) { existing.remove(); return; }
+  const el = document.createElement('div');
+  el.id = 'pmp-calc';
+  el.className = 'fixed z-50 w-72 rounded-2xl shadow-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 select-none';
+  // Restore last position or default to bottom-right
+  let pos;
+  try { pos = JSON.parse(sessionStorage.getItem('pmp-calc-pos') || 'null'); } catch(_) {}
+  if (!pos) {
+    pos = { left: Math.max(16, window.innerWidth - 304), top: Math.max(80, window.innerHeight - 440) };
+  }
+  el.style.left = pos.left + 'px';
+  el.style.top  = pos.top  + 'px';
+
+  const keys = [
+    ['C','(',')','⌫'],
+    ['7','8','9','÷'],
+    ['4','5','6','×'],
+    ['1','2','3','−'],
+    ['0','.','%','+'],
+    ['=']
+  ];
+  el.innerHTML = `
+    <div id="pmp-calc-head" class="flex items-center justify-between px-3 py-2 rounded-t-2xl bg-slate-100 dark:bg-slate-800 cursor-move">
+      <div class="text-xs font-semibold text-slate-700 dark:text-slate-200">🧮 Calculator</div>
+      <button id="pmp-calc-close" class="w-6 h-6 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 text-sm" title="Close (K or Esc)">✕</button>
+    </div>
+    <div class="p-3">
+      <div id="pmp-calc-expr" class="text-right text-xs text-slate-500 min-h-[1rem] truncate"></div>
+      <div id="pmp-calc-disp" class="text-right text-2xl font-mono font-semibold mb-2 truncate">0</div>
+      <div class="grid grid-cols-4 gap-1.5">
+        ${keys.flatMap(row => row.map(k => {
+          const isOp = '÷×−+='.includes(k);
+          const isAction = ['C','⌫','(',')','%'].includes(k);
+          const span = k === '=' ? 'col-span-4' : '';
+          const cls = k === '='
+            ? 'bg-brand-600 hover:bg-brand-700 text-white'
+            : isOp
+              ? 'bg-amber-100 hover:bg-amber-200 text-amber-900 dark:bg-amber-900/40 dark:hover:bg-amber-900/60 dark:text-amber-200'
+              : isAction
+                ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200'
+                : 'bg-white hover:bg-slate-100 text-slate-800 dark:bg-slate-900 dark:hover:bg-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700';
+          return `<button data-k="${k}" class="${span} px-2 py-2.5 rounded-lg font-medium ${cls}">${k}</button>`;
+        })).join('')}
+      </div>
+      <div class="mt-2 text-[10px] text-slate-400 leading-snug">EVM: CV=EV−AC · SPI=EV/PV · CPI=EV/AC · EAC=BAC/CPI · ETC=EAC−AC · VAC=BAC−EAC</div>
+    </div>`;
+  document.body.appendChild(el);
+
+  // --- Engine ---
+  let expr = '';   // visible expression (with ÷×−)
+  const disp = el.querySelector('#pmp-calc-disp');
+  const exprEl = el.querySelector('#pmp-calc-expr');
+  const refresh = (result) => {
+    exprEl.textContent = expr || '\u00A0';
+    if (result !== undefined) disp.textContent = formatNum(result);
+    else disp.textContent = expr ? expr.slice(-12) : '0';
+  };
+  const formatNum = (n) => {
+    if (!isFinite(n)) return 'Error';
+    const s = (Math.round(n * 1e10) / 1e10).toString();
+    return s.length > 14 ? Number(n).toExponential(6) : s;
+  };
+  const evalExpr = (s) => {
+    if (!s) return 0;
+    // Translate display symbols into JS operators.
+    let js = s.replace(/÷/g,'/').replace(/×/g,'*').replace(/−/g,'-');
+    // Handle trailing % as /100 of preceding number.
+    js = js.replace(/(\d+(?:\.\d+)?)%/g, '($1/100)');
+    // Whitelist
+    if (!/^[\d+\-*/().\s]+$/.test(js)) throw new Error('bad');
+    // eslint-disable-next-line no-new-func
+    return Function('"use strict";return (' + js + ')')();
+  };
+
+  const press = (k) => {
+    if (k === 'C')      { expr = ''; refresh(); return; }
+    if (k === '⌫')      { expr = expr.slice(0, -1); refresh(); return; }
+    if (k === '=') {
+      try { const v = evalExpr(expr); expr = formatNum(v); refresh(v); }
+      catch(_) { disp.textContent = 'Error'; }
+      return;
+    }
+    expr += k;
+    refresh();
+  };
+  refresh();
+
+  el.querySelectorAll('[data-k]').forEach(b => b.onclick = () => press(b.dataset.k));
+  el.querySelector('#pmp-calc-close').onclick = () => el.remove();
+
+  // --- Keyboard while calc focused ---
+  el.tabIndex = -1;
+  const mapKey = (key) => {
+    if (key >= '0' && key <= '9') return key;
+    if (key === '.') return '.';
+    if (key === '+') return '+';
+    if (key === '-') return '−';
+    if (key === '*') return '×';
+    if (key === '/') return '÷';
+    if (key === '(' || key === ')') return key;
+    if (key === '%') return '%';
+    if (key === 'Enter' || key === '=') return '=';
+    if (key === 'Backspace') return '⌫';
+    if (key === 'Escape') return 'ESC';
+    if (key.toLowerCase && key.toLowerCase() === 'c') return 'C';
+    return null;
+  };
+  el.onkeydown = (e) => {
+    const m = mapKey(e.key);
+    if (!m) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (m === 'ESC') { el.remove(); return; }
+    press(m);
+  };
+  // Focus so it intercepts keys, but only if user clicks inside.
+  el.addEventListener('mousedown', () => el.focus());
+
+  // --- Drag ---
+  const head = el.querySelector('#pmp-calc-head');
+  let drag = null;
+  head.addEventListener('mousedown', (e) => {
+    if (e.target.id === 'pmp-calc-close') return;
+    drag = { dx: e.clientX - el.offsetLeft, dy: e.clientY - el.offsetTop };
+    e.preventDefault();
+  });
+  window.addEventListener('mousemove', (e) => {
+    if (!drag) return;
+    const left = Math.max(0, Math.min(window.innerWidth - el.offsetWidth, e.clientX - drag.dx));
+    const top  = Math.max(0, Math.min(window.innerHeight - 40, e.clientY - drag.dy));
+    el.style.left = left + 'px';
+    el.style.top  = top  + 'px';
+  });
+  window.addEventListener('mouseup', () => {
+    if (drag) {
+      try { sessionStorage.setItem('pmp-calc-pos', JSON.stringify({ left: el.offsetLeft, top: el.offsetTop })); } catch(_) {}
+    }
+    drag = null;
+  });
+
+  // Touch drag
+  head.addEventListener('touchstart', (e) => {
+    const t = e.touches[0];
+    drag = { dx: t.clientX - el.offsetLeft, dy: t.clientY - el.offsetTop };
+  }, { passive: true });
+  window.addEventListener('touchmove', (e) => {
+    if (!drag) return;
+    const t = e.touches[0];
+    el.style.left = Math.max(0, Math.min(window.innerWidth - el.offsetWidth, t.clientX - drag.dx)) + 'px';
+    el.style.top  = Math.max(0, Math.min(window.innerHeight - 40, t.clientY - drag.dy)) + 'px';
+  }, { passive: true });
+  window.addEventListener('touchend', () => {
+    if (drag) {
+      try { sessionStorage.setItem('pmp-calc-pos', JSON.stringify({ left: el.offsetLeft, top: el.offsetTop })); } catch(_) {}
+    }
+    drag = null;
+  });
+}
+
+/* ===========================================================
    KEYBOARD SHORTCUT HELP OVERLAY (?)
    =========================================================== */
 window.addEventListener('keydown', (e) => {
@@ -2788,6 +3073,9 @@ window.addEventListener('keydown', (e) => {
         <table class="w-full text-sm">
           <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
             <tr><td class="py-2"><kbd class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-xs">1-4</kbd></td><td>Select option A-D</td></tr>
+            <tr><td class="py-2"><kbd class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-xs">Shift</kbd> + <kbd class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-xs">1-4</kbd></td><td>Strike out option (right-click also works)</td></tr>
+            <tr><td class="py-2"><kbd class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-xs">H</kbd></td><td>Highlight selected text · press with no selection to clear</td></tr>
+            <tr><td class="py-2"><kbd class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-xs">K</kbd></td><td>Open / close calculator</td></tr>
             <tr><td class="py-2"><kbd class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-xs">←/→</kbd></td><td>Previous / Next question</td></tr>
             <tr><td class="py-2"><kbd class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-xs">F</kbd></td><td>Flag question</td></tr>
             <tr><td class="py-2"><kbd class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-xs">Enter</kbd></td><td>Next question</td></tr>
