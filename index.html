@@ -45,13 +45,43 @@
   #question-text{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
   .pmp-hl{transition:background-color .15s ease}
   .pmp-hl:hover{background-color:rgb(252 211 77)}
-  /* Floating "Highlight" pill that appears next to a text selection. */
-  #pmp-hl-pop{position:absolute;z-index:60;transform:translate(-50%,-100%);margin-top:-8px;
-    -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
-    box-shadow:0 4px 14px rgba(0,0,0,.18)}
-  #pmp-hl-pop button{-webkit-user-select:none;user-select:none}
+  /* Floating "Highlight" pill that appears next to a text selection.
+     Pure CSS so it doesn't rely on Tailwind JIT picking up dynamic classes. */
+  #pmp-hl-pop{
+    position:absolute;z-index:60;
+    transform:translate(-50%,-100%);
+    margin-top:-10px;
+    -webkit-user-select:none;user-select:none;
+    -webkit-touch-callout:none;
+    pointer-events:auto;
+    opacity:0;transition:opacity .12s ease;
+  }
+  #pmp-hl-pop.visible{opacity:1}
+  #pmp-hl-pop.below{transform:translate(-50%,0);margin-top:10px}
+  #pmp-hl-pop button{
+    all:unset;
+    display:inline-flex;align-items:center;gap:6px;
+    padding:8px 14px;
+    border-radius:9999px;
+    background:#f59e0b;
+    color:#fff;
+    font:600 14px/1 Inter,ui-sans-serif,system-ui,sans-serif;
+    box-shadow:0 6px 18px rgba(0,0,0,.22), 0 1px 0 rgba(255,255,255,.25) inset;
+    cursor:pointer;
+    white-space:nowrap;
+    -webkit-tap-highlight-color:transparent;
+  }
+  #pmp-hl-pop button:hover{background:#d97706}
+  #pmp-hl-pop button:active{background:#b45309;transform:translateY(1px)}
+  #pmp-hl-pop .pmp-hl-arrow{
+    position:absolute;left:50%;bottom:-6px;
+    width:12px;height:12px;background:#f59e0b;
+    transform:translateX(-50%) rotate(45deg);
+    box-shadow:2px 2px 4px rgba(0,0,0,.10);
+  }
+  #pmp-hl-pop.below .pmp-hl-arrow{top:-6px;bottom:auto}
   /* Safari sometimes shrinks tap targets; ensure 32px min. */
-  .strike-toggle, #pmp-hl-pop button{min-width:32px;min-height:32px}
+  .strike-toggle{min-width:32px;min-height:32px}
   .card-hover{transition:transform .15s ease, border-color .15s ease, box-shadow .15s ease}
   .card-hover:hover{transform:translateY(-2px)}
   .scroll-stable{scrollbar-gutter:stable}
@@ -2930,25 +2960,56 @@ function browseQuestions(initial) {
 
 /* ===========================================================
    FLOATING HIGHLIGHT POPOVER
-   When the user selects text inside the question, a small "🖍 Highlight"
-   pill floats next to the selection. Tapping it preserves the selection
-   (pointerdown + preventDefault — critical on Safari/iOS) and applies the
-   highlight via the supplied callback.
+   Cross-browser (Chrome/Edge/Firefox/Safari incl. iOS).
+   Strategy:
+   - Trigger on mouseup/touchend/keyup AFTER the selection is finalized,
+     not on selectionchange (which fires constantly during the drag and
+     conflicts with the iOS native callout).
+   - Use pure CSS so styling doesn't depend on Tailwind JIT picking up
+     classes from dynamically-injected nodes.
+   - Use pointerdown + preventDefault to keep the selection alive when
+     the user taps the pill (Safari otherwise collapses the selection).
+   - Position above the selection unless there's no room, then below.
+     Avoids overlap with the iOS Copy/Look Up callout.
    =========================================================== */
 function setupHighlightPopover(container, applyHighlight) {
-  if (!container || container.__pmpHlBound) return;
-  container.__pmpHlBound = true;
-
-  // Remove any orphaned popover from a previous render.
-  const stale = document.getElementById('pmp-hl-pop');
-  if (stale) stale.remove();
+  if (!container) return;
+  // Tear down any prior bindings so a re-render replaces handlers cleanly.
+  if (container.__pmpHlTeardown) container.__pmpHlTeardown();
 
   const hide = () => {
     const p = document.getElementById('pmp-hl-pop');
     if (p) p.remove();
   };
 
-  const show = () => {
+  const ensurePop = () => {
+    let pop = document.getElementById('pmp-hl-pop');
+    if (pop) return pop;
+    pop = document.createElement('div');
+    pop.id = 'pmp-hl-pop';
+    pop.innerHTML = '<button type="button" aria-label="Highlight selection">' +
+                    '<span aria-hidden="true">🖍</span><span>Highlight</span>' +
+                    '<span class="pmp-hl-arrow" aria-hidden="true"></span></button>';
+    document.body.appendChild(pop);
+    const btn = pop.querySelector('button');
+    // Preserve selection across the tap on Safari/iOS.
+    const swallow = (ev) => { ev.preventDefault(); };
+    btn.addEventListener('pointerdown', swallow);
+    btn.addEventListener('mousedown',   swallow);
+    btn.addEventListener('touchstart',  swallow, { passive: false });
+    // Use pointerup as the activation event — fires reliably on iOS, and
+    // by this point the selection is still alive thanks to the prevented
+    // pointerdown. Fall back to click for non-pointer browsers.
+    const activate = (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      try { applyHighlight && applyHighlight(); } finally { hide(); }
+    };
+    btn.addEventListener('click', activate);
+    return pop;
+  };
+
+  const tryShow = () => {
     const sel = window.getSelection && window.getSelection();
     if (!sel || sel.rangeCount === 0 || sel.isCollapsed) { hide(); return; }
     const range = sel.getRangeAt(0);
@@ -2956,57 +3017,68 @@ function setupHighlightPopover(container, applyHighlight) {
       hide();
       return;
     }
-    const rect = range.getBoundingClientRect();
+    const rects = range.getClientRects();
+    const rect = rects && rects.length ? rects[rects.length - 1] : range.getBoundingClientRect();
     if (!rect || (rect.width === 0 && rect.height === 0)) { hide(); return; }
 
-    let pop = document.getElementById('pmp-hl-pop');
-    if (!pop) {
-      pop = document.createElement('div');
-      pop.id = 'pmp-hl-pop';
-      pop.innerHTML = `
-        <button type="button" class="px-3 py-1.5 rounded-full bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold shadow-lg flex items-center gap-1.5">
-          🖍 <span>Highlight</span>
-        </button>`;
-      document.body.appendChild(pop);
-      const btn = pop.querySelector('button');
-      // pointerdown + preventDefault keeps the selection alive on Safari/iOS.
-      btn.addEventListener('pointerdown', (ev) => { ev.preventDefault(); });
-      btn.addEventListener('mousedown',   (ev) => { ev.preventDefault(); });
-      btn.addEventListener('touchstart',  (ev) => { ev.preventDefault(); }, { passive: false });
-      btn.addEventListener('click', (ev) => {
-        ev.preventDefault();
-        ev.stopPropagation();
-        try { applyHighlight && applyHighlight(); } finally { hide(); }
-      });
-    }
-    // Position above the selection, centered. Use page coordinates.
+    const pop = ensurePop();
+    // Decide whether to place the pill above or below the selection so it
+    // doesn't fight with the iOS native callout (which prefers the same
+    // side with the most room — typically above).
+    const ABOVE_NEEDS = 56;  // px of clearance for pill + arrow + iOS callout
+    const placeBelow = rect.top < ABOVE_NEEDS;
+    pop.classList.toggle('below', placeBelow);
+
+    // Use viewport-anchored coordinates (page coords).
     const left = window.scrollX + rect.left + rect.width / 2;
-    const top  = window.scrollY + rect.top;
+    const top  = window.scrollY + (placeBelow ? rect.bottom : rect.top);
     pop.style.left = left + 'px';
     pop.style.top  = top  + 'px';
+    // Defer adding `visible` so the transition can play.
+    requestAnimationFrame(() => pop.classList.add('visible'));
   };
 
-  // selectionchange fires reliably across desktop + Safari/iOS while the user
-  // drags the selection. Debounce to once-per-frame.
-  let raf = null;
-  const onChange = () => {
-    if (raf) cancelAnimationFrame(raf);
-    raf = requestAnimationFrame(show);
+  // Show on selection-completion events (NOT selectionchange — that fires
+  // continuously during the drag and on iOS conflicts with the native
+  // callout, causing flicker / tap misses).
+  let pending = null;
+  const queueShow = () => {
+    if (pending) cancelAnimationFrame(pending);
+    // A tiny delay lets the browser commit the final selection state.
+    pending = requestAnimationFrame(() => setTimeout(tryShow, 30));
   };
-  document.addEventListener('selectionchange', onChange);
 
-  // Reposition on scroll / resize while the pill is visible.
-  window.addEventListener('scroll', show, { passive: true });
-  window.addEventListener('resize', show);
+  const onMouseUp  = () => queueShow();
+  const onTouchEnd = () => queueShow();
+  const onKeyUp    = (e) => { if (e.shiftKey || e.key === 'Shift') queueShow(); };
+  // If the selection collapses (user clicks elsewhere), hide.
+  const onSelChange = () => {
+    const sel = window.getSelection && window.getSelection();
+    if (!sel || sel.isCollapsed || sel.rangeCount === 0) hide();
+  };
 
-  // Tapping outside hides the pill.
-  document.addEventListener('pointerdown', (ev) => {
-    const pop = document.getElementById('pmp-hl-pop');
-    if (!pop) return;
-    if (pop.contains(ev.target)) return;
-    if (container.contains(ev.target)) return; // selection still in flux
+  document.addEventListener('mouseup', onMouseUp);
+  document.addEventListener('touchend', onTouchEnd, { passive: true });
+  document.addEventListener('keyup', onKeyUp);
+  document.addEventListener('selectionchange', onSelChange);
+
+  // Hide while scrolling (the floating pill would otherwise drift); the user
+  // can simply re-select to bring it back. Reposition on resize.
+  const onScroll = () => hide();
+  const onResize = () => hide();
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onResize);
+
+  container.__pmpHlTeardown = () => {
+    document.removeEventListener('mouseup', onMouseUp);
+    document.removeEventListener('touchend', onTouchEnd);
+    document.removeEventListener('keyup', onKeyUp);
+    document.removeEventListener('selectionchange', onSelChange);
+    window.removeEventListener('scroll', onScroll);
+    window.removeEventListener('resize', onResize);
     hide();
-  });
+    container.__pmpHlTeardown = null;
+  };
 }
 
 
