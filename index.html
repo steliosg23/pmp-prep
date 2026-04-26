@@ -40,6 +40,18 @@
   @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
   .opt-btn{transition:transform .15s ease, border-color .15s ease, background-color .15s ease, box-shadow .15s ease}
   .opt-btn:hover{transform:translateY(-1px)}
+  /* Question text must remain user-selectable across browsers (Safari/iOS).
+     Buttons in the toolbar should not steal selection when tapped. */
+  #question-text{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+  .pmp-hl{transition:background-color .15s ease}
+  .pmp-hl:hover{background-color:rgb(252 211 77)}
+  /* Floating "Highlight" pill that appears next to a text selection. */
+  #pmp-hl-pop{position:absolute;z-index:60;transform:translate(-50%,-100%);margin-top:-8px;
+    -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+    box-shadow:0 4px 14px rgba(0,0,0,.18)}
+  #pmp-hl-pop button{-webkit-user-select:none;user-select:none}
+  /* Safari sometimes shrinks tap targets; ensure 32px min. */
+  .strike-toggle, #pmp-hl-pop button{min-width:32px;min-height:32px}
   .card-hover{transition:transform .15s ease, border-color .15s ease, box-shadow .15s ease}
   .card-hover:hover{transform:translateY(-2px)}
   .scroll-stable{scrollbar-gutter:stable}
@@ -118,7 +130,8 @@ const html = (strings, ...values) => strings.reduce((acc,s,i)=>acc+s+(values[i]?
 const escapeHtml = (s='') => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 // Render text with user highlights. `ranges` is an array of [start,end] index
-// pairs into the raw text. Overlapping/adjacent ranges are merged.
+// pairs into the raw text. Overlapping/adjacent ranges are merged. Each rendered
+// <mark> carries its character range as data attributes so a click can remove it.
 function renderHighlighted(text='', ranges) {
   text = String(text);
   if (!Array.isArray(ranges) || !ranges.length) return escapeHtml(text);
@@ -135,7 +148,7 @@ function renderHighlighted(text='', ranges) {
   let out = '', cur = 0;
   for (const [s,e] of merged) {
     if (s > cur) out += escapeHtml(text.slice(cur, s));
-    out += '<mark class="bg-amber-200 dark:bg-amber-500/40 text-inherit rounded px-0.5">' + escapeHtml(text.slice(s, e)) + '</mark>';
+    out += `<mark data-hs="${s}" data-he="${e}" class="pmp-hl bg-amber-200 dark:bg-amber-500/40 text-inherit rounded px-0.5 cursor-pointer" title="Tap to remove highlight">${escapeHtml(text.slice(s, e))}</mark>`;
     cur = e;
   }
   if (cur < text.length) out += escapeHtml(text.slice(cur));
@@ -1401,9 +1414,24 @@ function renderRunner(test, A) {
       s.onkeydown = (ev) => { if (ev.key === 'Enter' || ev.key === ' ') fire(ev); };
     });
     const hlBtn = $('#hl-btn');
-    if (hlBtn) hlBtn.onclick = () => { if (!addHighlightFromSelection()) clearHighlights(); };
+    if (hlBtn) {
+      // Use pointerdown + preventDefault so Safari/iOS doesn't clear the
+      // selection when the user taps the toolbar button.
+      hlBtn.addEventListener('pointerdown', (ev) => { ev.preventDefault(); });
+      hlBtn.onclick = () => { if (!addHighlightFromSelection()) clearHighlights(); };
+    }
     const calcBtn = $('#calc-btn');
     if (calcBtn) calcBtn.onclick = () => toggleCalculator();
+    // Tap an existing highlight (<mark>) to remove it.
+    $$('#question-text mark.pmp-hl').forEach(m => {
+      m.addEventListener('click', (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        removeHighlightAt(+m.dataset.hs, +m.dataset.he);
+      });
+    });
+    // Wire the floating selection pill (works on both desktop and Safari/iOS).
+    setupHighlightPopover(document.getElementById('question-text'), addHighlightFromSelection);
     $$('.conf-btn').forEach(btn => btn.onclick = () => {
       A.responses[A.idx].confidence = btn.dataset.conf;
       persist();
@@ -1518,6 +1546,16 @@ function renderRunner(test, A) {
       persist();
       renderQ();
       return true;
+    }
+    // Remove every source highlight that intersects [s,e] — used when the user
+    // taps an existing <mark>. Marks are rendered from merged ranges, so a tap
+    // should clear all the original ranges that contributed to that mark.
+    function removeHighlightAt(s, e) {
+      const cur = A.responses[A.idx];
+      if (!Array.isArray(cur.highlights) || !cur.highlights.length) return;
+      cur.highlights = cur.highlights.filter(([a,b]) => b <= s || a >= e);
+      persist();
+      renderQ();
     }
     function prev() { trackTime(); if (A.idx>0) A.idx--; persist(); renderQ.__scroll = true; renderQ(); }
     function next() {
@@ -2889,6 +2927,88 @@ function browseQuestions(initial) {
   flagChk.addEventListener('change', e => { flaggedOnly = e.target.checked; limit = 50; render(); });
   render();
 }
+
+/* ===========================================================
+   FLOATING HIGHLIGHT POPOVER
+   When the user selects text inside the question, a small "🖍 Highlight"
+   pill floats next to the selection. Tapping it preserves the selection
+   (pointerdown + preventDefault — critical on Safari/iOS) and applies the
+   highlight via the supplied callback.
+   =========================================================== */
+function setupHighlightPopover(container, applyHighlight) {
+  if (!container || container.__pmpHlBound) return;
+  container.__pmpHlBound = true;
+
+  // Remove any orphaned popover from a previous render.
+  const stale = document.getElementById('pmp-hl-pop');
+  if (stale) stale.remove();
+
+  const hide = () => {
+    const p = document.getElementById('pmp-hl-pop');
+    if (p) p.remove();
+  };
+
+  const show = () => {
+    const sel = window.getSelection && window.getSelection();
+    if (!sel || sel.rangeCount === 0 || sel.isCollapsed) { hide(); return; }
+    const range = sel.getRangeAt(0);
+    if (!container.contains(range.startContainer) || !container.contains(range.endContainer)) {
+      hide();
+      return;
+    }
+    const rect = range.getBoundingClientRect();
+    if (!rect || (rect.width === 0 && rect.height === 0)) { hide(); return; }
+
+    let pop = document.getElementById('pmp-hl-pop');
+    if (!pop) {
+      pop = document.createElement('div');
+      pop.id = 'pmp-hl-pop';
+      pop.innerHTML = `
+        <button type="button" class="px-3 py-1.5 rounded-full bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold shadow-lg flex items-center gap-1.5">
+          🖍 <span>Highlight</span>
+        </button>`;
+      document.body.appendChild(pop);
+      const btn = pop.querySelector('button');
+      // pointerdown + preventDefault keeps the selection alive on Safari/iOS.
+      btn.addEventListener('pointerdown', (ev) => { ev.preventDefault(); });
+      btn.addEventListener('mousedown',   (ev) => { ev.preventDefault(); });
+      btn.addEventListener('touchstart',  (ev) => { ev.preventDefault(); }, { passive: false });
+      btn.addEventListener('click', (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        try { applyHighlight && applyHighlight(); } finally { hide(); }
+      });
+    }
+    // Position above the selection, centered. Use page coordinates.
+    const left = window.scrollX + rect.left + rect.width / 2;
+    const top  = window.scrollY + rect.top;
+    pop.style.left = left + 'px';
+    pop.style.top  = top  + 'px';
+  };
+
+  // selectionchange fires reliably across desktop + Safari/iOS while the user
+  // drags the selection. Debounce to once-per-frame.
+  let raf = null;
+  const onChange = () => {
+    if (raf) cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(show);
+  };
+  document.addEventListener('selectionchange', onChange);
+
+  // Reposition on scroll / resize while the pill is visible.
+  window.addEventListener('scroll', show, { passive: true });
+  window.addEventListener('resize', show);
+
+  // Tapping outside hides the pill.
+  document.addEventListener('pointerdown', (ev) => {
+    const pop = document.getElementById('pmp-hl-pop');
+    if (!pop) return;
+    if (pop.contains(ev.target)) return;
+    if (container.contains(ev.target)) return; // selection still in flux
+    hide();
+  });
+}
+
 
 /* ===========================================================
    FLOATING CALCULATOR (K)

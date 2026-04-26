@@ -8,7 +8,7 @@
  * one-shot refetch.
  */
 
-const CACHE_VERSION = 'v2026.04.26.02';
+const CACHE_VERSION = 'v2026.04.26.03';
 const APP_CACHE = `pmp-app-${CACHE_VERSION}`;
 const CDN_CACHE = `pmp-cdn-${CACHE_VERSION}`;
 
