@@ -8,7 +8,7 @@
  * one-shot refetch.
  */
 
-const CACHE_VERSION = 'v2026.04.26.04';
+const CACHE_VERSION = 'v2026.04.26.05';
 const APP_CACHE = `pmp-app-${CACHE_VERSION}`;
 const CDN_CACHE = `pmp-cdn-${CACHE_VERSION}`;
 
@@ -69,6 +69,16 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
+  if (event.data && event.data.type === 'GET_VERSION') {
+    // Reply via MessageChannel port if provided (preferred — direct reply),
+    // else broadcast to all clients.
+    const payload = { type: 'VERSION', version: CACHE_VERSION };
+    if (event.ports && event.ports[0]) {
+      event.ports[0].postMessage(payload);
+    } else {
+      self.clients.matchAll().then((cs) => cs.forEach((c) => c.postMessage(payload)));
+    }
+  }
 });
 
 self.addEventListener('fetch', (event) => {

@@ -111,6 +111,23 @@
 <!-- This is a local-only app. All data lives in this browser; use Settings → Backup & restore to move data between devices. -->
 <script>
   // Service worker registration. Skipped on file:// so local-file dev still works.
+  // Ask whichever SW is in charge for its CACHE_VERSION and update the
+  // footer label, so the displayed build always reflects the bytes actually
+  // serving the page (no manual sync between sw.js and index.html).
+  function askVersion(target) {
+    if (!target) return;
+    try {
+      const ch = new MessageChannel();
+      ch.port1.onmessage = (ev) => {
+        if (ev.data && ev.data.type === 'VERSION' && ev.data.version) {
+          window.APP_VERSION = ev.data.version;
+          const el = document.getElementById('footer-version');
+          if (el) el.textContent = ev.data.version;
+        }
+      };
+      target.postMessage({ type: 'GET_VERSION' }, [ch.port2]);
+    } catch (_) { /* old browsers */ }
+  }
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then((reg) => {
@@ -129,6 +146,11 @@
           });
         });
 
+        // Pick the best available worker and ask its version.
+        const target = navigator.serviceWorker.controller || reg.active || reg.waiting || reg.installing;
+        askVersion(target);
+        navigator.serviceWorker.ready.then((r) => askVersion(r.active));
+
         // Poll for new versions: every 60s while the page is open, and
         // immediately when the tab regains focus / becomes visible. Without
         // this, the browser only checks for updates on initial load — which
@@ -141,6 +163,9 @@
 
       let reloaded = false;
       navigator.serviceWorker.addEventListener('controllerchange', () => {
+        // Refresh the displayed version against the new controller before
+        // the page reloads — useful for users who notice the footer flip.
+        askVersion(navigator.serviceWorker.controller);
         if (reloaded) return;
         reloaded = true;
         location.reload();
@@ -237,9 +262,12 @@ function toast(msg, kind='info') {
 
 /* ---------------- Storage ---------------- */
 const KEY = 'pmpprep.v1';
-// Keep this string in lock-step with sw.js CACHE_VERSION so the footer
-// reflects the actually-deployed build the user is looking at.
-const APP_VERSION = 'v2026.04.26.04';
+// Build version. Initial value is a fallback shown before the service worker
+// answers; on register (and on every controllerchange) we ask the SW for its
+// CACHE_VERSION via a MessageChannel, and patch this variable + the footer
+// node. This guarantees the displayed version always matches the bytes that
+// are actually serving the app — no manual lock-step required.
+let APP_VERSION = 'v2026.04.26.04';
 
 // IndexedDB layer — survives iOS Safari's aggressive localStorage eviction (ITP,
 // "Clear History and Website Data", tab-close in some private-mode states).
@@ -692,7 +720,7 @@ function shell(content, opts={}) {
       <span class="text-slate-300 dark:text-slate-700">·</span>
       <span id="footer-sync">${Sync.isConnected() ? '☁ Cloud sync on' : 'Local-only'}</span>
       <span class="text-slate-300 dark:text-slate-700">·</span>
-      <span class="font-mono text-[10px]" title="Build version (matches service worker cache key)">${APP_VERSION}</span>
+      <span id="footer-version" class="font-mono text-[10px]" title="Build version (live from service worker)">${APP_VERSION}</span>
       <span class="text-slate-300 dark:text-slate-700">·</span>
       <kbd class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px]">?</kbd> shortcuts
     </footer>
