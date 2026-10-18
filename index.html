@@ -777,6 +777,25 @@ svg.tk{width:100%;max-width:460px;display:block;margin:0 auto}
 .sync-err{color:var(--red);font-size:13.5px;margin:8px 0 0;min-height:1em}
 .sync-ok{display:flex;align-items:center;gap:8px;font-weight:500;color:var(--heading);margin:0 0 8px}
 .sync-ok .dot{width:9px;height:9px;border-radius:50%;background:var(--green)}.sync-ok .dot.bad{background:var(--red)}
+.parts{margin-bottom:40px;display:grid;gap:10px}
+.parts-h{font-family:var(--serif);font-size:24px;font-weight:600;color:var(--heading);margin:6px 0 4px}.parts-h small{display:block;font-family:var(--sans);font-size:13px;font-weight:400;color:var(--text-3);margin-top:2px}
+.part{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow-sm);overflow:hidden}
+.part[open]{border-color:var(--gold)}
+.part summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:auto 1fr auto auto;grid-template-areas:"k t n c" "s s s s" "r r r r";gap:2px 10px;align-items:center;padding:14px 16px}
+.part summary::-webkit-details-marker{display:none}
+.pt-k{grid-area:k;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--sky-ink)}
+.pt-t{grid-area:t;font-weight:500;color:var(--heading);font-size:16px}
+.pt-s{grid-area:s;font-size:12.5px;color:var(--text-3)}
+.pt-n{grid-area:n;font-size:13px;color:var(--text-2)}
+.pt-chev{grid-area:c;width:9px;height:9px;border-right:2px solid var(--text-3);border-bottom:2px solid var(--text-3);transform:rotate(45deg);margin:0 4px 4px;transition:transform .2s}
+.part[open] .pt-chev{transform:rotate(-135deg);margin-top:6px}
+.pt-route{grid-area:r;display:flex;align-items:center;margin-top:10px;max-width:520px}
+.pn{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:12.5px;font-weight:500;color:var(--text-3);background:var(--surface);border:2px solid var(--line-2)}
+.pn[data-state="started"]{border-color:var(--gold);color:var(--gold-ink)}
+.pn[data-state="done"]{background:var(--gold);border-color:var(--gold);color:var(--brand-ink)}
+.pn[data-here]{box-shadow:0 0 0 3px var(--gold-soft),0 0 0 5px var(--gold);color:var(--heading)}
+.pl{flex:1;height:2px;min-width:8px;background:var(--line-2)}
+.part-body{margin:0;border:0;border-top:1px solid var(--line);border-radius:0;box-shadow:none;padding-bottom:8px}
 /* session */
 .plan-wrap{margin:0 0 20px}
 .sess-card{margin-bottom:14px;padding:16px;border-radius:16px;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow)}
@@ -1554,7 +1573,7 @@ function viewList(){
   const totalMin = Math.round(CH.reduce((a,c) => a + c.seconds, 0)/60);
   const next = (P.ch && chOf(P.ch)) || CH.find(c => stateOf(c) === 'started') || CH.find(c => stateOf(c) !== 'done');
 
-  const rows = CH.map(c => {
+  const row = c => {
     const st = chState(c.id), s = stateOf(c);
     const score = st.best === null ? '' : `<span class="score${st.best>=PASS?' pass':''}">${st.best}%</span>`;
     const bar = st.heard > 0.02 && st.heard < 0.98 ? `<span class="ch-bar"><i style="width:${Math.round(st.heard*100)}%"></i></span>` : '';
@@ -1567,6 +1586,21 @@ function viewList(){
       </span>
       <span class="ch-right">${score}<button class="row-play" data-play="${c.id}" aria-label="Άκου το κεφάλαιο ${c.id}">${IC.play}${IC.pause}</button></span>
     </div>`;
+  };
+  /* the 21 chapters as 5 parts: a compact route per part, opened where you are */
+  const PARTS = [['Θεμέλια', 'Project, PMBOK 8, mindset', 1, 4], ['Προσεγγίσεις & αξία', 'Predictive/adaptive, business case, charter, stakeholders', 5, 8],
+    ['Σχεδιασμός', 'Planning, scope, χρονοπρόγραμμα, κόστος & EVM', 9, 12], ['Ομάδα, ποιότητα, ρίσκο', 'Πόροι, ποιότητα, ρίσκο, συμβάσεις', 13, 16],
+    ['Εκτέλεση έως εξέταση', 'Ηγεσία, έλεγχος, αλλαγές, κλείσιμο, exam strategy', 17, 21]];
+  const here = typeof sessCh === 'function' ? sessCh() : (next ? next.id : 1);
+  const rows = PARTS.map(([t, sub, a, b], pi) => {
+    const cs = CH.filter(c => c.id >= a && c.id <= b), dn = cs.filter(c => stateOf(c) === 'done').length;
+    const open = here >= a && here <= b;
+    const nodes = cs.map(c => `<span class="pn" data-state="${stateOf(c)}"${c.id === here ? ' data-here="1"' : ''} title="${esc(c.title)}">${c.id}</span>`).join('<i class="pl"></i>');
+    return `<details class="part"${open ? ' open' : ''}>
+      <summary><span class="pt-k">Μέρος ${'ΑΒΓΔΕ'[pi]}</span><span class="pt-t">${t}</span><span class="pt-s">${sub}</span>
+        <span class="pt-route">${nodes}</span><span class="pt-n">${dn}/${cs.length}</span><span class="pt-chev"></span></summary>
+      <div class="spine part-body"><div class="spine-fill" style="height:${dn / cs.length * 100}%"></div>${cs.map(row).join('')}</div>
+    </details>`;
   }).join('');
 
   const nst = next ? chState(next.id) : null;
@@ -1584,8 +1618,7 @@ function viewList(){
       </div>
       ${typeof sessCard === 'function' ? sessCard() : ''}
     </section>
-    <section class="spine">
-      <div class="spine-fill" style="height:${CH.length ? (done/CH.length*100) : 0}%"></div>
+    <section class="parts"><h2 class="parts-h">Η διαδρομή σου <small>${done}/21 κεφάλαια · πάτα ένα μέρος για να δεις τα κεφάλαιά του</small></h2>
       ${rows}
     </section>`;
   syncAll(); syncPlayState();
