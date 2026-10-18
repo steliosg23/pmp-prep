@@ -771,6 +771,12 @@ svg.tk{width:100%;max-width:460px;display:block;margin:0 auto}
 .cm-sec rect{fill:var(--sky-wash);stroke:var(--sky)}.cm-sec text{fill:var(--heading);text-anchor:middle;font-size:12.5px}
 .cm-term{cursor:pointer}.cm-term rect{fill:var(--gold-soft);stroke:var(--gold)}.cm-term text{fill:var(--gold-ink);text-anchor:middle;font-size:12px;font-weight:500}
 .cm-term.on rect{fill:var(--gold)}.cm-term.on text{fill:var(--brand-ink)}
+.sync-steps{margin:0 0 14px;padding-left:20px;font-size:14px;color:var(--text-2);display:grid;gap:6px}.sync-steps a{color:var(--sky-ink);text-decoration:underline}
+.sync-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.sync-row input{flex:1 1 220px;min-width:0;padding:11px 12px;border-radius:10px;border:1px solid var(--line-2);background:var(--surface-2);color:var(--text);font:inherit;font-family:ui-monospace,monospace;font-size:14px}
+.sync-err{color:var(--red);font-size:13.5px;margin:8px 0 0;min-height:1em}
+.sync-ok{display:flex;align-items:center;gap:8px;font-weight:500;color:var(--heading);margin:0 0 8px}
+.sync-ok .dot{width:9px;height:9px;border-radius:50%;background:var(--green)}.sync-ok .dot.bad{background:var(--red)}
 /* tutor */
 .tutor{max-width:860px;margin:0 auto;padding:24px 0 80px}
 .tu-cta{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 14px;margin:14px 0 4px;border-radius:14px;background:var(--dock);color:#fff;box-shadow:var(--shadow-sm)}
@@ -2357,15 +2363,17 @@ function viewProgress(){
       <p class="hint">Ξεχνά τον κωδικό σε αυτή τη συσκευή. Την επόμενη φορά θα σου ζητηθεί ξανά. Η πρόοδός σου μένει.</p>
       <button class="btn btn-ghost" id="lockdev">Κλείδωσε αυτή τη συσκευή</button>
     </div>
+    ${typeof syncPanel === 'function' ? syncPanel() : ''}
     <div class="panel">
       <h2>Μηδενισμός</h2>
       <p class="hint">Σβήνει ακροάσεις, θέση ανάγνωσης και βαθμολογίες από αυτή τη συσκευή. Δεν αναιρείται.</p>
       <button class="btn btn-ghost danger" id="reset">Σβήσε την πρόοδό μου</button>
     </div>`;
   $('#lockdev').onclick = lockDevice;
+  if (typeof syncStatus === 'function') syncStatus();
   $('#reset').onclick = () => {
     if (!confirm('Να σβηστεί όλη η πρόοδος από αυτή τη συσκευή;')) return;
-    try { localStorage.removeItem(KEY); } catch(e){}
+    store.set(KEY, {});
     viewProgress();
   };
 }
@@ -2390,6 +2398,7 @@ $('[data-ctrls]').innerHTML = ctrls();
     OPS = Array.from({length: 20}, (_, i) => i + 1);
   }
   catch(e){ app.innerHTML = `<div class="empty">Τα κεφάλαια δεν φορτώθηκαν. Ανανέωσε τη σελίδα.</div>`; return; }
+  if (typeof syncBoot === 'function'){ app.innerHTML = '<div class="loading">Συγχρονισμός…</div>'; try { await syncBoot(); } catch(e){} }
   route();
 })();
 
@@ -2412,5 +2421,6 @@ if ('serviceWorker' in navigator){
 <script src="study.js"></script>
 <script src="labs.js"></script>
 <script src="tutor.js"></script>
+<script src="sync.js"></script>
 </body>
 </html>
