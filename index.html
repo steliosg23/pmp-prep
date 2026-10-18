@@ -541,12 +541,15 @@ footer{padding:30px 0 40px;color:var(--text-3);font-size:13px;font-weight:300;te
 .ab-tool:hover{background:var(--sunk);color:var(--heading)}
 .ab-tool[aria-pressed="true"]{background:var(--heading);color:var(--bg)}
 .ab-done{color:var(--sky-ink);font-weight:500}
+.bk-ico{width:16px;height:12px;border-radius:2px;background:linear-gradient(90deg,rgba(255,222,77,.95) 50%,rgba(134,226,166,.9) 50%)}
+#bk-toggle[aria-pressed="false"] .bk-ico{opacity:.35}
+#bk-toggle[aria-pressed="true"]{background:var(--sunk);color:var(--heading)}
 .sw{width:24px;height:24px;border-radius:50%;background:var(--c);box-shadow:inset 0 0 0 2px rgba(255,255,255,.6),0 0 0 1px var(--line-2);transition:transform .1s}
 .sw[aria-pressed="true"]{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--heading)}
 .ab-hint{flex-basis:100%;font-size:12.5px;color:var(--text-3)}
 .vb-label{flex:1 1 0}
 @media (max-width:620px){
-  .ab-tool span{display:none}.ab-tool{padding:0 8px;height:32px}
+  .ab-tool span:not(.bk-ico){display:none}.ab-tool{padding:0 8px;height:32px}
   .anno-bar{gap:6px 8px;padding-top:6px;margin-top:6px}
   .ab-colors{order:3;flex-basis:100%;justify-content:space-between;max-width:260px}
   .sw{width:22px;height:22px}
@@ -559,6 +562,11 @@ svg.ink path{fill:none;stroke-linecap:round;stroke-linejoin:round}
 .drawing svg.ink{pointer-events:auto;touch-action:none;cursor:crosshair}
 .drawing.erasing svg.ink{cursor:cell}
 .drawing .guide{user-select:none;-webkit-user-select:none}
+/* the book's own highlights (from the print PDF) */
+.guide .bk{border-radius:2px;-webkit-box-decoration-break:clone;box-decoration-break:clone;transition:background-color .2s}
+.guide .bk-y{background:rgba(255,222,77,.75)} .guide .bk-g{background:rgba(134,226,166,.6)}
+:root[data-theme="dark"] .guide .bk-y{background:rgba(255,222,77,.28)} :root[data-theme="dark"] .guide .bk-g{background:rgba(134,226,166,.24)}
+.no-bk .guide .bk{background:none}
 mark.hl{color:inherit;border-radius:3px;padding:0 1px;cursor:pointer;-webkit-box-decoration-break:clone;box-decoration-break:clone}
 mark.hl-yellow{background:rgba(247,214,72,.55)} mark.hl-green{background:rgba(110,210,140,.45)}
 mark.hl-blue{background:rgba(120,185,240,.45)} mark.hl-pink{background:rgba(244,140,190,.45)}
@@ -1237,6 +1245,7 @@ async function viewModule(id){
               ${Object.keys(INK).map(k => `<button class="sw" data-color="${k}" style="--c:${INK[k] || 'var(--heading)'}" aria-label="${k}"></button>`).join('')}
             </div>
             <div class="ab-group">
+              <button class="ab-tool" id="bk-toggle" title="Υπογραμμίσεις του βιβλίου" aria-pressed="${prefs.bk !== false}"><span class="bk-ico"></span><span>Του βιβλίου</span></button>
               <button class="ab-tool" id="anno-undo" title="Αναίρεση">${IC.undo}<span>Αναίρεση</span></button>
               <button class="ab-tool ab-done" id="anno-done">Τέλος</button>
             </div>
@@ -1578,6 +1587,13 @@ function setupAnnotations(id, g, w){
     save(); renderInk();
   };
   setColor('red');
+  const bkBtn = $('#bk-toggle');
+  viewer.classList.toggle('no-bk', prefs.bk === false);
+  bkBtn.onclick = () => {
+    prefs.bk = prefs.bk === false; savePrefs();
+    viewer.classList.toggle('no-bk', prefs.bk === false); bkBtn.setAttribute('aria-pressed', prefs.bk !== false);
+    toast(prefs.bk === false ? 'Οι υπογραμμίσεις του βιβλίου κρύφτηκαν' : 'Οι υπογραμμίσεις του βιβλίου εμφανίζονται');
+  };
 
   /* selection → highlight popup */
   const swatches = cur => Object.keys(HLC).map(k => `<button class="sw" data-hc="${k}" style="--c:${HLC[k]}" aria-label="${k}"${cur === k ? ' aria-pressed="true"' : ''}></button>`).join('');
