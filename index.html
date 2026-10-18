@@ -767,6 +767,41 @@ svg.tk{width:100%;max-width:460px;display:block;margin:0 auto}
 .cm-sec rect{fill:var(--sky-wash);stroke:var(--sky)}.cm-sec text{fill:var(--heading);text-anchor:middle;font-size:12.5px}
 .cm-term{cursor:pointer}.cm-term rect{fill:var(--gold-soft);stroke:var(--gold)}.cm-term text{fill:var(--gold-ink);text-anchor:middle;font-size:12px;font-weight:500}
 .cm-term.on rect{fill:var(--gold)}.cm-term.on text{fill:var(--brand-ink)}
+/* tutor */
+.tutor{max-width:860px;margin:0 auto;padding:24px 0 80px}
+.tu-cta{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 14px;margin:14px 0 4px;border-radius:14px;background:var(--dock);color:#fff;box-shadow:var(--shadow-sm)}
+.tu-cta b{display:block;font-weight:500;font-size:15px}.tu-cta small{display:block;font-size:12.5px;color:#AFC0D4;margin-top:1px}
+.tu-cta>span:nth-child(2){flex:1;min-width:0}.tu-cta i{font-style:normal;color:var(--gold);font-size:20px}
+.tu-cta.side{margin:0}
+.tu-av{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--gold);color:var(--brand-ink)}
+.tu-top{display:flex;align-items:center;gap:12px;margin:6px 0 20px;font-size:13px;color:var(--text-3)}
+.tu-bar{flex:1;height:6px;border-radius:6px;background:var(--sunk);overflow:hidden}.tu-bar i{display:block;height:100%;background:var(--gold);border-radius:6px;transition:width .4s}
+.tu-steps{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.tu-s{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow-sm);overflow:hidden}
+.tu-s.on{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold-soft),var(--shadow-sm)}
+.tu-h{display:flex;align-items:center;gap:12px;width:100%;padding:14px 16px;text-align:left}
+.tu-h b{flex:1;font-weight:500;color:var(--heading);font-size:15.5px}.tu-h small{color:var(--text-3);font-size:12.5px}
+.tu-n{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:600;background:var(--sunk);color:var(--text-2)}
+.tu-s.on .tu-n{background:var(--gold);color:var(--brand-ink)}
+.tu-s.done .tu-n{background:var(--green);color:#fff}.tu-s.done .tu-h b{color:var(--text-2)}
+.tu-b{display:none;padding:0 16px 16px}.tu-s.on .tu-b{display:block}
+.tu-say{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px}
+.tu-say p{margin:0;padding:12px 14px;border-radius:4px 14px 14px 14px;background:var(--sky-wash);color:var(--text);font-size:15px;line-height:1.55}
+.tu-goals{margin:0 0 12px;padding-left:22px;font-size:14px;color:var(--text-2);display:grid;gap:6px}
+.tu-traps{display:grid;gap:8px;margin-bottom:10px}
+.tu-trap{padding:10px 12px;border-radius:10px;background:var(--red-soft);font-size:14px;line-height:1.5}
+.tu-trap b{display:block;color:var(--red);font-weight:500;margin-bottom:2px}
+.tu-tips{margin:0 0 12px;font-size:14px}.tu-tips summary{cursor:pointer;color:var(--sky-ink);padding:6px 0}
+.tu-tips ul{margin:6px 0 0;padding-left:20px;display:grid;gap:6px;color:var(--text-2)}
+.tu-acts{display:flex;flex-wrap:wrap;gap:8px}
+.tu-acts .btn{white-space:normal;text-align:left}
+.tu-done{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:16px;margin-bottom:14px;border-radius:14px;background:var(--green-soft);border:1px solid var(--green)}
+.tpill{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom));z-index:60;display:flex;align-items:center;border-radius:999px;background:var(--gold);color:var(--brand-ink);box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:calc(100vw - 24px)}
+html.has-track .tpill{bottom:calc(var(--dock-h) + 12px + env(safe-area-inset-bottom))}
+body[data-view="module"] .tpill,body[data-view="quiz"] .tpill,body[data-view="cards"] .tpill,body[data-view="exam"] .tpill{display:none}
+.tp-go{display:flex;flex-direction:column;align-items:flex-start;padding:8px 6px 8px 18px;text-align:left;min-width:0}
+.tp-go small{font-size:11px;opacity:.75}.tp-go b{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:62vw}
+.tp-x{width:38px;height:38px;margin-right:4px;border-radius:50%;font-size:20px;line-height:1;color:var(--brand-ink)}
 /* labs v2 */
 .lab-links{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
 .lab-links>span,.end-labs>span{width:100%;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3)}
@@ -1427,6 +1462,8 @@ function route(){
   readerCleanup();
   const m = h.match(/^#\/ch\/(\d+)(\/quiz(?:\/(book|extra))?)?$/);
   closeOp();
+  const tm = h.match(/^#\/(?:ch\/(\d+)\/)?tutor$/);
+  if (tm) return viewTutor(tm[1] ? +tm[1] : (store.get('pmp8.tutor.cur', null) || (CH.find(c => stateOf(c) !== 'done') || CH[0]).id));
   if (m) return m[2] ? viewQuiz(+m[1], m[3]) : viewModule(+m[1]);
   const dm = h.match(/^#\/doc\/([a-z0-9-]+)$/);
   if (dm) return dm[1] === 'cards' ? viewCards(null) : viewModule(dm[1]);
@@ -1531,6 +1568,7 @@ async function viewModule(id){
           ${st.best !== null ? `<span class="pill${st.best>=PASS?' ok':''}">Quiz ${st.best}%</span>` : ''}
           ${s === 'done' ? `<span class="pill ok">${IC.check}Ολοκληρώθηκε</span>` : ''}
         </div>
+        <button class="tu-cta" data-nav="#/ch/${id}/tutor"><span class="tu-av">${IC.tutor}</span><span><b>Ροή με τον καθηγητή</b><small>${tutorLine(id)}</small></span><i>→</i></button>
         <div class="lesson-actions">
           <button class="btn btn-navy" data-play="${id}">${IC.play}${IC.pause}<span class="lbl">Άκου το μάθημα</span></button>
           <button class="btn btn-ghost" data-nav="#/ch/${id}/quiz/${mainSet(c)}">${IC.quiz} Quiz</button>
@@ -1590,7 +1628,8 @@ async function viewModule(id){
         <h3>Οι σημειώσεις μου</h3>
         <ul class="notes-list" id="notes-side"></ul>
       </div>
-      ${isDoc ? '' : `<div class="side-card side-quiz">
+      ${isDoc ? '' : `<button class="tu-cta side" data-nav="#/ch/${id}/tutor"><span class="tu-av">${IC.tutor}</span><span><b>Ροή με τον καθηγητή</b><small>${tutorLine(id)}</small></span><i>→</i></button>
+      <div class="side-card side-quiz">
         <h3>Quiz κεφαλαίου</h3>
         <p>${c.quiz && c.quiz.book ? 'Πρώτα οι ερωτήσεις του βιβλίου, μετά οι επιπλέον για εξάσκηση.' : 'Ερωτήσεις μόνο από αυτό το κεφάλαιο.'} Περνάς με ${PASS}%.</p>
         <div class="qbtns">${quizBtns(c, 'btn-ghost')}</div>
@@ -2354,5 +2393,6 @@ if ('serviceWorker' in navigator){
 </script>
 <script src="study.js"></script>
 <script src="labs.js"></script>
+<script src="tutor.js"></script>
 </body>
 </html>

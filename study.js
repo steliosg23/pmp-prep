@@ -438,7 +438,7 @@ function planSteps(){
     const read = s.heard >= .9 || (s.at || 0) >= .9;
     steps.push({id:'ch' + c.id, ch:c.id, title:`Κεφάλαιο ${pad2(c.id)} · ${c.title}`,
       sub: !read ? 'Άκου το μάθημα και διάβασε το κεφάλαιο.' : (s.best === null || s.best < 70) ? 'Δώσε το quiz του βιβλίου (στόχος ≥ 70%).' : 'Κάρτες αυτοελέγχου του κεφαλαίου.',
-      nav: !read ? `#/ch/${c.id}` : (s.best === null || s.best < 70) ? `#/ch/${c.id}/quiz/${mainSet(c)}` : `#/ch/${c.id}/cards`,
+      nav: `#/ch/${c.id}/tutor`,
       long: !read, done: read && s.best !== null && s.best >= 70 && (!cards.length || known / cards.length >= .7)});
   });
   const minis = hist.filter(h => h.kind === 'mini').length, fulls = hist.filter(h => h.kind === 'full');
