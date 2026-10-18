@@ -493,7 +493,9 @@ footer{padding:30px 0 40px;color:var(--text-3);font-size:13px;font-weight:300;te
 .guide .page-content,.guide .opener-content{padding:0}
 .guide .page-rule,.guide .page-running-head,.guide .page-running-foot{display:none}
 .guide .page + .page{margin-top:8px}
-.guide{overflow-wrap:break-word}
+.guide{overflow-wrap:break-word;position:relative}
+.guide .opener-eco-badge{right:0;top:10px}
+@media (max-width:640px){.guide .opener-eco-badge{position:static;display:inline-block;margin-bottom:14px}}
 .guide .opener-numeral{font-size:clamp(96px,17vw,190px)}
 .guide .opener-h1{font-size:clamp(28px,4.4vw,44px);line-height:1.12}
 .guide .opener-intro{font-size:clamp(16px,1.9vw,17.5px);max-width:none}
@@ -528,6 +530,65 @@ footer{padding:30px 0 40px;color:var(--text-3);font-size:13px;font-weight:300;te
 :root[data-theme="dark"] .guide .table-caption{background:#14263B}
 :root[data-theme="dark"] .guide .tldr{background:#1D2E4D}
 :root[data-theme="dark"] .guide .visual-figure img{background:#F4F4F0;filter:brightness(.92)}
+
+/* annotations: highlights, notes, pen */
+.viewer-bar{flex-wrap:wrap}
+.anno-bar{flex-basis:100%;display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding:8px 0 2px;border-top:1px solid var(--line);margin-top:8px}
+.anno-bar[hidden]{display:none}
+.ab-group{display:flex;align-items:center;gap:4px}
+.ab-tool{height:34px;padding:0 10px;border-radius:8px;display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-2);transition:background-color .12s,color .12s}
+.ab-tool svg.i{width:17px;height:17px}
+.ab-tool:hover{background:var(--sunk);color:var(--heading)}
+.ab-tool[aria-pressed="true"]{background:var(--heading);color:var(--bg)}
+.ab-done{color:var(--sky-ink);font-weight:500}
+.sw{width:24px;height:24px;border-radius:50%;background:var(--c);box-shadow:inset 0 0 0 2px rgba(255,255,255,.6),0 0 0 1px var(--line-2);transition:transform .1s}
+.sw[aria-pressed="true"]{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--heading)}
+.ab-hint{flex-basis:100%;font-size:12.5px;color:var(--text-3)}
+.vb-label{flex:1 1 0}
+@media (max-width:620px){
+  .ab-tool span{display:none}.ab-tool{padding:0 8px;height:32px}
+  .anno-bar{gap:6px 8px;padding-top:6px;margin-top:6px}
+  .ab-colors{order:3;flex-basis:100%;justify-content:space-between;max-width:260px}
+  .sw{width:22px;height:22px}
+  .ab-hint{display:none}
+  .viewer.drawing .vb-label,.viewer.drawing .vb-pct,.viewer.drawing [data-zoom]{display:none}
+}
+#gwrap{position:relative}
+svg.ink{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:5;color:var(--heading)}
+svg.ink path{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.drawing svg.ink{pointer-events:auto;touch-action:none;cursor:crosshair}
+.drawing.erasing svg.ink{cursor:cell}
+.drawing .guide{user-select:none;-webkit-user-select:none}
+mark.hl{color:inherit;border-radius:3px;padding:0 1px;cursor:pointer;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+mark.hl-yellow{background:rgba(247,214,72,.55)} mark.hl-green{background:rgba(110,210,140,.45)}
+mark.hl-blue{background:rgba(120,185,240,.45)} mark.hl-pink{background:rgba(244,140,190,.45)}
+:root[data-theme="dark"] mark.hl-yellow{background:rgba(247,214,72,.32)} :root[data-theme="dark"] mark.hl-green{background:rgba(110,210,140,.28)}
+:root[data-theme="dark"] mark.hl-blue{background:rgba(120,185,240,.3)} :root[data-theme="dark"] mark.hl-pink{background:rgba(244,140,190,.3)}
+mark.hl.has-note{border-bottom:2px dotted var(--heading)}
+mark.hl.flash{outline:2px solid var(--gold);outline-offset:2px}
+.hl-pop{position:fixed;z-index:85;display:flex;align-items:center;gap:6px;padding:8px;border-radius:999px;background:var(--heading);color:var(--bg);box-shadow:var(--shadow)}
+.hl-pop[hidden]{display:none}
+.hl-pop .sw{width:28px;height:28px}
+.hl-pop .hp-btn{height:32px;padding:0 12px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;font-size:13.5px;color:inherit}
+.hl-pop .hp-btn:hover{background:rgba(127,127,127,.2)}
+.hl-pop .hp-btn svg.i{width:16px;height:16px}
+.hl-pop .sep{width:1px;height:20px;background:currentColor;opacity:.25}
+.note-dlg{position:fixed;inset:0;z-index:90;background:rgba(5,10,20,.55);display:flex;align-items:flex-end;justify-content:center;padding:16px}
+.note-dlg[hidden]{display:none}
+@media (min-width:700px){.note-dlg{align-items:center}}
+.nd-card{width:100%;max-width:520px;background:var(--surface);border-radius:16px;padding:18px;box-shadow:var(--shadow)}
+.nd-q{font-size:14px;color:var(--text-2);border-left:3px solid var(--gold);padding:4px 0 4px 12px;margin-bottom:12px;max-height:5.5em;overflow:hidden}
+.nd-card textarea{width:100%;font:inherit;font-size:16px;padding:12px;border-radius:10px;border:1px solid var(--line-2);background:var(--surface-2);color:var(--text);resize:vertical}
+.nd-card textarea:focus{outline:none;border-color:var(--sky)}
+.nd-row{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+.pop-h{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-3);margin:14px 10px 6px;font-weight:500}
+.notes-list{list-style:none;margin:0;padding:0}
+.notes-list li button{display:grid;grid-template-columns:10px 1fr;gap:10px;width:100%;text-align:left;padding:8px 10px;border-radius:8px;font-size:13.5px;line-height:1.4;color:var(--text-2)}
+.notes-list li button:hover{background:var(--sunk);color:var(--heading)}
+.notes-list .dot{width:10px;height:10px;border-radius:50%;margin-top:4px}
+.notes-list .nt{display:block;margin-top:4px;font-style:italic;color:var(--heading)}
+.notes-list .meta{padding:6px 10px;font-size:12.5px;color:var(--text-3)}
+.notes-list .clear{color:var(--red);font-size:12.5px;padding:6px 10px}
 
 /* lock screen */
 .lock{position:fixed;inset:0;z-index:95;display:flex;align-items:center;justify-content:center;padding:24px;
@@ -609,6 +670,14 @@ footer{padding:30px 0 40px;color:var(--text-3);font-size:13px;font-weight:300;te
 
 <div class="toast" id="toast" role="status" aria-live="polite"><span id="toast-msg"></span><button id="toast-act" hidden></button></div>
 <div class="lightbox" id="lightbox"><img alt="" /></div>
+<div class="hl-pop" id="hl-pop" hidden></div>
+<div class="note-dlg" id="note-dlg" hidden>
+  <div class="nd-card">
+    <div class="nd-q" id="nd-q"></div>
+    <textarea id="nd-text" rows="5" placeholder="Η σημείωσή σου…"></textarea>
+    <div class="nd-row"><button class="btn btn-ghost" id="nd-cancel">Άκυρο</button><button class="btn btn-gold" id="nd-save">Αποθήκευση</button></div>
+  </div>
+</div>
 
 <div class="lock" id="lock" hidden>
   <form class="lock-card" id="lock-form" autocomplete="on">
@@ -688,6 +757,13 @@ const IC = {
   list:  '<svg class="i s" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/></svg>',
   check: '<svg class="i s" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
   left:  '<svg class="i s" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>',
+  pen:   '<svg class="i s" viewBox="0 0 24 24"><path d="M15.5 4.5l4 4L8 20H4v-4z"/><path d="M13.5 6.5l4 4"/></svg>',
+  hl:    '<svg class="i s" viewBox="0 0 24 24"><path d="M4 20h7"/><path d="M14.5 4.5l5 5-7.5 7.5H7v-5z"/></svg>',
+  marker:'<svg class="i s" viewBox="0 0 24 24"><path d="M9 15l-4 4 2 2 2-2h4l7-7-6-6-7 7z"/><path d="M3 21h6"/></svg>',
+  eraser:'<svg class="i s" viewBox="0 0 24 24"><path d="M16 4l4 4-10 10H6l-2-2z"/><path d="M11 20h9"/></svg>',
+  undo:  '<svg class="i s" viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>',
+  note:  '<svg class="i s" viewBox="0 0 24 24"><path d="M5 4h14v12l-4 4H5z"/><path d="M15 20v-4h4M8 9h8M8 13h5"/></svg>',
+  trash: '<svg class="i s" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>',
   quiz:  '<svg class="i s" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5v.7M12 17h.01"/></svg>',
 };
 const ctrls = big => `
@@ -1106,6 +1182,7 @@ function viewList(){
 /* ── view: lesson ─────────────────────────────────────────────────── */
 let reader = null;   // {id, scroller, onScroll, ...}
 function readerCleanup(){
+  if (ANNO){ ANNO.cleanup(); ANNO = null; }
   if (!reader) return;
   removeEventListener('scroll', reader.onScroll);
   DESK.removeEventListener?.('change', reader.onMode);
@@ -1144,11 +1221,29 @@ async function viewModule(id){
           <span class="vb-label">${IC.doc}<span class="vb-sec" id="vb-sec">Κείμενο κεφαλαίου</span></span>
           <div class="vb-right">
             <span class="vb-pct" id="vb-pct">0%</span>
+            <button class="vb-btn" id="anno-btn" aria-expanded="false" title="Πένα, υπογράμμιση και σημειώσεις" aria-label="Πένα και υπογράμμιση">${IC.pen}</button>
             <button class="vb-btn" data-zoom="-1" aria-label="Μικρότερα γράμματα">A−</button>
             <button class="vb-btn" data-zoom="1" aria-label="Μεγαλύτερα γράμματα" style="font-size:16px">A+</button>
           </div>
           <div class="vb-progress"><i id="vb-fill"></i></div>
-          <div class="ol-pop" id="ol-pop" hidden><ol class="outline" id="ol-pop-list"></ol></div>
+          <div class="anno-bar" id="anno-bar" hidden>
+            <div class="ab-group" role="group" aria-label="Εργαλείο">
+              <button class="ab-tool" data-tool="select" aria-pressed="true" title="Υπογράμμιση κειμένου">${IC.hl}<span>Υπογράμμιση</span></button>
+              <button class="ab-tool" data-tool="pen" title="Πένα">${IC.pen}<span>Πένα</span></button>
+              <button class="ab-tool" data-tool="marker" title="Μαρκαδόρος">${IC.marker}<span>Μαρκαδόρος</span></button>
+              <button class="ab-tool" data-tool="eraser" title="Γόμα">${IC.eraser}<span>Γόμα</span></button>
+            </div>
+            <div class="ab-group ab-colors" role="group" aria-label="Χρώμα">
+              ${Object.keys(INK).map(k => `<button class="sw" data-color="${k}" style="--c:${INK[k] || 'var(--heading)'}" aria-label="${k}"></button>`).join('')}
+            </div>
+            <div class="ab-group">
+              <button class="ab-tool" id="anno-undo" title="Αναίρεση">${IC.undo}<span>Αναίρεση</span></button>
+              <button class="ab-tool ab-done" id="anno-done">Τέλος</button>
+            </div>
+            <div class="ab-hint" id="anno-hint">Επίλεξε κείμενο για να το υπογραμμίσεις ή να γράψεις σημείωση.</div>
+          </div>
+          <div class="ol-pop" id="ol-pop" hidden><ol class="outline" id="ol-pop-list"></ol>
+            <div class="pop-h">Οι σημειώσεις μου</div><ul class="notes-list" id="notes-pop"></ul></div>
         </div>
         <div class="viewer-body" id="vbody">
           <div class="guide-wrap" id="gwrap"><div class="loading">Φόρτωση κεφαλαίου…</div></div>
@@ -1164,6 +1259,10 @@ async function viewModule(id){
       <div class="side-card side-outline">
         <h3>Σε αυτό το κεφάλαιο</h3>
         <ol class="outline" id="outline"></ol>
+      </div>
+      <div class="side-card side-notes">
+        <h3>Οι σημειώσεις μου</h3>
+        <ul class="notes-list" id="notes-side"></ul>
       </div>
       <div class="side-card side-quiz">
         <h3>Quiz κεφαλαίου</h3>
@@ -1297,6 +1396,7 @@ async function viewModule(id){
   const onMode = () => requestAnimationFrame(update);
   DESK.addEventListener?.('change', onMode);
   reader = {id, onScroll, onMode};
+  setupAnnotations(id, g, w);
 
   /* wait briefly for images so the restored position lands where you left it */
   await Promise.race([Promise.all(imgLoads), new Promise(r => setTimeout(r, 2500))]);
@@ -1311,6 +1411,253 @@ async function viewModule(id){
   update();
 }
 $('#lightbox').onclick = () => $('#lightbox').classList.remove('show');
+
+/* ════════════════════════════════════════════════════════════════════
+   Annotations — colour highlights with notes, and freehand pen/marker.
+   Saved per chapter on this device. Highlights are stored as character
+   offsets into the chapter text; ink strokes are anchored to the block
+   (paragraph, list item, box…) they start on, so they follow re-flow.
+   ════════════════════════════════════════════════════════════════════ */
+const NOTES = 'pmp8.notes.v1';
+const HLC = {yellow:'#F2CE3F', green:'#5CC983', blue:'#6AB0EA', pink:'#EE86B8'};
+const INK = {ink:null, red:'#D9442E', blue:'#2F6FD0', green:'#2E9E5B', yellow:'#F2C230', pink:'#E0559A'};
+const notesOf = id => Object.assign({hl:[], ink:[]}, store.get(NOTES, {})[id]);
+function saveNotes(id, n){ const all = store.get(NOTES, {}); all[id] = n; store.set(NOTES, all); }
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const BLOCKS = 'p, li, h1, h2, h3, h4, .section-eyebrow, .callout, .pullquote, .essentials-card, .visual-figure, .table-scroll, .table-caption, .opener-numeral, .opener-toc-item, .opener-intro';
+let ANNO = null;
+
+function textOffset(root, node, off){
+  const r = document.createRange(); r.setStart(root, 0); r.setEnd(node, off); return r.toString().length;
+}
+function wrapRange(root, h){
+  const tw = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  let pos = 0, n; const parts = [];
+  while ((n = tw.nextNode())){
+    const L = n.nodeValue.length, a = Math.max(h.s, pos), b = Math.min(h.e, pos + L);
+    if (a < b && !(/^\s*$/.test(n.nodeValue.slice(a - pos, b - pos)) && /^(UL|OL|TABLE|TBODY|THEAD|TR)$/.test(n.parentNode.nodeName))) parts.push([n, a - pos, b - pos]);
+    pos += L; if (pos >= h.e) break;
+  }
+  parts.forEach(([t, a, b]) => {
+    if (a > 0) t = t.splitText(a);
+    if (b - a < t.nodeValue.length) t.splitText(b - a);
+    const m = document.createElement('mark');
+    m.className = 'hl hl-' + h.c + (h.n ? ' has-note' : ''); m.dataset.hid = h.id;
+    if (h.n) m.title = h.n;
+    t.parentNode.insertBefore(m, t); m.appendChild(t);
+  });
+}
+function unwrap(root, hid){
+  $$(`mark[data-hid="${hid}"]`, root).forEach(m => { const p = m.parentNode; while (m.firstChild) p.insertBefore(m.firstChild, m); p.removeChild(m); p.normalize(); });
+}
+
+function setupAnnotations(id, g, w){
+  const data = notesOf(id), undo = [];
+  const save = () => { saveNotes(id, data); renderList(); };
+  const blocks = $$(BLOCKS, g);
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(NS, 'svg'); svg.setAttribute('class', 'ink'); w.appendChild(svg);
+  const viewer = $('#viewer'), bar = $('#anno-bar'), btn = $('#anno-btn'), pop = $('#hl-pop');
+  let tool = 'select', color = 'red';
+
+  /* highlights */
+  data.hl.slice().sort((a, b) => a.s - b.s).forEach(h => { try { wrapRange(g, h); } catch(e){} });
+
+  /* ink */
+  const rel = el => { const W = w.getBoundingClientRect(), r = el.getBoundingClientRect(); return {x:r.left - W.left, y:r.top - W.top, w:Math.max(1, r.width), h:Math.max(1, r.height)}; };
+  const pathD = pts => {
+    if (pts.length < 2) return pts.length ? `M${pts[0][0]} ${pts[0][1]}l0.1 0` : '';
+    let d = `M${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`;
+    for (let k = 1; k < pts.length - 1; k++){
+      const mx = (pts[k][0] + pts[k+1][0]) / 2, my = (pts[k][1] + pts[k+1][1]) / 2;
+      d += `Q${pts[k][0].toFixed(1)} ${pts[k][1].toFixed(1)} ${mx.toFixed(1)} ${my.toFixed(1)}`;
+    }
+    const L = pts[pts.length - 1]; return d + `L${L[0].toFixed(1)} ${L[1].toFixed(1)}`;
+  };
+  const strokeAbs = st => { const el = blocks[st.b] || g, R = rel(el); return st.p.map(([nx, ny]) => [R.x + nx * R.w, R.y + ny * R.h]); };
+  const paint = (path, st) => {
+    path.setAttribute('stroke', INK[st.c] || 'currentColor');
+    path.setAttribute('stroke-width', st.w); path.setAttribute('opacity', st.o);
+  };
+  let cache = [];
+  function renderInk(){
+    svg.innerHTML = ''; cache = [];
+    data.ink.forEach(st => {
+      const pts = strokeAbs(st), path = document.createElementNS(NS, 'path');
+      path.setAttribute('d', pathD(pts)); paint(path, st); path.dataset.iid = st.id;
+      svg.appendChild(path); cache.push({st, pts});
+    });
+  }
+  renderInk();
+  let rT = null; const ro = new ResizeObserver(() => { clearTimeout(rT); rT = setTimeout(renderInk, 120); }); ro.observe(w);
+
+  let live = null;
+  const local = e => { const W = w.getBoundingClientRect(); return [e.clientX - W.left, e.clientY - W.top]; };
+  function eraseAt(x, y){
+    const hit = cache.find(c => c.pts.some(([px, py]) => Math.hypot(px - x, py - y) < Math.max(12, c.st.w)));
+    if (!hit) return;
+    data.ink = data.ink.filter(s => s !== hit.st); undo.push({t:'ink-del', item:hit.st}); save(); renderInk();
+  }
+  svg.addEventListener('pointerdown', e => {
+    if (tool === 'select') return;
+    e.preventDefault();
+    if (tool === 'eraser'){ live = {erase:true}; eraseAt(...local(e)); return; }
+    svg.setPointerCapture(e.pointerId);
+    const path = document.createElementNS(NS, 'path');
+    const st = tool === 'marker' ? {c:color === 'ink' ? 'yellow' : color, w:16, o:0.35} : {c:color, w:2.6, o:1};
+    paint(path, st); svg.appendChild(path);
+    live = {path, st, pts:[local(e)], x0:e.clientX, y0:e.clientY};
+    path.setAttribute('d', pathD(live.pts));
+  });
+  svg.addEventListener('pointermove', e => {
+    if (!live) return;
+    if (live.erase){ if (e.buttons) eraseAt(...local(e)); return; }
+    const p = local(e), q = live.pts[live.pts.length - 1];
+    if (Math.hypot(p[0] - q[0], p[1] - q[1]) < 1.5) return;
+    live.pts.push(p); live.path.setAttribute('d', pathD(live.pts));
+  });
+  const endStroke = () => {
+    if (!live) return;
+    const L = live; live = null;
+    if (L.erase) return;
+    /* anchor to the innermost block under the start of the stroke */
+    let bi = -1;
+    for (const el of document.elementsFromPoint(L.x0, L.y0)){ const k = blocks.indexOf(el.closest && el.closest(BLOCKS)); if (k >= 0 && g.contains(el)){ bi = k; break; } }
+    const R = rel(blocks[bi] || g);
+    const st = Object.assign({id:uid(), b:bi}, L.st, {p: L.pts.map(([x, y]) => [+((x - R.x) / R.w).toFixed(4), +((y - R.y) / R.h).toFixed(4)])});
+    data.ink.push(st); undo.push({t:'ink-add', item:st}); save(); renderInk();
+  };
+  svg.addEventListener('pointerup', endStroke); svg.addEventListener('pointercancel', endStroke);
+
+  /* toolbar */
+  function setTool(t){
+    tool = t;
+    $$('[data-tool]', bar).forEach(b => b.setAttribute('aria-pressed', b.dataset.tool === t));
+    viewer.classList.toggle('drawing', t !== 'select'); viewer.classList.toggle('erasing', t === 'eraser');
+    $('#anno-hint').textContent = {select:'Επίλεξε κείμενο για να το υπογραμμίσεις ή να γράψεις σημείωση. Πάτα μια υπογράμμιση για αλλαγή ή διαγραφή.',
+      pen:'Γράψε ή σχεδίασε με το δάχτυλο ή τη γραφίδα. Για κύλιση, πάτα «Τέλος».', marker:'Πέρασε μαρκαδόρο πάνω από το κείμενο.',
+      eraser:'Πέρασε τη γόμα πάνω από μια γραμμή για να τη σβήσεις.'}[t];
+  }
+  function setColor(c){ color = c; $$('[data-color]', bar).forEach(b => b.setAttribute('aria-pressed', b.dataset.color === c)); }
+  $$('[data-tool]', bar).forEach(b => b.onclick = () => setTool(b.dataset.tool));
+  $$('[data-color]', bar).forEach(b => b.onclick = () => { setColor(b.dataset.color); if (tool === 'select' || tool === 'eraser') setTool('pen'); });
+  btn.onclick = () => { const open = bar.hidden; bar.hidden = !open; btn.setAttribute('aria-expanded', open); setTool('select'); };
+  $('#anno-done').onclick = () => { bar.hidden = true; btn.setAttribute('aria-expanded', 'false'); setTool('select'); };
+  $('#anno-undo').onclick = () => {
+    const u = undo.pop(); if (!u){ toast('Δεν υπάρχει κάτι για αναίρεση.'); return; }
+    if (u.t === 'ink-add') data.ink = data.ink.filter(s => s !== u.item);
+    else if (u.t === 'ink-del') data.ink.push(u.item);
+    else if (u.t === 'hl-add'){ data.hl = data.hl.filter(h => h !== u.item); unwrap(g, u.item.id); }
+    else if (u.t === 'hl-del'){ data.hl.push(u.item); wrapRange(g, u.item); }
+    save(); renderInk();
+  };
+  setColor('red');
+
+  /* selection → highlight popup */
+  const swatches = cur => Object.keys(HLC).map(k => `<button class="sw" data-hc="${k}" style="--c:${HLC[k]}" aria-label="${k}"${cur === k ? ' aria-pressed="true"' : ''}></button>`).join('');
+  function place(rect){
+    pop.hidden = false;
+    const pw = pop.offsetWidth, ph = pop.offsetHeight;
+    let x = Math.min(innerWidth - pw - 8, Math.max(8, rect.left + rect.width / 2 - pw / 2));
+    let y = rect.bottom + 12; if (y + ph > innerHeight - 90) y = Math.max(8, rect.top - ph - 12);
+    pop.style.left = x + 'px'; pop.style.top = y + 'px';
+  }
+  function hidePop(){ pop.hidden = true; pop.style.visibility = ''; pending = null; }
+  let pending = null;
+  function showNew(range){
+    const s0 = textOffset(g, range.startContainer, range.startOffset), e0 = textOffset(g, range.endContainer, range.endOffset);
+    if (e0 - s0 < 2) return;
+    pending = {s:s0, e:e0, t:range.toString().replace(/\s+/g, ' ').trim()};
+    pop.innerHTML = swatches() + `<span class="sep"></span><button class="hp-btn" data-ha="note">${IC.note}Σημείωση</button>`;
+    place(range.getBoundingClientRect());
+  }
+  function showEdit(h, rect){
+    pending = {edit:h};
+    pop.innerHTML = swatches(h.c) + `<span class="sep"></span><button class="hp-btn" data-ha="note">${IC.note}${h.n ? 'Σημείωση' : 'Σημείωση'}</button><button class="hp-btn" data-ha="del" aria-label="Διαγραφή">${IC.trash}</button>`;
+    place(rect);
+  }
+  function addHl(c, note){
+    const h = Object.assign({id:uid(), c, n:note || ''}, pending);
+    data.hl.push(h); wrapRange(g, h); undo.push({t:'hl-add', item:h}); save();
+    try { getSelection().removeAllRanges(); } catch(e){}
+    return h;
+  }
+  function restyle(h){ unwrap(g, h.id); wrapRange(g, h); save(); }
+  pop.onpointerdown = e => e.preventDefault();   /* keep the text selection while tapping the popup */
+  pop.onclick = e => {
+    const sw = e.target.closest('[data-hc]'), act = e.target.closest('[data-ha]');
+    if (!pending) return;
+    if (sw){
+      if (pending.edit){ pending.edit.c = sw.dataset.hc; restyle(pending.edit); }
+      else addHl(sw.dataset.hc);
+      hidePop();
+    } else if (act && act.dataset.ha === 'note'){
+      const h = pending.edit || addHl('yellow');
+      hidePop(); openNote(h);
+    } else if (act && act.dataset.ha === 'del'){
+      const h = pending.edit; data.hl = data.hl.filter(x => x !== h); unwrap(g, h.id); undo.push({t:'hl-del', item:h}); save(); hidePop();
+    }
+  };
+  function openNote(h){
+    const dlg = $('#note-dlg'), ta = $('#nd-text');
+    $('#nd-q').textContent = h.t; ta.value = h.n || ''; dlg.hidden = false; setTimeout(() => ta.focus(), 50);
+    $('#nd-cancel').onclick = () => { dlg.hidden = true; };
+    $('#nd-save').onclick = () => { h.n = ta.value.trim(); dlg.hidden = true; restyle(h); };
+  }
+  let selT = null;
+  const checkSel = () => {
+    if (tool !== 'select' || !$('#note-dlg').hidden) return;
+    const sel = getSelection();
+    if (!sel.rangeCount || sel.isCollapsed){ if (pending && !pending.edit) hidePop(); return; }
+    const r = sel.getRangeAt(0);
+    if (!g.contains(r.commonAncestorContainer)) return;
+    showNew(r);
+  };
+  const onSel = () => { clearTimeout(selT); selT = setTimeout(checkSel, 350); };
+  document.addEventListener('selectionchange', onSel);
+  g.addEventListener('click', e => {
+    const m = e.target.closest('mark.hl');
+    if (!m || tool !== 'select' || !getSelection().isCollapsed) return;
+    const h = data.hl.find(x => x.id === m.dataset.hid); if (h) showEdit(h, m.getBoundingClientRect());
+  });
+  /* keep the popup attached to the text while the page scrolls */
+  const onScrollHide = () => {
+    if (pop.hidden || !pending) return;
+    let rect = null;
+    if (pending.edit){ const m = $(`mark[data-hid="${pending.edit.id}"]`, g); if (m) rect = m.getBoundingClientRect(); }
+    else { const sel = getSelection(); if (sel.rangeCount && !sel.isCollapsed) rect = sel.getRangeAt(0).getBoundingClientRect(); }
+    if (!rect || rect.bottom < 0 || rect.top > innerHeight) { pop.style.visibility = 'hidden'; return; }
+    pop.style.visibility = ''; place(rect);
+  };
+  $('#vbody').addEventListener('scroll', onScrollHide, {passive:true});
+  addEventListener('scroll', onScrollHide, {passive:true});
+
+  /* "my notes" lists */
+  function renderList(){
+    const items = data.hl.slice().sort((a, b) => a.s - b.s).map(h =>
+      `<li><button data-goto="${h.id}"><span class="dot" style="background:${HLC[h.c]}"></span><span>${esc(h.t.length > 140 ? h.t.slice(0, 140) + '…' : h.t)}${h.n ? `<span class="nt">${esc(h.n)}</span>` : ''}</span></button></li>`).join('');
+    const ink = data.ink.length ? `<li class="meta">${data.ink.length} ${data.ink.length === 1 ? 'σχέδιο' : 'σχέδια'} με την πένα</li>` : '';
+    const html = (items || ink) ? items + ink + `<li><button class="clear" data-clear="1">Διαγραφή όλων των σημειώσεων του κεφαλαίου</button></li>`
+      : `<li class="meta">Επίλεξε κείμενο για να το υπογραμμίσεις, ή άνοιξε την πένα από το εικονίδιο ✎ πάνω δεξιά.</li>`;
+    ['#notes-side', '#notes-pop'].forEach(sel => { const el = $(sel); if (el) el.innerHTML = html; });
+  }
+  renderList();
+  const onListClick = e => {
+    const b = e.target.closest('[data-goto]');
+    if (b){
+      const m = $(`mark[data-hid="${b.dataset.goto}"]`, g);
+      if (m){ m.scrollIntoView({behavior:'smooth', block:'center'}); m.classList.add('flash'); setTimeout(() => m.classList.remove('flash'), 1600); }
+      $('#ol-pop').hidden = true; return;
+    }
+    if (e.target.closest('[data-clear]')){
+      if (!confirm('Να σβηστούν όλες οι υπογραμμίσεις, σημειώσεις και σχέδια αυτού του κεφαλαίου;')) return;
+      data.hl.forEach(h => unwrap(g, h.id)); data.hl = []; data.ink = []; save(); renderInk();
+    }
+  };
+  ['#notes-side', '#notes-pop'].forEach(sel => { const el = $(sel); if (el) el.addEventListener('click', onListClick); });
+
+  ANNO = {cleanup(){ document.removeEventListener('selectionchange', onSel); removeEventListener('scroll', onScrollHide); ro.disconnect(); hidePop(); $('#note-dlg').hidden = true; }};
+}
 
 /* ── view: quiz ───────────────────────────────────────────────────── */
 async function viewQuiz(id, setId){
