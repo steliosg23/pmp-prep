@@ -90,6 +90,8 @@ function syncSoon(ms = 6000){ if (!syncOn()) return; clearTimeout(syncTimer); sy
 
 /* on start: wait briefly for the latest progress, but never block the app for long */
 async function syncBoot(){
+  /* the token travels with the book, encrypted with the same password: unlocking is all a new device needs */
+  if (!syncOn() && !rawGet('pmp8.sync.manualoff')){ try { const c = await getJSON('docs/sync.json'); if (c && c.pat) rawSet(SYNC_PAT, c.pat); } catch(e){} }
   if (!syncOn()) return;
   await Promise.race([syncNow(), new Promise(r => setTimeout(r, 4000))]);
 }
@@ -116,7 +118,7 @@ function syncStatus(){
       <p class="sync-err" id="sync-err">${esc(syncLastErr)}</p>`;
     $('#sync-go').onclick = async () => {
       const v = $('#sync-pat').value.trim(); if (!v) return;
-      rawSet(SYNC_PAT, v); rawSet(SYNC_GIST, null); $('#sync-go').disabled = true; $('#sync-go').textContent = 'Σύνδεση…';
+      rawSet(SYNC_PAT, v); rawSet(SYNC_GIST, null); rawSet('pmp8.sync.manualoff', null); $('#sync-go').disabled = true; $('#sync-go').textContent = 'Σύνδεση…';
       const r = await syncNow();
       if (syncLastErr){ rawSet(SYNC_PAT, null); syncStatus(); return; }
       if (r.changed) route(); else syncStatus();
@@ -128,5 +130,5 @@ function syncStatus(){
     <p class="hint">Γίνεται αυτόματα όταν ανοίγεις την εφαρμογή, όταν επιστρέφεις σε αυτήν και λίγα δευτερόλεπτα μετά από κάθε αλλαγή. Αν δουλέψεις σε δύο συσκευές ταυτόχρονα, κρατιέται η πιο πρόσφατη αλλαγή ανά τμήμα.</p>
     <div class="sync-row"><button class="btn btn-navy" id="sync-now">Συγχρόνισε τώρα</button><button class="btn btn-ghost" id="sync-off">Αποσύνδεση αυτής της συσκευής</button></div>`;
   $('#sync-now').onclick = async () => { const r = await syncNow(); if (r.changed) route(); };
-  $('#sync-off').onclick = () => { if (!confirm('Να σταματήσει ο συγχρονισμός σε αυτή τη συσκευή; Η πρόοδος εδώ μένει.')) return; rawSet(SYNC_PAT, null); rawSet(SYNC_GIST, null); syncStatus(); };
+  $('#sync-off').onclick = () => { if (!confirm('Να σταματήσει ο συγχρονισμός σε αυτή τη συσκευή; Η πρόοδος εδώ μένει.')) return; rawSet(SYNC_PAT, null); rawSet(SYNC_GIST, null); rawSet('pmp8.sync.manualoff', '1'); syncStatus(); };
 }

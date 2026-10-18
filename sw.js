@@ -7,7 +7,7 @@
  * - Audio files are left to the browser's HTTP cache.
  * - Bump CACHE_VERSION on every deploy to drop old caches.
  */
-const CACHE_VERSION = 'v2026.10.18.15';
+const CACHE_VERSION = 'v2026.10.18.16';
 const APP_CACHE = `pmp-app-${CACHE_VERSION}`;
 const CONTENT_CACHE = `pmp-content-${CACHE_VERSION}`;
 const CDN_CACHE = `pmp-cdn-${CACHE_VERSION}`;
