@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#25406E"/>
+      <stop offset="1" stop-color="#0B1628"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.85" cy="0.1" r="0.7">
+      <stop offset="0" stop-color="#7FB0CC" stop-opacity=".35"/>
+      <stop offset="1" stop-color="#7FB0CC" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#E2C47E"/>
+      <stop offset="1" stop-color="#C9A961"/>
+    </linearGradient>
+    <clipPath id="c"><rect width="512" height="512" rx="112"/></clipPath>
+  </defs>
+  <g clip-path="url(#c)">
+    <rect width="512" height="512" fill="url(#bg)"/>
+    <rect width="512" height="512" fill="url(#glow)"/>
+    <circle cx="470" cy="470" r="150" fill="none" stroke="#fff" stroke-opacity=".07" stroke-width="3"/>
+    <circle cx="470" cy="470" r="205" fill="none" stroke="#fff" stroke-opacity=".045" stroke-width="3"/>
+    <g id="art">
+      <!-- open book -->
+      <path d="M256 318 C214 292 160 286 112 296 V398 C160 388 214 394 256 420 Z" fill="#E8F1F6"/>
+      <path d="M256 318 C298 292 352 286 400 296 V398 C352 388 298 394 256 420 Z" fill="#CFE1EC"/>
+      <path d="M256 318 V420" stroke="#0B1628" stroke-opacity=".25" stroke-width="4"/>
+      <!-- sound waves -->
+      <path d="M346 150 a86 86 0 0 1 0 104" fill="none" stroke="#7FB0CC" stroke-width="16" stroke-linecap="round"/>
+      <path d="M166 150 a86 86 0 0 0 0 104" fill="none" stroke="#7FB0CC" stroke-width="16" stroke-linecap="round"/>
+      <!-- play disc -->
+      <circle cx="256" cy="202" r="72" fill="url(#gold)"/>
+      <path d="M236 168 L292 202 L236 236 Z" fill="#0B1628"/>
+    </g>
+  </g>
+</svg>

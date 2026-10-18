@@ -1,0 +1,1466 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>PMP Prep — Μαθήματα</title>
+<link rel="icon" type="image/svg+xml" href="icon.svg" />
+<link rel="icon" type="image/png" sizes="32x32" href="icon-32.png" />
+<link rel="shortcut icon" href="pmp.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#11203B" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="description" content="Μαθήματα PMP: κάθε κεφάλαιο με ηχητικό μάθημα, κείμενο και quiz. Σύμφωνα με PMBOK 8 και ECO 2026." />
+
+<script>
+/* theme before first paint: saved choice, else the system setting */
+(function(){
+  var t = null;
+  try { t = localStorage.getItem('pmp8.theme'); } catch(e){}
+  if (t !== 'light' && t !== 'dark')
+    t = (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+  document.documentElement.dataset.theme = t;
+})();
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="guide.css" />
+
+<style>
+/* ══ tokens ═══════════════════════════════════════════════════════════ */
+:root{
+  --bg:#F0EEE9; --surface:#FAFAF7; --surface-2:#FFFFFF; --sunk:#E9E7E1;
+  --text:#1F2937; --text-2:#5B6472; --text-3:#959CA8; --line:#E2E1DC; --line-2:#D3D1CA;
+  --heading:#0B1628;
+  --brand:#1B2A4A; --brand-deep:#11203B; --brand-ink:#0B1628;
+  --gold:#C9A961; --gold-ink:#8A6D1F; --gold-soft:#FCF8EC;
+  --sky:#7FB0CC; --sky-ink:#3E6D89; --sky-wash:#E8F1F6;
+  --red:#B8442B; --red-soft:#FDF2EE; --green:#2F6B4F; --green-soft:#EFF6F1;
+  --dock:#11203B; --dock-line:rgba(255,255,255,.08);
+  --shadow:0 18px 40px -22px rgba(11,22,40,.35), 0 2px 6px -2px rgba(11,22,40,.08);
+  --shadow-sm:0 1px 2px rgba(11,22,40,.06);
+  --sans:'Roboto',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+  --serif:'Cormorant Garamond',Georgia,serif;
+  --top:60px; --spine-x:30px; --r:10px; --r-sm:6px;
+  --dock-h:76px;
+  color-scheme:light;
+}
+:root[data-theme="dark"]{
+  --bg:#0A111D; --surface:#101A2B; --surface-2:#15213A; --sunk:#0D1625;
+  --text:#D6DEE9; --text-2:#9AA7BA; --text-3:#6E7C91; --line:#1F2C42; --line-2:#2B3A54;
+  --heading:#F1F4F9;
+  --brand:#1A2A47; --brand-deep:#0B1426; --brand-ink:#0B1628;
+  --gold:#D6B76E; --gold-ink:#E3C985; --gold-soft:#2A2618;
+  --sky:#6FA3C2; --sky-ink:#8EC1DD; --sky-wash:#14263B;
+  --red:#E58068; --red-soft:#2E1C1A; --green:#6CC39A; --green-soft:#132A20;
+  --dock:#0E1829; --dock-line:rgba(255,255,255,.07);
+  --shadow:0 18px 40px -20px rgba(0,0,0,.7), 0 2px 6px -2px rgba(0,0,0,.4);
+  --shadow-sm:0 1px 2px rgba(0,0,0,.3);
+  color-scheme:dark;
+}
+@media (max-width:620px){:root{--spine-x:20px;--dock-h:68px}}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;scroll-padding-top:calc(var(--top) + 12px)}
+body{
+  background:var(--bg); color:var(--text); font-family:var(--sans);
+  font-size:16px; line-height:1.55; -webkit-font-smoothing:antialiased;
+  transition:background-color .25s,color .25s;
+  -webkit-tap-highlight-color:transparent;
+}
+a{color:inherit}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
+:focus-visible{outline:2px solid var(--sky-ink);outline-offset:2px;border-radius:4px}
+svg.i{width:20px;height:20px;fill:currentColor;flex:none;display:block}
+svg.i.s{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* play/pause icon swaps: global toggles follow the player, row buttons follow .is-on */
+.i.ico-pause{display:none}
+html.playing [data-p="toggle"] .ico-play{display:none}
+html.playing [data-p="toggle"] .ico-pause{display:block}
+[data-play].is-on .ico-play{display:none}
+[data-play].is-on .ico-pause{display:block}
+
+/* ══ top bar ══════════════════════════════════════════════════════════ */
+.topbar{
+  position:sticky;top:0;z-index:50;background:var(--brand-deep);color:#fff;
+  padding:env(safe-area-inset-top) clamp(14px,3.5vw,32px) 0;
+  box-shadow:0 1px 0 rgba(0,0,0,.25);
+}
+.topbar-inner{display:flex;align-items:center;gap:14px;max-width:1400px;margin:0 auto;height:var(--top)}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-size:23px;font-weight:600;line-height:1;white-space:nowrap}
+.brand-mark{width:32px;height:32px;border-radius:8px;display:block;box-shadow:0 0 0 1px rgba(255,255,255,.12)}
+.brand-word span{color:var(--gold)}
+.topnav{margin-left:auto;display:flex;gap:2px;align-items:center}
+.topnav [data-nav]{padding:8px 14px;border-radius:999px;font-size:14.5px;color:#C8D2E0;transition:background-color .15s,color .15s}
+.topnav [data-nav]:hover{background:rgba(255,255,255,.08);color:#fff}
+.topnav [data-nav][aria-current]{background:rgba(255,255,255,.12);color:#fff;font-weight:500}
+.theme-btn{margin-left:6px;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:#C8D2E0;transition:background-color .15s,color .15s}
+.theme-btn:hover{background:rgba(255,255,255,.1);color:#fff}
+.theme-btn .moon{display:none}
+:root[data-theme="dark"] .theme-btn .sun{display:none}
+:root[data-theme="dark"] .theme-btn .moon{display:block}
+@media (max-width:480px){
+  .brand-word{display:none}
+  .topnav [data-nav]{padding:8px 11px;font-size:14px}
+}
+
+.wrap{max-width:1180px;margin:0 auto;padding:0 clamp(16px,4vw,40px)}
+main.wide{max-width:1400px}
+
+/* ══ buttons & bits ═══════════════════════════════════════════════════ */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:12px 22px;border-radius:999px;font-size:15px;font-weight:500;transition:filter .15s,background-color .15s,border-color .15s,transform .1s;white-space:nowrap}
+.btn:active{transform:scale(.98)}
+.btn svg.i{width:18px;height:18px}
+.btn-gold{background:var(--gold);color:var(--brand-ink)}
+.btn-gold:hover{filter:brightness(1.06)}
+.btn-navy{background:var(--brand);color:#fff}
+:root[data-theme="dark"] .btn-navy{background:var(--surface-2);border:1px solid var(--line-2)}
+.btn-navy:hover{filter:brightness(1.15)}
+.btn-ghost{border:1px solid var(--line-2);color:var(--text);background:var(--surface-2)}
+.btn-ghost:hover{border-color:var(--sky)}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;font-size:13px;font-weight:500;border:1px solid currentColor;opacity:.9;font-variant-numeric:tabular-nums}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:999px;font-size:12.5px;background:var(--surface-2);border:1px solid var(--line);color:var(--text-2);white-space:nowrap}
+.pill svg.i{width:14px;height:14px}
+.pill.ok{background:var(--gold-soft);border-color:transparent;color:var(--gold-ink)}
+.pill.eco{color:var(--sky-ink)}
+.eyebrow{font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--sky-ink);font-weight:500;margin:0 0 12px;display:flex;align-items:center;gap:10px}
+.eyebrow::before{content:'';width:26px;height:1px;background:currentColor}
+.loading{padding:70px 20px;text-align:center;color:var(--text-3);font-weight:300}
+.empty{padding:36px 10px;text-align:center;color:var(--text-3);font-weight:300}
+
+/* equalizer — animates only while audio is playing */
+.eq{display:inline-flex;align-items:flex-end;gap:2px;height:12px}
+.eq i{width:3px;background:currentColor;border-radius:1px;height:30%;animation:eq 1s ease-in-out infinite;animation-play-state:paused}
+.eq i:nth-child(2){animation-delay:-.4s}.eq i:nth-child(3){animation-delay:-.7s}
+html.playing .eq i{animation-play-state:running}
+@keyframes eq{0%,100%{height:25%}50%{height:100%}}
+
+/* cover art (generated, per chapter) */
+.cover{
+  position:relative;overflow:hidden;border-radius:var(--r);
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgba(127,176,204,.35), transparent 55%),
+    radial-gradient(90% 80% at 0% 100%, rgba(201,169,97,.28), transparent 60%),
+    linear-gradient(160deg,#1E3157,#0B1628);
+  color:#fff;display:flex;flex-direction:column;justify-content:space-between;
+  aspect-ratio:1/1;padding:12%;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);
+}
+.cover::after{content:'';position:absolute;right:-30%;bottom:-30%;width:90%;aspect-ratio:1;border-radius:50%;border:1px solid rgba(255,255,255,.09);box-shadow:0 0 0 18px rgba(255,255,255,.025),0 0 0 40px rgba(255,255,255,.02)}
+.cover-k{font-size:.62em;letter-spacing:.24em;text-transform:uppercase;color:#C8D2E0;font-weight:500}
+.cover-n{font-family:var(--serif);font-style:italic;font-weight:500;line-height:.8;color:var(--gold);font-size:3.6em;letter-spacing:-.03em}
+.cover-l{font-size:.62em;letter-spacing:.24em;text-transform:uppercase;color:#AFC0D4}
+.mini-cover{flex:none;width:46px;height:46px;border-radius:8px;display:grid;place-items:center;position:relative;
+  background:linear-gradient(160deg,#25406E,#0B1628);color:var(--gold);font-family:var(--serif);font-style:italic;font-size:22px;font-weight:500;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.mini-cover .eq{position:absolute;right:4px;bottom:4px;color:var(--gold);height:9px}
+.mini-cover .eq i{width:2px}
+html:not(.playing) .mini-cover .eq{opacity:0}
+
+/* range sliders with a filled track */
+.scrub{
+  -webkit-appearance:none;appearance:none;width:100%;height:18px;background:transparent;cursor:pointer;margin:0;
+  --pct:0%;
+}
+.scrub::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:linear-gradient(to right,var(--fill,var(--gold)) var(--pct),var(--track,rgba(255,255,255,.2)) var(--pct))}
+.scrub::-moz-range-track{height:4px;border-radius:2px;background:linear-gradient(to right,var(--fill,var(--gold)) var(--pct),var(--track,rgba(255,255,255,.2)) var(--pct))}
+.scrub::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;margin-top:-5px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.35);transition:transform .12s}
+.scrub::-moz-range-thumb{width:14px;height:14px;border:0;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.35)}
+.scrub:hover::-webkit-slider-thumb,.scrub:active::-webkit-slider-thumb{transform:scale(1.2)}
+
+/* the round play button shared by all players */
+.pbtn{position:relative;flex:none;border-radius:50%;display:grid;place-items:center;background:var(--gold);color:var(--brand-ink);transition:transform .12s,filter .15s}
+.pbtn:hover{filter:brightness(1.06)}
+.pbtn:active{transform:scale(.94)}
+html.buffering [data-p="toggle"].pbtn::after{content:'';position:absolute;inset:-4px;border-radius:50%;border:2px solid transparent;border-top-color:var(--gold);animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ibtn{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:inherit;opacity:.85;transition:background-color .15s,opacity .15s}
+.ibtn:hover{opacity:1;background:rgba(127,176,204,.14)}
+.ibtn:disabled{opacity:.3;cursor:default;background:none}
+.skip{position:relative}
+.skip b{position:absolute;inset:0;display:grid;place-items:center;font-size:8.5px;font-weight:700;padding-top:2px}
+
+/* ══ chapter list ═════════════════════════════════════════════════════ */
+.hero{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:clamp(24px,4vw,56px);align-items:center;padding:clamp(30px,5vw,56px) 0 clamp(26px,4vw,40px)}
+.hero h1{font-family:var(--serif);font-size:clamp(32px,5vw,48px);font-weight:600;margin:0 0 12px;line-height:1.08;color:var(--heading)}
+.hero p.lead{margin:0;color:var(--text-2);font-size:16.5px;font-weight:300;max-width:52ch}
+.hero-stats{display:flex;flex-wrap:wrap;gap:22px;margin-top:22px}
+.hero-stats div{font-size:13px;color:var(--text-3)}
+.hero-stats b{display:block;font-family:var(--serif);font-size:28px;font-weight:600;color:var(--heading);line-height:1.1}
+.resume-card{background:var(--dock);color:#fff;border-radius:16px;padding:18px;display:grid;grid-template-columns:96px 1fr;gap:16px;align-items:center;box-shadow:var(--shadow)}
+.resume-card .cover{font-size:11px;border-radius:10px}
+.resume-card .cover-n{font-size:3.4em}
+.rc-k{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-weight:500}
+.rc-t{font-size:16.5px;line-height:1.3;margin:5px 0 10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rc-bar{height:3px;background:rgba(255,255,255,.15);border-radius:2px;overflow:hidden;margin-bottom:12px}
+.rc-bar i{display:block;height:100%;background:var(--gold)}
+.rc-row{display:flex;gap:8px;flex-wrap:wrap}
+.rc-row .btn{padding:9px 16px;font-size:14px}
+.rc-row .btn-line{border:1px solid rgba(255,255,255,.25);color:#fff}
+.rc-row .btn-line:hover{background:rgba(255,255,255,.08)}
+@media (max-width:820px){.hero{grid-template-columns:1fr}}
+
+.spine{position:relative;padding:4px 0 56px;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:var(--shadow-sm);margin-bottom:40px}
+.spine::before{content:'';position:absolute;left:calc(var(--spine-x) + 14px);top:0;bottom:0;width:2px;background:var(--line)}
+.spine-fill{position:absolute;left:calc(var(--spine-x) + 14px);top:0;width:2px;background:var(--gold);transition:height .5s ease}
+.ch{
+  position:relative;display:grid;cursor:pointer;
+  grid-template-columns:calc(var(--spine-x) + 48px) minmax(0,1fr) auto;
+  align-items:center;gap:0 18px;padding:15px 16px 15px 0;
+  border-bottom:1px solid var(--line);transition:background-color .15s;
+}
+.ch:last-child{border-bottom:0}
+.ch:hover{background:var(--surface-2)}
+.ch-dot{position:absolute;left:calc(var(--spine-x) + 10px);top:50%;margin-top:-5px;width:10px;height:10px;border-radius:50%;background:var(--surface);border:2px solid var(--line-2)}
+.ch[data-state="done"] .ch-dot{background:var(--gold);border-color:var(--gold)}
+.ch[data-state="started"] .ch-dot{background:var(--surface);border-color:var(--gold)}
+.ch-num{font-family:var(--serif);font-size:20px;color:var(--text-3);justify-self:end;font-style:italic}
+.ch.now .ch-num{color:var(--gold-ink)}
+.ch-body{min-width:0}
+.ch-title{display:block;font-size:16.5px;color:var(--heading);line-height:1.35}
+.ch[data-state="done"] .ch-title{color:var(--text-2)}
+.ch-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:5px;font-size:13px;color:var(--text-3);font-weight:300}
+.ch-meta .eco{color:var(--sky-ink)}
+.ch-meta .eq{color:var(--gold-ink);height:10px}
+.ch-bar{display:inline-block;width:56px;height:3px;border-radius:2px;background:var(--line);overflow:hidden;vertical-align:middle}
+.ch-bar i{display:block;height:100%;background:var(--gold)}
+.ch-right{display:flex;align-items:center;gap:12px}
+.score{font-weight:500;padding:3px 9px;border-radius:999px;font-size:12.5px;background:var(--sky-wash);color:var(--sky-ink)}
+.score.pass{background:var(--gold-soft);color:var(--gold-ink)}
+.row-play{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--line-2);color:var(--heading);transition:background-color .15s,border-color .15s,color .15s}
+.row-play svg.i{width:16px;height:16px}
+.row-play:hover,.row-play.is-on{background:var(--gold);border-color:var(--gold);color:var(--brand-ink)}
+@media (max-width:620px){
+  .ch{grid-template-columns:calc(var(--spine-x) + 54px) minmax(0,1fr) auto;gap:0 12px;padding-right:12px}
+  .ch-num{font-size:18px}
+  .ch-title{font-size:15.5px}
+  .ch-right .score{display:none}
+}
+
+/* ══ lesson (module) ══════════════════════════════════════════════════ */
+.lesson{display:grid;grid-template-columns:minmax(0,1fr);gap:20px;padding:20px 0 40px}
+.lesson-head{padding:6px 0 0}
+.crumbs{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--text-3);margin-bottom:8px}
+.crumbs button{color:var(--sky-ink);display:inline-flex;align-items:center;gap:4px}
+.crumbs button:hover{text-decoration:underline}
+.lesson-title{font-family:var(--serif);font-size:clamp(26px,4.2vw,36px);font-weight:600;color:var(--heading);margin:0 0 12px;line-height:1.14}
+.lesson-meta{display:flex;flex-wrap:wrap;gap:8px}
+.lesson-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+
+/* document viewer frame */
+.viewer{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);position:relative;min-width:0}
+.viewer-bar{
+  position:sticky;top:var(--top);z-index:20;display:flex;align-items:center;gap:6px;
+  padding:8px 10px 8px 14px;background:color-mix(in srgb,var(--surface) 88%,transparent);
+  -webkit-backdrop-filter:saturate(1.4) blur(12px);backdrop-filter:saturate(1.4) blur(12px);
+  border-bottom:1px solid var(--line);border-radius:14px 14px 0 0;
+}
+.vb-label{font-size:13px;color:var(--text-2);display:flex;align-items:center;gap:8px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vb-label svg.i{width:16px;height:16px;color:var(--sky-ink)}
+.vb-sec{color:var(--heading);overflow:hidden;text-overflow:ellipsis}
+.vb-right{margin-left:auto;display:flex;align-items:center;gap:2px}
+.vb-pct{font-size:12.5px;color:var(--text-3);min-width:40px;text-align:right;margin-right:6px;font-variant-numeric:tabular-nums}
+.vb-btn{height:34px;min-width:34px;padding:0 9px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:13.5px;color:var(--text-2);transition:background-color .15s,color .15s}
+.vb-btn:hover{background:var(--sunk);color:var(--heading)}
+.vb-btn[aria-expanded="true"]{background:var(--sky-wash);color:var(--sky-ink)}
+.vb-btn svg.i{width:18px;height:18px}
+.vb-sep{width:1px;height:20px;background:var(--line);margin:0 4px}
+.vb-progress{position:absolute;left:0;right:0;bottom:-1px;height:2px}
+.vb-progress i{display:block;height:100%;width:0;background:var(--gold);transition:width .15s linear}
+.ol-pop{position:absolute;z-index:25;left:10px;top:52px;width:min(420px,calc(100% - 20px));max-height:min(60vh,520px);overflow:auto;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:8px}
+.viewer-bar .ol-pop{top:calc(100% + 6px)}
+
+.viewer-body{min-width:0}
+.guide-wrap{max-width:780px;margin:0 auto;padding:clamp(22px,5vw,60px) clamp(18px,5vw,60px) 24px}
+
+/* outline list (sidebar + popover) */
+.outline{list-style:none;margin:0;padding:0}
+.outline button{display:grid;grid-template-columns:38px 1fr;gap:6px;width:100%;text-align:left;padding:8px 10px;border-radius:8px;font-size:14px;line-height:1.35;color:var(--text-2);transition:background-color .12s,color .12s}
+.outline button:hover{background:var(--sunk);color:var(--heading)}
+.outline .n{font-family:var(--serif);font-style:italic;color:var(--text-3);font-size:15px}
+.outline button.active{background:var(--sky-wash);color:var(--heading)}
+.outline button.active .n{color:var(--sky-ink)}
+
+/* end of chapter → quiz */
+.end-cta{margin:48px 0 8px;padding:clamp(22px,4vw,34px);border-radius:14px;background:var(--dock);color:#fff;display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center}
+.end-cta h2{font-family:var(--serif);font-size:clamp(23px,3vw,28px);font-weight:600;margin:0 0 6px;line-height:1.15}
+.end-cta p{margin:0;color:#AFC0D4;font-weight:300;font-size:15px;max-width:46ch}
+.end-cta .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.end-cta .btn-line{border:1px solid rgba(255,255,255,.25);color:#fff}
+.end-cta .btn-line:hover{background:rgba(255,255,255,.08)}
+@media (max-width:700px){.end-cta{grid-template-columns:1fr}.end-cta .row{justify-content:flex-start}}
+
+/* side column */
+.lesson-side{display:none}
+.side-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow-sm)}
+.side-card h3{font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-3);font-weight:500;margin:2px 4px 10px}
+.side-quiz p{margin:0 4px 14px;font-size:14px;color:var(--text-2);line-height:1.5}
+.side-quiz .btn{width:100%}
+.side-quiz .best{display:flex;justify-content:space-between;align-items:center;margin:0 4px 12px;font-size:13.5px;color:var(--text-2)}
+
+/* "now playing" — big player (sidebar on desktop, sheet on phones) */
+.np{color:#fff}
+.np-card{background:var(--dock);border:0;color:#fff;padding:18px;box-shadow:var(--shadow)}
+.np-other{display:flex;align-items:center;gap:10px;background:rgba(201,169,97,.12);border:1px solid rgba(201,169,97,.3);border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:13px;color:#E8DDBF;line-height:1.35}
+.np-other .btn{padding:7px 12px;font-size:13px;margin-left:auto}
+.np-side .np-top{display:grid;grid-template-columns:84px 1fr;gap:14px;align-items:center}
+.np-side .cover{font-size:8px;border-radius:9px;padding:10px}
+.np-side .cover-n{font-size:4.4em}
+.np-k{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:500;display:flex;align-items:center;gap:8px}
+.np-title{font-size:15.5px;line-height:1.32;margin-top:5px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.np-scrub{margin-top:16px}
+.np-times{display:flex;justify-content:space-between;font-size:12px;color:#AFC0D4;margin-top:2px;font-variant-numeric:tabular-nums}
+.np-ctrls{display:flex;align-items:center;justify-content:space-between;margin-top:10px}
+.np-ctrls .pbtn{width:58px;height:58px}
+.np-ctrls .pbtn svg.i{width:24px;height:24px}
+.np-ctrls .ibtn{color:#DCE4EF}
+.np-extra{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:12px;color:#C8D2E0}
+.np-extra .chip{cursor:pointer}
+.np-extra .chip:hover{background:rgba(255,255,255,.08)}
+
+/* desktop: the lesson becomes an app-style workspace with an embedded,
+   independently scrolling document and a fixed side player */
+@media (min-width:1080px){
+  body[data-view="module"]{overflow:hidden}
+  body[data-view="module"] footer{display:none}
+  .lesson{
+    grid-template-columns:minmax(0,1fr) 340px;gap:22px;padding:18px 0 18px;
+    height:calc(100vh - var(--top) - env(safe-area-inset-top));
+    height:calc(100dvh - var(--top) - env(safe-area-inset-top));
+  }
+  .lesson-main{display:flex;flex-direction:column;min-height:0;min-width:0}
+  .lesson-head{padding:0 4px 14px}
+  .lesson-title{font-size:28px;margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .lesson-actions{display:none}
+  .viewer{flex:1;min-height:0;display:flex;flex-direction:column}
+  .viewer-bar{position:relative;top:0}
+  .viewer-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scroll-behavior:smooth;border-radius:0 0 14px 14px}
+  .viewer-body::-webkit-scrollbar{width:10px}
+  .viewer-body::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:10px;border:3px solid var(--surface)}
+  .ol-toggle{display:none}
+  .lesson-side{display:flex;flex-direction:column;gap:14px;min-height:0;overflow-y:auto;padding-bottom:4px;scrollbar-width:thin}
+  .lesson-side .side-outline{flex:none}
+  .guide .section-eyebrow{scroll-margin-top:18px}
+}
+@media (max-width:1079px){
+  .guide .section-eyebrow{scroll-margin-top:calc(var(--top) + 64px)}
+}
+
+/* ══ bottom dock: the persistent mini player ══════════════════════════ */
+.dock{
+  position:fixed;left:0;right:0;bottom:0;z-index:45;
+  background:var(--dock);color:#fff;border-top:1px solid var(--dock-line);
+  padding:0 clamp(12px,3vw,28px) env(safe-area-inset-bottom);
+  transform:translateY(110%);transition:transform .35s cubic-bezier(.2,.8,.2,1);
+  box-shadow:0 -10px 30px -12px rgba(0,0,0,.35);
+}
+html.has-track .dock{transform:none}
+html:not(.has-track) .dock{visibility:hidden}
+html.has-track body{padding-bottom:calc(var(--dock-h) + env(safe-area-inset-bottom))}
+@media (min-width:1080px){
+  body[data-view="module"] .dock{transform:translateY(110%);visibility:hidden}
+  html.has-track body[data-view="module"]{padding-bottom:0}
+}
+.dock-inner{max-width:1400px;margin:0 auto;height:var(--dock-h);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr) minmax(0,1fr);align-items:center;gap:18px}
+.dock-line{position:absolute;left:0;right:0;top:-1px;height:2px;display:none}
+.dock-line i{display:block;height:100%;width:0;background:var(--gold)}
+.dock-info{display:flex;align-items:center;gap:12px;min-width:0;text-align:left}
+.dock-text{min-width:0;display:flex;flex-direction:column}
+.dock-text b{font-weight:500;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dock-text small{font-size:12px;color:#AFC0D4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dock-center{display:flex;flex-direction:column;align-items:center;gap:0;min-width:0}
+.dock-ctrls{display:flex;align-items:center;gap:8px}
+.dock-ctrls .ibtn{width:36px;height:36px;color:#DCE4EF}
+.dock-ctrls .pbtn{width:40px;height:40px}
+.dock-scrub{display:flex;align-items:center;gap:10px;width:100%;font-size:11.5px;color:#AFC0D4;font-variant-numeric:tabular-nums}
+.dock-scrub span{min-width:38px}
+.dock-scrub span:last-child{text-align:right}
+.dock-right{display:flex;align-items:center;justify-content:flex-end;gap:6px;color:#C8D2E0}
+.dock-right .chip{cursor:pointer}
+.dock-right .chip:hover{background:rgba(255,255,255,.08)}
+.dock-m{display:none}
+@media (max-width:820px){
+  .dock-inner{grid-template-columns:minmax(0,1fr) auto;gap:8px}
+  .dock-center,.dock-right{display:none}
+  .dock-m{display:flex;align-items:center;gap:2px}
+  .dock-m .pbtn{width:42px;height:42px}
+  .dock-m .ibtn{color:#DCE4EF}
+  .dock-line{display:block}
+  .mini-cover{width:42px;height:42px;font-size:20px}
+}
+
+/* full-screen "now playing" sheet (phones / tablets) */
+.sheet{
+  position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;
+  background:linear-gradient(180deg,#16284A 0%,#0B1628 70%);color:#fff;
+  padding:calc(env(safe-area-inset-top) + 8px) clamp(20px,6vw,40px) calc(env(safe-area-inset-bottom) + 20px);
+  transform:translateY(100%);transition:transform .38s cubic-bezier(.2,.8,.2,1);visibility:hidden;
+}
+html.sheet-open .sheet{transform:none;visibility:visible}
+html.sheet-open body{overflow:hidden}
+.sheet-top{display:flex;align-items:center;justify-content:space-between;height:52px;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#AFC0D4}
+.sheet-top .ibtn{color:#fff}
+.sheet-body{flex:1;display:flex;flex-direction:column;justify-content:center;max-width:460px;width:100%;margin:0 auto}
+.np-sheet .cover{font-size:clamp(11px,3.6vw,15px);width:min(100%,46vh);margin:0 auto 26px;box-shadow:0 30px 60px -24px rgba(0,0,0,.7)}
+.np-sheet .cover-n{font-size:6.5em}
+.np-sheet .np-title{font-size:20px;-webkit-line-clamp:2;margin-top:6px}
+.np-sheet .np-ctrls{margin-top:18px}
+.np-sheet .np-ctrls .pbtn{width:70px;height:70px}
+.np-sheet .np-ctrls .pbtn svg.i{width:28px;height:28px}
+.np-sheet .np-ctrls .ibtn{width:48px;height:48px}
+.np-sheet .np-ctrls .ibtn svg.i{width:24px;height:24px}
+.sheet-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:26px}
+.sheet-actions .btn{padding:12px}
+.sheet-actions .btn-line{border:1px solid rgba(255,255,255,.25);color:#fff}
+
+/* toast */
+.toast{position:fixed;left:50%;bottom:calc(var(--dock-h) + env(safe-area-inset-bottom) + 14px);z-index:70;transform:translate(-50%,20px);opacity:0;pointer-events:none;
+  background:var(--heading);color:var(--bg);padding:11px 14px 11px 18px;border-radius:999px;font-size:14px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow);transition:opacity .2s,transform .2s;max-width:calc(100vw - 24px)}
+.toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.toast button{color:var(--gold);font-weight:500;padding:4px 8px}
+:root[data-theme="dark"] .toast button{color:var(--gold-ink)}
+html:not(.has-track) .toast{bottom:24px}
+
+/* ══ quiz ═════════════════════════════════════════════════════════════ */
+.quiz{max-width:74ch;margin:0 auto;padding:30px 0 70px}
+.quiz-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:clamp(20px,4vw,36px);box-shadow:var(--shadow-sm)}
+.qprog{display:flex;align-items:center;gap:12px;font-size:13.5px;color:var(--text-2);margin-bottom:24px}
+.qprog .track{flex:1;height:4px;background:var(--line);border-radius:2px;overflow:hidden}
+.qprog .fill{height:100%;background:var(--gold);transition:width .3s}
+.qprog .back{color:var(--sky-ink);display:inline-flex;align-items:center;gap:4px}
+.qtext{font-size:clamp(17.5px,2.4vw,20px);line-height:1.5;color:var(--heading);margin:0 0 22px}
+.opt{display:flex;gap:14px;width:100%;text-align:left;padding:15px 18px;margin-bottom:10px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;transition:border-color .13s,background-color .13s;line-height:1.45}
+.opt:hover:not(:disabled){border-color:var(--sky)}
+.opt:disabled{cursor:default}
+.opt .key{font-family:var(--serif);font-size:17px;color:var(--text-3);flex:none;width:26px;height:26px;border-radius:50%;border:1px solid var(--line-2);display:grid;place-items:center;font-style:italic}
+.opt[data-mark="right"]{background:var(--green-soft);border-color:var(--green)}
+.opt[data-mark="right"] .key{color:#fff;background:var(--green);border-color:var(--green)}
+.opt[data-mark="wrong"]{background:var(--red-soft);border-color:var(--red)}
+.opt[data-mark="wrong"] .key{color:#fff;background:var(--red);border-color:var(--red)}
+.why{margin:16px 0 0;padding:16px 18px;border-left:3px solid var(--sky);background:var(--sky-wash);border-radius:0 10px 10px 0;font-size:15px;line-height:1.6}
+.why b{font-weight:500;color:var(--sky-ink)}
+.qfoot{margin-top:24px;display:flex;gap:12px;align-items:center}
+.result{text-align:center;padding:40px 0 70px;max-width:56ch;margin:0 auto}
+.result .ring{margin:0 auto 22px;display:block}
+.result h2{font-family:var(--serif);font-size:38px;font-weight:600;margin:0 0 10px;color:var(--heading)}
+.result p{color:var(--text-2);font-weight:300;margin:0 0 26px}
+.result .row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.ring-track{stroke:var(--line)} .ring-pass{stroke:var(--gold)} .ring-fail{stroke:var(--red)}
+
+/* ══ progress ═════════════════════════════════════════════════════════ */
+.prog-head{padding:clamp(30px,5vw,48px) 0 8px}
+.prog-head h1{font-family:var(--serif);font-size:clamp(30px,4.6vw,42px);font-weight:600;margin:0 0 8px;color:var(--heading)}
+.prog-head p{margin:0;color:var(--text-2);font-weight:300}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:24px 0 24px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px;box-shadow:var(--shadow-sm)}
+.stat .v{font-family:var(--serif);font-size:34px;font-weight:600;color:var(--heading);line-height:1}
+.stat .v small{font-size:19px;color:var(--text-3)}
+.stat .l{font-size:13.5px;color:var(--text-2);margin-top:8px;font-weight:300}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px clamp(16px,3vw,28px);margin-bottom:20px;box-shadow:var(--shadow-sm)}
+.panel h2{font-family:var(--serif);font-size:23px;font-weight:600;margin:0 0 4px;color:var(--heading)}
+.panel .hint{font-size:13.5px;color:var(--text-3);font-weight:300;margin:0 0 18px}
+.panel .ch{border-radius:10px;padding-left:4px}
+.chart{width:100%;overflow:visible;display:block}
+.chart .gl{stroke:var(--line)} .chart .gp{stroke:var(--gold)} .chart .tx{fill:var(--text-3)}
+.chart .bp{fill:var(--gold)} .chart .bf{fill:var(--red)} .chart .b0{fill:var(--line)}
+.chart .hb{fill:var(--sky);opacity:.35}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--text-2);margin-top:12px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.danger{color:var(--red)}
+
+footer{padding:30px 0 40px;color:var(--text-3);font-size:13px;font-weight:300;text-align:center}
+
+/* ══ the book's HTML, tuned for screens + night mode ══════════════════ */
+.guide{color:var(--text)}
+.guide .chapter-anchor,.guide .file-anchor{display:none}
+.guide .page,.guide .opener-page{width:auto;min-height:0;box-shadow:none;background:transparent;overflow:visible;position:static}
+.guide .page-content,.guide .opener-content{padding:0}
+.guide .page-rule,.guide .page-running-head,.guide .page-running-foot{display:none}
+.guide .page + .page{margin-top:8px}
+.guide{overflow-wrap:break-word}
+.guide .opener-numeral{font-size:clamp(96px,17vw,190px)}
+.guide .opener-h1{font-size:clamp(28px,4.4vw,44px);line-height:1.12}
+.guide .opener-intro{font-size:clamp(16px,1.9vw,17.5px);max-width:none}
+.guide .opener-toc{margin-bottom:44px}
+.guide .opener-toc-item{cursor:pointer;border-radius:8px;padding:6px 8px;margin:-6px -8px;transition:background-color .12s}
+.guide .opener-toc-item:hover{background:var(--sky-wash)}
+.guide .opener-toc-item:hover .name{color:var(--sky-ink)}
+.guide .section-h2{font-size:clamp(23px,3.2vw,30px)}
+.guide .body-p{font-size:16.5px;line-height:1.75}
+.guide ul.body-ul li,.guide ol.body-ol li{font-size:16px;line-height:1.7}
+.guide .callout-body,.guide .essentials-card-body{font-size:15px}
+.guide img{max-width:100%;height:auto}
+.guide .visual-figure img{cursor:zoom-in}
+.guide .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 0 24px;border-radius:6px}
+.guide .table-scroll table{margin:0;min-width:520px}
+@media (max-width:640px){
+  .guide .opener-toc-grid{grid-template-columns:1fr}
+  .guide .essentials-card{grid-template-columns:34px 1fr;gap:12px;padding:16px}
+  .guide .pullquote{padding:18px 18px}
+  .guide .body-p{font-size:16px}
+}
+:root[data-theme="dark"] .guide{
+  --navy:#BFD3E8; --navy-deep:#0B1426; --navy-ink:#E6ECF4;
+  --sky:#6FA3C2; --sky-soft:#30506B; --sky-wash:#14263B; --sky-ink:#8EC1DD;
+  --gold:#D6B76E; --gold-soft:#2A2618; --gold-ink:#E3C985;
+  --red:#E58068; --red-soft:#2E1C1A;
+  --paper:#101A2B; --white:#15213A;
+  --slate-700:#C2CCD9; --slate-500:#97A4B7; --slate-400:#76849A;
+  --border:#24324B;
+}
+:root[data-theme="dark"] .guide table.book-table thead th{background:#1D2E4D;color:#E6ECF4;border-right-color:#15213A}
+:root[data-theme="dark"] .guide .table-caption{background:#14263B}
+:root[data-theme="dark"] .guide .tldr{background:#1D2E4D}
+:root[data-theme="dark"] .guide .visual-figure img{background:#F4F4F0;filter:brightness(.92)}
+
+/* lock screen */
+.lock{position:fixed;inset:0;z-index:95;display:flex;align-items:center;justify-content:center;padding:24px;
+  background:radial-gradient(120% 80% at 100% 0%,rgba(127,176,204,.22),transparent 55%),linear-gradient(160deg,#16284A,#0B1628 70%);color:#fff}
+.lock[hidden]{display:none}
+.lock-card{width:100%;max-width:380px;text-align:center}
+.lock-ico{width:84px;height:84px;border-radius:20px;box-shadow:0 20px 40px -18px rgba(0,0,0,.7);margin-bottom:22px}
+.lock h1{font-family:var(--serif);font-size:34px;font-weight:600;margin:0 0 8px}
+.lock p{color:#AFC0D4;font-weight:300;font-size:15px;line-height:1.5;margin:0 0 24px}
+.lock input[type=password]{width:100%;font:inherit;font-size:16px;padding:14px 16px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#fff;outline:none}
+.lock input[type=password]:focus{border-color:var(--gold);background:rgba(255,255,255,.09)}
+.lock-rem{display:flex;align-items:center;justify-content:center;gap:8px;font-size:13.5px;color:#C8D2E0;margin:14px 0 18px;cursor:pointer}
+.lock-rem input{accent-color:#C9A961;width:16px;height:16px}
+.lock .btn{width:100%;padding:14px}
+.lock-err{min-height:22px;margin-top:12px;font-size:14px;color:#F0A08C}
+.lock-note{margin-top:26px;font-size:12px;color:#7D8DA3}
+
+/* lightbox for figures */
+.lightbox{position:fixed;inset:0;z-index:80;background:rgba(5,10,20,.92);display:none;align-items:center;justify-content:center;padding:20px;cursor:zoom-out}
+.lightbox.show{display:flex}
+.lightbox img{max-width:100%;max-height:100%;border-radius:8px;background:#fff}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body data-view="list">
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <button class="brand" data-nav="#/" aria-label="Αρχική">
+      <img class="brand-mark" src="icon.svg" alt="" /><span class="brand-word">PMP <span>Prep</span></span>
+    </button>
+    <nav class="topnav">
+      <button data-nav="#/">Μαθήματα</button>
+      <button data-nav="#/progress">Πρόοδος</button>
+      <button class="theme-btn" id="theme" aria-label="Εναλλαγή φωτεινού / σκοτεινού θέματος" title="Night mode">
+        <svg class="i s sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/></svg>
+        <svg class="i s moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main id="app" class="wrap"><div class="loading">Φόρτωση…</div></main>
+
+<footer>PMBOK® 8 · ECO 2026 · PMP Prep Study Guide by GKSeminars</footer>
+
+<!-- persistent mini player -->
+<div class="dock" id="dock" aria-label="Ηχητικό μάθημα">
+  <div class="dock-line"><i data-v="line"></i></div>
+  <div class="dock-inner">
+    <button class="dock-info" data-p="expand" aria-label="Άνοιγμα player">
+      <span class="mini-cover"><span data-v="num">01</span><span class="eq"><i></i><i></i><i></i></span></span>
+      <span class="dock-text"><b data-v="title">—</b><small data-v="sub"></small></span>
+    </button>
+    <div class="dock-center">
+      <div class="dock-ctrls" data-ctrls></div>
+      <div class="dock-scrub"><span data-v="now">0:00</span><input class="scrub" data-scrub type="range" min="0" max="1000" value="0" aria-label="Θέση"><span data-v="dur">0:00</span></div>
+    </div>
+    <div class="dock-right">
+      <button class="chip" data-p="rate" aria-label="Ταχύτητα"><span data-v="rate">1×</span></button>
+      <button class="ibtn" data-p="expand" aria-label="Μεγάλος player"><svg class="i s" viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></button>
+    </div>
+    <div class="dock-m">
+      <button class="ibtn skip" data-p="back" aria-label="Πίσω 10 δευτ."><svg class="i s" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.6-5.9"/><path d="M4 4v4h4"/></svg><b>10</b></button>
+      <button class="pbtn" data-p="toggle" aria-label="Αναπαραγωγή / παύση"><svg class="i ico-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z"/></svg><svg class="i ico-pause" viewBox="0 0 24 24"><path d="M7 5h3.5v14H7zm6.5 0H17v14h-3.5z"/></svg></button>
+    </div>
+  </div>
+</div>
+
+<!-- full screen player for phones/tablets -->
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Τώρα παίζει">
+  <div class="sheet-top">
+    <button class="ibtn" data-p="sheet-close" aria-label="Κλείσιμο"><svg class="i s" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+    <span>Τώρα παίζει</span><span style="width:40px"></span>
+  </div>
+  <div class="sheet-body" id="sheet-body"></div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"><span id="toast-msg"></span><button id="toast-act" hidden></button></div>
+<div class="lightbox" id="lightbox"><img alt="" /></div>
+
+<div class="lock" id="lock" hidden>
+  <form class="lock-card" id="lock-form" autocomplete="on">
+    <img class="lock-ico" src="icon.svg" alt="" />
+    <h1>PMP Prep</h1>
+    <p>Ιδιωτική πλατφόρμα μελέτης. Βάλε τον κωδικό σου για να ξεκλειδώσεις τα μαθήματα σε αυτή τη συσκευή.</p>
+    <input type="text" name="username" autocomplete="username" value="pmp-prep" hidden />
+    <input type="password" id="lock-pw" name="password" autocomplete="current-password" placeholder="Κωδικός" required />
+    <label class="lock-rem"><input type="checkbox" id="lock-rem" checked /> Να με θυμάται αυτή η συσκευή</label>
+    <button class="btn btn-gold" type="submit" id="lock-go">Ξεκλείδωμα</button>
+    <div class="lock-err" id="lock-err" role="alert"></div>
+    <div class="lock-note">Το περιεχόμενο είναι κρυπτογραφημένο (AES-256) και ανοίγει μόνο με τον κωδικό.</div>
+  </form>
+</div>
+
+<script>
+/* ════════════════════════════════════════════════════════════════════
+   State — one localStorage key for progress, one for preferences.
+   ════════════════════════════════════════════════════════════════════ */
+const KEY = 'pmp8.progress.v1', PREF = 'pmp8.prefs', PASS = 70;
+const RATES = [0.75, 1, 1.25, 1.5, 1.75, 2];
+const ZOOMS = [0.9, 1, 1.1, 1.2, 1.35];
+
+const store = {
+  get(k, d){ try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch(e){ return d; } },
+  set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+};
+const loadState = () => store.get(KEY, {});
+function chState(id){ return Object.assign({pos:0, heard:0, best:null, at:0}, loadState()[id]); }
+function setCh(id, patch){ const s = loadState(); s[id] = Object.assign(chState(id), patch); store.set(KEY, s); }
+const prefs = Object.assign({rate:1, zoom:1}, store.get(PREF, {}));
+const savePrefs = () => store.set(PREF, prefs);
+
+let CH = [];
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+const root = document.documentElement;
+const app = $('#app');
+const DESK = matchMedia('(min-width:1080px)');
+const pad2 = n => String(n).padStart(2,'0');
+const fmt = s => { s = Math.max(0, Math.floor(s||0)); const h = Math.floor(s/3600), m = Math.floor(s%3600/60), r = s%60;
+  return h ? h+':'+pad2(m)+':'+pad2(r) : m+':'+pad2(r); };
+const mins = s => Math.round((s||0)/60) + '′';
+const esc = t => String(t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const chOf = id => CH.find(x => x.id === id);
+
+function stateOf(c){
+  const st = chState(c.id);
+  if (st.best !== null && st.best >= PASS && st.heard >= 0.9) return 'done';
+  if (st.heard > 0.02 || st.best !== null || st.at > 0.03) return 'started';
+  return 'new';
+}
+
+/* icons */
+const IC = {
+  play:  '<svg class="i ico-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z"/></svg>',
+  pause: '<svg class="i ico-pause" viewBox="0 0 24 24"><path d="M7 5h3.5v14H7zm6.5 0H17v14h-3.5z"/></svg>',
+  prev:  '<svg class="i" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>',
+  next:  '<svg class="i" viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z"/></svg>',
+  back:  '<svg class="i s" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.6-5.9"/><path d="M4 4v4h4"/></svg><b>10</b>',
+  fwd:   '<svg class="i s" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v4h-4"/></svg><b>10</b>',
+  head:  '<svg class="i s" viewBox="0 0 24 24"><path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="3" y="14" width="4" height="6" rx="1.5"/><rect x="17" y="14" width="4" height="6" rx="1.5"/></svg>',
+  doc:   '<svg class="i s" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/></svg>',
+  list:  '<svg class="i s" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/></svg>',
+  check: '<svg class="i s" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+  left:  '<svg class="i s" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>',
+  quiz:  '<svg class="i s" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5v.7M12 17h.01"/></svg>',
+};
+const ctrls = big => `
+  <button class="ibtn" data-p="prev" aria-label="Προηγούμενο κεφάλαιο">${IC.prev}</button>
+  <button class="ibtn skip" data-p="back" aria-label="Πίσω 10 δευτερόλεπτα">${IC.back}</button>
+  <button class="pbtn" data-p="toggle" aria-label="Αναπαραγωγή / παύση">${IC.play}${IC.pause}</button>
+  <button class="ibtn skip" data-p="fwd" aria-label="Μπροστά 10 δευτερόλεπτα">${IC.fwd}</button>
+  <button class="ibtn" data-p="next" aria-label="Επόμενο κεφάλαιο">${IC.next}</button>`;
+const eq = '<span class="eq"><i></i><i></i><i></i></span>';
+
+/* the big player: same markup for the desktop side card and the phone sheet */
+function bigPlayer(kind){
+  return `<div class="np np-${kind}">
+    <div class="np-top">
+      <div class="cover"><span class="cover-k">PMP Prep</span><span class="cover-n" data-v="num">01</span><span class="cover-l">Κεφαλαιο</span></div>
+      <div class="np-meta">
+        <div class="np-k">${eq}<span data-v="kicker">Ηχητικό μάθημα</span></div>
+        <div class="np-title" data-v="title">—</div>
+      </div>
+    </div>
+    <div class="np-scrub"><input class="scrub" data-scrub type="range" min="0" max="1000" value="0" aria-label="Θέση στο ηχητικό"></div>
+    <div class="np-times"><span data-v="now">0:00</span><span data-v="left">−0:00</span></div>
+    <div class="np-ctrls">${ctrls()}</div>
+    <div class="np-extra"><button class="chip" data-p="rate" aria-label="Ταχύτητα αναπαραγωγής"><span data-v="rate">1×</span> ταχύτητα</button></div>
+  </div>`;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   Vault — chapters/, quiz/, audio/ and img/ are published only as
+   AES-256-GCM files (<name>.enc = 12-byte IV + ciphertext). The key comes
+   from the password via PBKDF2 and can be remembered on this device.
+   ════════════════════════════════════════════════════════════════════ */
+const KEYSTORE = 'pmp8.key';
+let VKEY = null;
+const fromB64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+const toB64 = buf => { const u = new Uint8Array(buf); let s = ''; for (const b of u) s += String.fromCharCode(b); return btoa(s); };
+async function deriveKey(pw, vault){
+  const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2', hash:'SHA-256', salt:fromB64(vault.salt), iterations:vault.iter},
+    base, {name:'AES-GCM', length:256}, true, ['decrypt']);
+}
+function decBuf(buf, key = VKEY){
+  const u = new Uint8Array(buf);
+  return crypto.subtle.decrypt({name:'AES-GCM', iv:u.subarray(0,12)}, key, u.subarray(12));
+}
+async function keyWorks(key, vault){
+  try { return new TextDecoder().decode(await decBuf(fromB64(vault.check), key)) === 'pmp-prep-ok'; }
+  catch(e){ return false; }
+}
+async function savedKey(vault){
+  try {
+    const raw = localStorage.getItem(KEYSTORE); if (!raw) return null;
+    const k = await crypto.subtle.importKey('raw', fromB64(raw), {name:'AES-GCM'}, true, ['decrypt']);
+    return (await keyWorks(k, vault)) ? k : null;
+  } catch(e){ return null; }
+}
+function askPassword(vault){
+  return new Promise(resolve => {
+    const lock = $('#lock'), form = $('#lock-form'), pw = $('#lock-pw'), go = $('#lock-go'), err = $('#lock-err');
+    lock.hidden = false; setTimeout(() => pw.focus(), 50);
+    form.onsubmit = async e => {
+      e.preventDefault(); err.textContent = ''; go.disabled = true; go.textContent = 'Έλεγχος…';
+      let k = null;
+      try { k = await deriveKey(pw.value, vault); if (!(await keyWorks(k, vault))) k = null; } catch(x){ k = null; }
+      go.disabled = false; go.textContent = 'Ξεκλείδωμα';
+      if (!k){ err.textContent = 'Λάθος κωδικός. Δοκίμασε ξανά.'; pw.select(); return; }
+      if ($('#lock-rem').checked){ try { localStorage.setItem(KEYSTORE, toB64(await crypto.subtle.exportKey('raw', k))); } catch(x){} }
+      pw.value = ''; lock.hidden = true; resolve(k);
+    };
+  });
+}
+function lockDevice(){ try { localStorage.removeItem(KEYSTORE); } catch(e){} location.reload(); }
+async function getEnc(path){
+  const r = await fetch(path + '.enc');
+  if (!r.ok) throw new Error(r.status);
+  return decBuf(await r.arrayBuffer());
+}
+const getText = async p => new TextDecoder().decode(await getEnc(p));
+const getJSON = async p => JSON.parse(await getText(p));
+const MIME = {png:'image/png', jpg:'image/jpeg', jpeg:'image/jpeg', webp:'image/webp', gif:'image/gif', svg:'image/svg+xml'};
+const imgURLs = new Map();
+function imgURL(p){
+  if (!imgURLs.has(p)){
+    const pr = getEnc(p).then(b => URL.createObjectURL(new Blob([b], {type: MIME[p.split('.').pop().toLowerCase()] || 'application/octet-stream'})));
+    pr.catch(() => imgURLs.delete(p)); imgURLs.set(p, pr);
+  }
+  return imgURLs.get(p);
+}
+const SILENT = 'data:audio/wav;base64,UklGRrQBAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YZABAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA';
+
+/* ════════════════════════════════════════════════════════════════════
+   Player — one <audio> for the whole app, so the lesson keeps playing
+   while you browse chapters, the dashboard or a quiz.
+   ════════════════════════════════════════════════════════════════════ */
+const P = {
+  a: new Audio(), ch: null, wantPos: 0, ready: false, fetching: false, wantPlay: false, unlocked: false, url: null, token: 0,
+  get dur(){ const d = this.a.duration; return this.ready && isFinite(d) && d > 0 ? d : (chOf(this.ch)||{}).seconds || 0; },
+  load(id, autoplay){
+    const c = chOf(id); if (!c) return;
+    if (this.ch === id){ if (autoplay) this.play(); return; }
+    this.save();
+    this.ch = id; this.token++;
+    this.ready = false; this.fetching = false; this.wantPlay = false;
+    if (!this.a.paused) this.a.pause();
+    this.a.removeAttribute('src'); try { this.a.load(); } catch(e){}
+    if (this.url){ URL.revokeObjectURL(this.url); this.url = null; }
+    root.classList.remove('playing', 'buffering');
+    const st = chState(id);
+    this.wantPos = (st.pos > 2 && st.pos < c.seconds - 5) ? st.pos : 0;
+    root.classList.add('has-track');
+    setMediaMeta(c);
+    syncAll();
+    if (autoplay) this.play();
+  },
+  /* the audio is downloaded + decrypted only when you press play */
+  fetchAudio(){
+    if (this.fetching || this.ready || !this.ch) return;
+    this.fetching = true; root.classList.add('buffering');
+    const token = this.token, c = chOf(this.ch);
+    getEnc(c.audio).then(buf => {
+      if (token !== this.token) return;
+      this.url = URL.createObjectURL(new Blob([buf], {type:'audio/mp4'}));
+      this.fetching = false; this.ready = true;
+      this.a.src = this.url; this.a.preload = 'auto';
+      this.a.defaultPlaybackRate = this.a.playbackRate = prefs.rate;
+      if (this.wantPlay){ const p = this.a.play(); if (p && p.catch) p.catch(() => { root.classList.remove('playing','buffering'); syncPlayState(); }); }
+      else root.classList.remove('buffering');
+    }).catch(() => {
+      if (token !== this.token) return;
+      this.fetching = false; this.wantPlay = false; root.classList.remove('buffering','playing');
+      toast('Το ηχητικό δεν φορτώθηκε. Έλεγξε τη σύνδεση.'); syncPlayState();
+    });
+  },
+  /* iOS only lets audio start inside a tap: play a silent clip right away so later play() calls are allowed */
+  unlock(){
+    if (this.unlocked) return; this.unlocked = true;
+    try { this.a.src = SILENT; const p = this.a.play(); if (p && p.catch) p.catch(()=>{}); } catch(e){}
+  },
+  play(){
+    if (!this.ch) return;
+    if (!this.ready){ this.wantPlay = true; root.classList.add('playing'); this.unlock(); this.fetchAudio(); syncPlayState(); return; }
+    const p = this.a.play(); if (p && p.catch) p.catch(()=>{});
+  },
+  toggle(){
+    if (!this.ch) return;
+    if (!this.ready){
+      if (this.wantPlay){ this.wantPlay = false; root.classList.remove('playing','buffering'); syncPlayState(); }
+      else this.play();
+      return;
+    }
+    this.a.paused ? this.play() : this.a.pause();
+  },
+  seek(t){
+    t = Math.max(0, Math.min(this.dur - 0.5, t));
+    if (this.ready && this.a.readyState >= 1) this.a.currentTime = t; else this.wantPos = t;
+    syncTime();
+  },
+  skip(d){ this.seek(this.cur() + d); },
+  cur(){ return this.ready && this.a.readyState >= 1 ? this.a.currentTime : this.wantPos; },
+  step(dir){ const n = chOf(this.ch + dir); if (n) this.load(n.id, true); },
+  save(){
+    if (!this.ch) return;
+    const d = this.dur, t = this.cur();
+    if (!d) return;
+    setCh(this.ch, {pos: t, heard: Math.max(chState(this.ch).heard, Math.min(1, t/d))});
+  }
+};
+const A = P.a;
+A.addEventListener('loadedmetadata', () => {
+  if (!P.ready) return;
+  if (P.wantPos){ try { A.currentTime = P.wantPos; } catch(e){} P.wantPos = 0; }
+  A.playbackRate = prefs.rate; syncTime();
+});
+A.addEventListener('play',  () => { root.classList.add('playing'); syncPlayState(); });
+A.addEventListener('pause', () => { if (!P.ready) return; root.classList.remove('playing'); root.classList.remove('buffering'); P.save(); syncPlayState(); });
+A.addEventListener('waiting', () => { if (P.ready) root.classList.add('buffering'); });
+A.addEventListener('playing', () => { if (P.ready) root.classList.remove('buffering'); });
+A.addEventListener('canplay', () => { if (P.ready) root.classList.remove('buffering'); });
+A.addEventListener('timeupdate', syncTime);
+A.addEventListener('ended', () => {
+  if (!P.ready) return;
+  setCh(P.ch, {pos:0, heard:1});
+  const id = P.ch;
+  toast('Τέλος ηχητικού μαθήματος. Δοκίμασε το quiz;', 'Quiz', () => location.hash = `#/ch/${id}/quiz`);
+  refreshView();
+});
+A.addEventListener('error', () => { if (P.ready && P.ch) toast('Το ηχητικό δεν φορτώθηκε. Έλεγξε τη σύνδεση.'); root.classList.remove('buffering'); });
+setInterval(() => { if (P.ready && !A.paused) P.save(); }, 5000);
+addEventListener('pagehide', () => P.save());
+document.addEventListener('visibilitychange', () => { if (document.hidden) P.save(); });
+
+/* fill every [data-v] / [data-scrub] in the page from the player */
+function syncAll(){
+  const c = chOf(P.ch);
+  if (!c) return;
+  $$('[data-v="num"]').forEach(e => e.textContent = pad2(c.id));
+  $$('[data-v="title"]').forEach(e => e.textContent = c.title);
+  $$('[data-v="sub"]').forEach(e => e.textContent = `Κεφάλαιο ${pad2(c.id)} · ${mins(c.seconds)}`);
+  $$('[data-v="kicker"]').forEach(e => e.textContent = `Κεφάλαιο ${pad2(c.id)} · ${mins(c.seconds)}`);
+  $$('[data-v="rate"]').forEach(e => e.textContent = String(prefs.rate).replace('.', ',') + '×');
+  $$('[data-p="prev"]').forEach(b => b.disabled = c.id <= 1);
+  $$('[data-p="next"]').forEach(b => b.disabled = c.id >= CH.length);
+  syncTime(); syncPlayState();
+}
+function syncTime(){
+  if (!P.ch) return;
+  const d = P.dur, t = P.cur(), pct = d ? Math.min(100, t/d*100) : 0;
+  $$('[data-scrub]').forEach(r => {
+    if (r.dataset.drag) return;
+    r.value = Math.round(pct*10); r.style.setProperty('--pct', pct + '%');
+  });
+  $$('[data-v="now"]').forEach(e => e.textContent = fmt(t));
+  $$('[data-v="dur"]').forEach(e => e.textContent = fmt(d));
+  $$('[data-v="left"]').forEach(e => e.textContent = '−' + fmt(d - t));
+  $$('[data-v="line"]').forEach(e => e.style.width = pct + '%');
+  if ('mediaSession' in navigator && navigator.mediaSession.setPositionState && d && P.ready && !A.paused){
+    try { navigator.mediaSession.setPositionState({duration:d, playbackRate:A.playbackRate, position:Math.min(t,d)}); } catch(e){}
+  }
+}
+function syncPlayState(){
+  const on = P.ready ? !A.paused : P.wantPlay;
+  $$('[data-play]').forEach(b => {
+    const mine = +b.dataset.play === P.ch && on;
+    b.classList.toggle('is-on', mine);
+    const lbl = b.querySelector('.lbl');
+    if (lbl) lbl.textContent = mine ? 'Παύση' : (+b.dataset.play === P.ch && P.cur() > 2 ? 'Συνέχισε την ακρόαση' : 'Άκου το μάθημα');
+  });
+  $$('.ch').forEach(r => r.classList.toggle('now', +r.dataset.id === P.ch));
+  if ('mediaSession' in navigator) navigator.mediaSession.playbackState = on ? 'playing' : 'paused';
+}
+
+/* lock-screen / headset / car controls */
+function setMediaMeta(c){
+  if (!('mediaSession' in navigator)) return;
+  try {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: c.title, artist: `PMP Prep · Κεφάλαιο ${pad2(c.id)}`, album: 'PMBOK® 8 · ECO 2026',
+      artwork: [{src:'icon-512.png',sizes:'512x512',type:'image/png'},{src:'icon-192.png',sizes:'192x192',type:'image/png'}]
+    });
+  } catch(e){}
+}
+if ('mediaSession' in navigator){
+  const ms = navigator.mediaSession, h = (a, f) => { try { ms.setActionHandler(a, f); } catch(e){} };
+  h('play', () => P.play()); h('pause', () => P.ready ? A.pause() : P.toggle());
+  h('seekbackward', d => P.skip(-(d.seekOffset || 10)));
+  h('seekforward',  d => P.skip(d.seekOffset || 10));
+  h('seekto', d => P.seek(d.seekTime));
+  h('previoustrack', () => P.step(-1)); h('nexttrack', () => P.step(1));
+}
+
+/* scrubbing: preview while dragging, seek on release */
+document.addEventListener('input', e => {
+  const r = e.target.closest('[data-scrub]'); if (!r) return;
+  r.dataset.drag = '1';
+  const pct = r.value/10; r.style.setProperty('--pct', pct + '%');
+  const t = P.dur * pct/100;
+  $$('[data-v="now"]').forEach(x => x.textContent = fmt(t));
+});
+document.addEventListener('change', e => {
+  const r = e.target.closest('[data-scrub]'); if (!r) return;
+  delete r.dataset.drag;
+  if (!P.ch) return;
+  P.seek(P.dur * (r.value/1000));
+});
+
+/* ── sheet ─────────────────────────────────────────────────────────── */
+function openSheet(){ if (!P.ch) return; root.classList.add('sheet-open'); syncAll(); }
+function closeSheet(){ root.classList.remove('sheet-open'); }
+
+/* ── one click handler for the whole app ───────────────────────────── */
+document.addEventListener('click', e => {
+  const act = e.target.closest('[data-p]');
+  if (act && !act.disabled){
+    const a = act.dataset.p;
+    if (a === 'toggle') P.toggle();
+    else if (a === 'back') P.skip(-10);
+    else if (a === 'fwd') P.skip(10);
+    else if (a === 'prev') P.step(-1);
+    else if (a === 'next') P.step(1);
+    else if (a === 'rate'){
+      const i = (RATES.indexOf(prefs.rate) + 1) % RATES.length;
+      prefs.rate = RATES[i]; savePrefs(); A.playbackRate = A.defaultPlaybackRate = prefs.rate; syncAll();
+    }
+    else if (a === 'expand'){ if (DESK.matches && P.ch) location.hash = `#/ch/${P.ch}`; else openSheet(); }
+    else if (a === 'sheet-close') closeSheet();
+    else if (a === 'goto-text'){ closeSheet(); location.hash = `#/ch/${P.ch}`; }
+    else if (a === 'goto-quiz'){ closeSheet(); location.hash = `#/ch/${P.ch}/quiz`; }
+    else if (a === 'switch'){ P.load(+act.dataset.id, true); refreshView(); }
+    return;
+  }
+  const pl = e.target.closest('[data-play]');
+  if (pl){
+    e.stopPropagation();
+    const id = +pl.dataset.play;
+    if (P.ch === id) P.toggle(); else P.load(id, true);
+    return;
+  }
+  const n = e.target.closest('[data-nav]');
+  if (n){ if (location.hash === n.dataset.nav) route(); else location.hash = n.dataset.nav; }
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape'){ closeSheet(); $('#lightbox').classList.remove('show'); }
+  const tag = (e.target.tagName || '').toLowerCase();
+  if (e.key === 'Enter' && e.target.matches('[role="link"][data-nav]')) location.hash = e.target.dataset.nav;
+  if (e.key === ' ' && P.ch && !['input','button','textarea','select'].includes(tag) && !e.target.isContentEditable){
+    e.preventDefault(); P.toggle();
+  }
+});
+history.scrollRestoration = 'manual';
+
+/* theme */
+function setThemeColor(){
+  const m = $('meta[name="theme-color"]');
+  if (m) m.content = root.dataset.theme === 'dark' ? '#0B1426' : '#11203B';
+}
+setThemeColor();
+$('#theme').onclick = () => {
+  root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
+  try { localStorage.setItem('pmp8.theme', root.dataset.theme); } catch(e){}
+  setThemeColor();
+};
+if (window.matchMedia){
+  matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', ev => {
+    let saved = null; try { saved = localStorage.getItem('pmp8.theme'); } catch(e){}
+    if (!saved){ root.dataset.theme = ev.matches ? 'dark' : 'light'; setThemeColor(); }
+  });
+}
+
+/* toast */
+let toastT = null;
+function toast(msg, label, fn){
+  const t = $('#toast'), b = $('#toast-act');
+  $('#toast-msg').textContent = msg;
+  b.hidden = !label; if (label){ b.textContent = label; b.onclick = () => { t.classList.remove('show'); fn(); }; }
+  t.classList.add('show'); clearTimeout(toastT);
+  toastT = setTimeout(() => t.classList.remove('show'), label ? 7000 : 3500);
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   Router
+   ════════════════════════════════════════════════════════════════════ */
+let currentView = null;
+function route(){
+  const h = location.hash || '#/';
+  $$('.topnav [data-nav]').forEach(b =>
+    b.toggleAttribute('aria-current', b.dataset.nav === (h.startsWith('#/progress') ? '#/progress' : '#/')));
+  closeSheet();
+  readerCleanup();
+  const m = h.match(/^#\/ch\/(\d+)(\/quiz)?$/);
+  if (m) return m[2] ? viewQuiz(+m[1]) : viewModule(+m[1]);
+  if (h.startsWith('#/progress')) return viewProgress();
+  return viewList();
+}
+function refreshView(){ if (currentView === 'list') viewList(); else if (currentView === 'progress') viewProgress(); }
+addEventListener('hashchange', route);
+function setView(v){ currentView = v; document.body.dataset.view = v; app.classList.toggle('wide', v === 'module'); }
+
+/* ── view: chapter list ───────────────────────────────────────────── */
+function viewList(){
+  setView('list'); scrollTo(0,0);
+  const done = CH.filter(c => stateOf(c) === 'done').length;
+  const scored = CH.filter(c => chState(c.id).best !== null);
+  const avg = scored.length ? Math.round(scored.reduce((a,c) => a + chState(c.id).best, 0)/scored.length) : null;
+  const heardMin = Math.round(CH.reduce((a,c) => a + chState(c.id).heard * c.seconds, 0)/60);
+  const totalMin = Math.round(CH.reduce((a,c) => a + c.seconds, 0)/60);
+  const next = (P.ch && chOf(P.ch)) || CH.find(c => stateOf(c) === 'started') || CH.find(c => stateOf(c) !== 'done');
+
+  const rows = CH.map(c => {
+    const st = chState(c.id), s = stateOf(c);
+    const score = st.best === null ? '' : `<span class="score${st.best>=PASS?' pass':''}">${st.best}%</span>`;
+    const bar = st.heard > 0.02 && st.heard < 0.98 ? `<span class="ch-bar"><i style="width:${Math.round(st.heard*100)}%"></i></span>` : '';
+    return `<div class="ch${P.ch===c.id?' now':''}" role="link" tabindex="0" data-id="${c.id}" data-state="${s}" data-nav="#/ch/${c.id}">
+      <span class="ch-dot"></span>
+      <span class="ch-num">${pad2(c.id)}</span>
+      <span class="ch-body">
+        <span class="ch-title">${esc(c.title)}</span>
+        <span class="ch-meta">${P.ch===c.id ? eq : ''}<span>${mins(c.seconds)}</span>${bar}${c.eco ? '<span class="eco">'+esc(c.eco.replace('ECO 2026 · ',''))+'</span>' : ''}${s==='done' ? '<span style="color:var(--gold-ink)">✓ ολοκληρώθηκε</span>' : ''}</span>
+      </span>
+      <span class="ch-right">${score}<button class="row-play" data-play="${c.id}" aria-label="Άκου το κεφάλαιο ${c.id}">${IC.play}${IC.pause}</button></span>
+    </div>`;
+  }).join('');
+
+  const nst = next ? chState(next.id) : null;
+  app.innerHTML = `
+    <section class="hero">
+      <div>
+        <p class="eyebrow">PMBOK® 8 · ECO 2026</p>
+        <h1>Το βιβλίο σε 21 μαθήματα</h1>
+        <p class="lead">Κάθε κεφάλαιο είναι ένα μάθημα: ακούς το ηχητικό, διαβάζεις το κείμενο του βιβλίου δίπλα του και κλείνεις με ένα σύντομο quiz.</p>
+        <div class="hero-stats">
+          <div><b>${done}<span style="font-size:18px;color:var(--text-3)">/21</span></b>ολοκληρωμένα</div>
+          <div><b>${heardMin}′</b>από ${totalMin}′ ακρόαση</div>
+          <div><b>${avg===null?'—':avg+'%'}</b>μέσος όρος quiz</div>
+        </div>
+      </div>
+      ${next ? `<div class="resume-card">
+        <div class="cover"><span class="cover-k">PMP Prep</span><span class="cover-n">${pad2(next.id)}</span><span class="cover-l">Κεφαλαιο</span></div>
+        <div style="min-width:0">
+          <div class="rc-k">${nst.heard > 0.02 || P.ch===next.id ? 'Συνέχισε' : 'Επόμενο μάθημα'}</div>
+          <div class="rc-t">${esc(next.title)}</div>
+          <div class="rc-bar"><i style="width:${Math.round(nst.heard*100)}%"></i></div>
+          <div class="rc-row">
+            <button class="btn btn-gold" data-play="${next.id}">${IC.play}${IC.pause}<span class="lbl">Άκου</span></button>
+            <button class="btn btn-line" data-nav="#/ch/${next.id}">${IC.doc} Άνοιξε</button>
+          </div>
+        </div>
+      </div>` : ''}
+    </section>
+    <section class="spine">
+      <div class="spine-fill" style="height:${CH.length ? (done/CH.length*100) : 0}%"></div>
+      ${rows}
+    </section>`;
+  syncAll(); syncPlayState();
+}
+
+/* ── view: lesson ─────────────────────────────────────────────────── */
+let reader = null;   // {id, scroller, onScroll, ...}
+function readerCleanup(){
+  if (!reader) return;
+  removeEventListener('scroll', reader.onScroll);
+  DESK.removeEventListener?.('change', reader.onMode);
+  reader = null;
+}
+
+async function viewModule(id){
+  const c = chOf(id);
+  if (!c){ location.hash = '#/'; return; }
+  setView('module'); scrollTo(0,0);
+  if (!P.ch || (!(P.ready ? !A.paused : P.wantPlay) && P.ch !== id)) P.load(id, false);
+  const st = chState(id), s = stateOf(c);
+  const other = P.ch !== id ? chOf(P.ch) : null;
+
+  app.innerHTML = `
+  <div class="lesson">
+    <section class="lesson-main">
+      <header class="lesson-head">
+        <nav class="crumbs"><button data-nav="#/">${IC.left}Μαθήματα</button><span>/</span><span>Κεφάλαιο ${pad2(id)} από ${CH.length}</span></nav>
+        <h1 class="lesson-title" title="${esc(c.title)}">${esc(c.title)}</h1>
+        <div class="lesson-meta">
+          <span class="pill">${IC.head}${mins(c.seconds)} ηχητικό</span>
+          ${c.eco ? `<span class="pill eco">${esc(c.eco)}</span>` : ''}
+          ${st.best !== null ? `<span class="pill${st.best>=PASS?' ok':''}">Quiz ${st.best}%</span>` : ''}
+          ${s === 'done' ? `<span class="pill ok">${IC.check}Ολοκληρώθηκε</span>` : ''}
+        </div>
+        <div class="lesson-actions">
+          <button class="btn btn-navy" data-play="${id}">${IC.play}${IC.pause}<span class="lbl">Άκου το μάθημα</span></button>
+          <button class="btn btn-ghost" data-nav="#/ch/${id}/quiz">${IC.quiz} Quiz</button>
+        </div>
+      </header>
+
+      <div class="viewer" id="viewer">
+        <div class="viewer-bar">
+          <button class="vb-btn ol-toggle" id="ol-btn" aria-expanded="false" aria-controls="ol-pop">${IC.list}<span>Ενότητες</span></button>
+          <span class="vb-label">${IC.doc}<span class="vb-sec" id="vb-sec">Κείμενο κεφαλαίου</span></span>
+          <div class="vb-right">
+            <span class="vb-pct" id="vb-pct">0%</span>
+            <button class="vb-btn" data-zoom="-1" aria-label="Μικρότερα γράμματα">A−</button>
+            <button class="vb-btn" data-zoom="1" aria-label="Μεγαλύτερα γράμματα" style="font-size:16px">A+</button>
+          </div>
+          <div class="vb-progress"><i id="vb-fill"></i></div>
+          <div class="ol-pop" id="ol-pop" hidden><ol class="outline" id="ol-pop-list"></ol></div>
+        </div>
+        <div class="viewer-body" id="vbody">
+          <div class="guide-wrap" id="gwrap"><div class="loading">Φόρτωση κεφαλαίου…</div></div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="lesson-side">
+      <div class="side-card np-card">
+        ${other ? `<div class="np-other"><span>Παίζει το κεφ. ${pad2(other.id)}</span><button class="btn btn-gold" data-p="switch" data-id="${id}">Άκου το ${pad2(id)}</button></div>` : ''}
+        ${bigPlayer('side')}
+      </div>
+      <div class="side-card side-outline">
+        <h3>Σε αυτό το κεφάλαιο</h3>
+        <ol class="outline" id="outline"></ol>
+      </div>
+      <div class="side-card side-quiz">
+        <h3>Quiz κεφαλαίου</h3>
+        ${st.best !== null ? `<div class="best"><span>Καλύτερο σκορ</span><span class="score${st.best>=PASS?' pass':''}">${st.best}%</span></div>` : ''}
+        <p>Ερωτήσεις μόνο από αυτό το κεφάλαιο. Περνάς με ${PASS}%.</p>
+        <button class="btn btn-gold" data-nav="#/ch/${id}/quiz">${IC.quiz} ${st.best === null ? 'Ξεκίνα το quiz' : 'Ξανά το quiz'}</button>
+      </div>
+    </aside>
+  </div>`;
+  syncAll();
+
+  /* outline popover (phones/tablets) */
+  const olBtn = $('#ol-btn'), olPop = $('#ol-pop');
+  olBtn.onclick = ev => { ev.stopPropagation(); const open = olPop.hidden; olPop.hidden = !open; olBtn.setAttribute('aria-expanded', open); };
+  document.addEventListener('click', function closeOl(ev){
+    if (!document.body.contains(olPop)) return document.removeEventListener('click', closeOl);
+    if (!olPop.hidden && !olPop.contains(ev.target) && ev.target !== olBtn){ olPop.hidden = true; olBtn.setAttribute('aria-expanded','false'); }
+  });
+
+  /* text size */
+  $$('[data-zoom]').forEach(b => b.onclick = () => {
+    let i = ZOOMS.indexOf(prefs.zoom); if (i < 0) i = 1;
+    i = Math.max(0, Math.min(ZOOMS.length-1, i + +b.dataset.zoom));
+    prefs.zoom = ZOOMS[i]; savePrefs();
+    const g = $('#gwrap .guide'); if (g) g.style.zoom = prefs.zoom;
+  });
+
+  /* chapter text */
+  let html;
+  try {
+    html = await getText(c.html);
+  } catch (err) {
+    const w = $('#gwrap'); if (w) w.innerHTML = `<div class="loading">Το κείμενο του κεφαλαίου δεν φορτώθηκε. Έλεγξε τη σύνδεσή σου και δοκίμασε ξανά.</div>`;
+    return;
+  }
+  const w = $('#gwrap');
+  if (!w || currentView !== 'module' || location.hash !== `#/ch/${id}`) return;
+  const nextC = chOf(id + 1);
+  w.innerHTML = `<div class="guide"></div>
+    <section class="end-cta">
+      <div>
+        <h2>Τέλος κεφαλαίου</h2>
+        <p>Τσέκαρε τι κράτησες με ερωτήσεις μόνο από αυτό το κεφάλαιο — από το κείμενο και το ηχητικό μάθημα.</p>
+      </div>
+      <div class="row">
+        <button class="btn btn-gold" data-nav="#/ch/${id}/quiz">${IC.quiz} Ξεκίνα το quiz</button>
+        ${nextC ? `<button class="btn btn-line" data-nav="#/ch/${nextC.id}">Επόμενο κεφάλαιο →</button>` : ''}
+      </div>
+    </section>`;
+  const g = w.querySelector('.guide');
+  /* parsed inside .guide, so stray closing tags in the book can't escape it;
+     images are encrypted too, so their src is filled in after decrypting */
+  g.innerHTML = html.replace(/(<img\b[^>]*?)\ssrc="(img\/[^"]+)"/g, '$1 data-src="$2"');
+  const imgLoads = $$('img[data-src]', g).map(img => imgURL(img.dataset.src).then(u => { img.src = u; return img.decode ? img.decode().catch(()=>{}) : 0; }).catch(()=>{}));
+  g.style.zoom = prefs.zoom;
+
+  /* the book repeats the opener intro as the first paragraph — show it once */
+  const intro = $('.opener-intro', g), firstP = $('.page-content .body-p', g);
+  if (intro && firstP && firstP.textContent.trim() === intro.textContent.trim()) firstP.remove();
+
+  /* wide tables scroll sideways instead of breaking the layout */
+  $$('table', g).forEach(t => {
+    const sc = document.createElement('div'); sc.className = 'table-scroll';
+    t.parentNode.insertBefore(sc, t); sc.appendChild(t);
+  });
+  /* figures open full screen */
+  $$('.visual-figure img', g).forEach(img => img.onclick = () => {
+    const lb = $('#lightbox'); lb.querySelector('img').src = img.src; lb.classList.add('show');
+  });
+
+  /* sections → outline */
+  const secs = $$('.section-eyebrow[data-anchor]', g).map(el => {
+    const num = (el.dataset.anchor || '').replace('section-','');
+    let h = el.nextElementSibling;
+    while (h && !/^H[2-3]$/.test(h.tagName)) h = h.nextElementSibling;
+    return {el, num, title: (h ? h.textContent : el.textContent).replace(/\.\s*$/, '').trim()};
+  });
+  const items = secs.map((s, i) => `<li><button data-sec="${i}"><span class="n">${esc(s.num)}</span><span>${esc(s.title)}</span></button></li>`).join('');
+  $('#outline').innerHTML = items || '<li class="empty" style="padding:8px">—</li>';
+  $('#ol-pop-list').innerHTML = items;
+
+  const goSec = i => {
+    const s = secs[i]; if (!s) return;
+    s.el.scrollIntoView({behavior:'smooth', block:'start'});
+    olPop.hidden = true; olBtn.setAttribute('aria-expanded','false');
+  };
+  $$('[data-sec]').forEach(b => b.onclick = () => goSec(+b.dataset.sec));
+  /* the book's own "in this chapter" list becomes clickable */
+  $$('.opener-toc-item', g).forEach(it => {
+    const n = ($('.num', it) || {}).textContent;
+    const i = secs.findIndex(s => s.num === (n||'').trim());
+    if (i >= 0){ it.setAttribute('role','button'); it.tabIndex = 0; it.onclick = () => goSec(i);
+      it.onkeydown = ev => { if (ev.key === 'Enter') goSec(i); }; }
+    else if (n && n.trim().endsWith('.1')) { it.onclick = () => (DESK.matches ? $('#vbody') : window).scrollTo({top:0,behavior:'smooth'}); }
+  });
+
+  /* reading progress, active section, resume position */
+  const vbody = $('#vbody'), viewer = $('#viewer');
+  const fill = $('#vb-fill'), pctEl = $('#vb-pct'), secEl = $('#vb-sec');
+  let lastActive = -1, ticking = false, saveT = null;
+  const metrics = () => {
+    if (DESK.matches){
+      const max = vbody.scrollHeight - vbody.clientHeight;
+      return {ratio: max > 0 ? vbody.scrollTop / max : 0, top: vbody.getBoundingClientRect().top + 60};
+    }
+    const r = viewer.getBoundingClientRect();
+    const span = viewer.offsetHeight - innerHeight + 140;
+    return {ratio: span > 0 ? Math.min(1, Math.max(0, (140 - r.top) / span)) : 0, top: 60 + 64 + 40};
+  };
+  const update = () => {
+    ticking = false;
+    if (!document.body.contains(viewer)) return;
+    const m = metrics();
+    const p = Math.round(m.ratio * 100);
+    fill.style.width = p + '%'; pctEl.textContent = p + '%';
+    let act = -1;
+    for (let i = 0; i < secs.length; i++){ if (secs[i].el.getBoundingClientRect().top <= m.top) act = i; else break; }
+    if (act !== lastActive){
+      lastActive = act;
+      $$('[data-sec]').forEach(b => b.classList.toggle('active', +b.dataset.sec === act));
+      secEl.textContent = act >= 0 ? `${secs[act].num} · ${secs[act].title}` : 'Κείμενο κεφαλαίου';
+      const a = $(`#outline [data-sec="${act}"]`);
+      if (a && DESK.matches){ const box = $('.lesson-side'); const br = box.getBoundingClientRect(), ar = a.getBoundingClientRect();
+        if (ar.top < br.top || ar.bottom > br.bottom) a.scrollIntoView({block:'nearest'}); }
+    }
+    clearTimeout(saveT);
+    saveT = setTimeout(() => setCh(id, {at: m.ratio}), 400);
+  };
+  const onScroll = () => { if (!ticking){ ticking = true; requestAnimationFrame(update); } };
+  vbody.addEventListener('scroll', onScroll, {passive:true});
+  addEventListener('scroll', onScroll, {passive:true});
+  const onMode = () => requestAnimationFrame(update);
+  DESK.addEventListener?.('change', onMode);
+  reader = {id, onScroll, onMode};
+
+  /* wait briefly for images so the restored position lands where you left it */
+  await Promise.race([Promise.all(imgLoads), new Promise(r => setTimeout(r, 2500))]);
+  if (!reader || reader.id !== id) return;
+  if (st.at > 0.03 && st.at < 0.98){
+    if (DESK.matches){ vbody.style.scrollBehavior = 'auto'; vbody.scrollTop = st.at * (vbody.scrollHeight - vbody.clientHeight); vbody.style.scrollBehavior = ''; }
+    else { const top = viewer.getBoundingClientRect().top + scrollY; scrollTo(0, top - 140 + st.at * (viewer.offsetHeight - innerHeight + 140)); }
+    toast(`Συνεχίζεις το διάβασμα από το ${Math.round(st.at*100)}%`, 'Από την αρχή', () => {
+      if (DESK.matches) vbody.scrollTo({top:0}); else scrollTo({top:0});
+    });
+  }
+  update();
+}
+$('#lightbox').onclick = () => $('#lightbox').classList.remove('show');
+
+/* ── view: quiz ───────────────────────────────────────────────────── */
+async function viewQuiz(id){
+  const c = chOf(id);
+  if (!c){ location.hash = '#/'; return; }
+  setView('quiz'); scrollTo(0,0);
+  app.innerHTML = `<div class="loading">Φόρτωση ερωτήσεων…</div>`;
+
+  let qs = null;
+  try { qs = (await getJSON(`quiz/ch${id}.json`)).questions; } catch(e){}
+  if (location.hash !== `#/ch/${id}/quiz`) return;
+  if (!qs || !qs.length){
+    app.innerHTML = `<div class="quiz"><div class="qprog"><button class="back" data-nav="#/ch/${id}">${IC.left} Πίσω στο κεφάλαιο</button></div>
+      <div class="empty">Οι ερωτήσεις για αυτό το κεφάλαιο δεν είναι έτοιμες ακόμη.</div></div>`;
+    return;
+  }
+  let i = 0, correct = 0, answered = false;
+
+  function render(){
+    const q = qs[i], keys = Object.keys(q.options);
+    app.innerHTML = `
+      <div class="quiz">
+        <div class="qprog">
+          <button class="back" data-nav="#/ch/${id}">${IC.left} Κεφ. ${pad2(id)}</button>
+          <div class="track"><div class="fill" style="width:${(i/qs.length)*100}%"></div></div>
+          <span>${i+1} / ${qs.length}</span>
+        </div>
+        <div class="quiz-card">
+          <p class="qtext">${esc(q.q)}</p>
+          <div id="opts">${keys.map(k => `<button class="opt" data-k="${k}"><span class="key">${k}</span><span>${esc(q.options[k])}</span></button>`).join('')}</div>
+          <div id="after"></div>
+        </div>
+      </div>`;
+    $$('.opt').forEach(btn => btn.onclick = () => {
+      if (answered) return; answered = true;
+      const pick = btn.dataset.k, right = q.correct;
+      if (pick === right) correct++;
+      $$('.opt').forEach(b => { b.disabled = true;
+        if (b.dataset.k === right) b.dataset.mark = 'right'; else if (b.dataset.k === pick) b.dataset.mark = 'wrong'; });
+      const last = i === qs.length - 1;
+      $('#after').innerHTML = `
+        <div class="why"><b>${pick===right ? 'Σωστά.' : 'Η σωστή είναι η ' + right + '.'}</b> ${esc(q.why)}</div>
+        <div class="qfoot"><button class="btn btn-gold" id="next">${last ? 'Δες το αποτέλεσμα' : 'Επόμενη ερώτηση →'}</button></div>`;
+      $('#next').onclick = () => { if (last) return finish(); i++; answered = false; render(); scrollTo(0,0); };
+      $('#next').focus({preventScroll:true});
+    });
+  }
+  function finish(){
+    const pct = Math.round((correct / qs.length) * 100);
+    const prev = chState(id).best;
+    if (prev === null || pct > prev) setCh(id, {best: pct});
+    const pass = pct >= PASS, nextC = chOf(id+1);
+    app.innerHTML = `
+      <div class="result">
+        ${ring(pct, pass)}
+        <h2>${pct}%</h2>
+        <p>${correct} από ${qs.length} σωστές. ${pass ? 'Το quiz του κεφαλαίου πέρασε.' : 'Κάτω από 70% — αξίζει μια δεύτερη ακρόαση πριν προχωρήσεις.'}</p>
+        <div class="row">
+          ${pass && nextC ? `<button class="btn btn-gold" data-nav="#/ch/${nextC.id}">Επόμενο κεφάλαιο →</button>` : ''}
+          <button class="btn ${pass && nextC ? 'btn-ghost' : 'btn-gold'}" id="again">Ξανά</button>
+          <button class="btn btn-ghost" data-nav="#/ch/${id}">Πίσω στο κεφάλαιο</button>
+        </div>
+      </div>`;
+    $('#again').onclick = () => viewQuiz(id);
+  }
+  render();
+}
+function ring(pct, pass){
+  const R = 54, C = 2 * Math.PI * R;
+  return `<svg class="ring" width="140" height="140" viewBox="0 0 140 140" role="img" aria-label="${pct}%">
+    <circle class="ring-track" cx="70" cy="70" r="${R}" fill="none" stroke-width="9"/>
+    <circle class="${pass ? 'ring-pass' : 'ring-fail'}" cx="70" cy="70" r="${R}" fill="none" stroke-width="9"
+      stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - pct/100)}" transform="rotate(-90 70 70)"/>
+  </svg>`;
+}
+
+/* ── view: progress ───────────────────────────────────────────────── */
+function viewProgress(){
+  setView('progress'); scrollTo(0,0);
+  const scored = CH.filter(c => chState(c.id).best !== null);
+  const done   = CH.filter(c => stateOf(c) === 'done').length;
+  const heardSec = CH.reduce((a,c) => a + chState(c.id).heard * c.seconds, 0);
+  const totalMin = Math.round(CH.reduce((a,c) => a + c.seconds, 0)/60);
+  const avg = scored.length ? Math.round(scored.reduce((a,c)=>a+chState(c.id).best,0)/scored.length) : null;
+  const weak = scored.filter(c => chState(c.id).best < PASS).sort((a,b)=>chState(a.id).best-chState(b.id).best).slice(0,5);
+
+  const W = 1000, H = 250, pad = {l:34,r:8,t:14,b:30};
+  const bw = (W-pad.l-pad.r)/CH.length, ih = H-pad.t-pad.b;
+  const bars = CH.map((c,idx) => {
+    const st = chState(c.id), b = st.best, x = pad.l + idx*bw;
+    const heard = `<rect class="hb" x="${(x+bw*0.12).toFixed(1)}" y="${(H-pad.b-ih*st.heard).toFixed(1)}" width="${(bw*0.76).toFixed(1)}" height="${(ih*st.heard).toFixed(1)}" rx="2"/>`;
+    const bar = b === null
+      ? `<rect class="b0" x="${(x+bw*0.24).toFixed(1)}" y="${H-pad.b-3}" width="${(bw*0.52).toFixed(1)}" height="3"/>`
+      : `<rect class="${b>=PASS?'bp':'bf'}" x="${(x+bw*0.24).toFixed(1)}" y="${(H-pad.b-ih*b/100).toFixed(1)}" width="${(bw*0.52).toFixed(1)}" height="${(ih*b/100).toFixed(1)}" rx="2"><title>Κεφ. ${c.id} — ${b}%</title></rect>`;
+    return heard + bar;
+  }).join('');
+  const labels = CH.map((c,idx) => `<text class="tx" x="${(pad.l+idx*bw+bw/2).toFixed(1)}" y="${H-10}" text-anchor="middle" font-size="11">${c.id}</text>`).join('');
+  const gridY = [0,50,70,100].map(v => {
+    const y = H-pad.b-ih*(v/100);
+    return `<line class="${v===PASS?'gp':'gl'}" x1="${pad.l}" x2="${W-pad.r}" y1="${y.toFixed(1)}" y2="${y.toFixed(1)}" stroke-width="1" ${v===PASS?'stroke-dasharray="4 4"':''}/>
+      <text class="tx" x="4" y="${(y+4).toFixed(1)}" font-size="11">${v}</text>`;
+  }).join('');
+  const any = scored.length || CH.some(c => chState(c.id).heard > 0.02);
+
+  app.innerHTML = `
+    <section class="prog-head">
+      <p class="eyebrow">Dashboard</p>
+      <h1>Η πρόοδός σου</h1>
+      <p>Ακρόαση, διάβασμα και quiz ανά κεφάλαιο. Όλα αποθηκεύονται τοπικά στη συσκευή σου.</p>
+    </section>
+    <div class="stats">
+      <div class="stat"><div class="v">${done}<small>/21</small></div><div class="l">κεφάλαια ολοκληρωμένα</div></div>
+      <div class="stat"><div class="v">${Math.round(heardSec/60)}<small>′</small></div><div class="l">λεπτά ακρόασης από ${totalMin}</div></div>
+      <div class="stat"><div class="v">${avg===null?'—':avg+'<small>%</small>'}</div><div class="l">μέσος όρος στα quiz</div></div>
+      <div class="stat"><div class="v">${scored.length}<small>/21</small></div><div class="l">quiz που έδωσες</div></div>
+    </div>
+    <div class="panel">
+      <h2>Ανά κεφάλαιο</h2>
+      <p class="hint">Η διακεκομμένη γραμμή είναι το όριο του 70%.</p>
+      ${any ? `<svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">${gridY}${bars}${labels}</svg>
+        <div class="legend"><span><i style="background:var(--sky);opacity:.45"></i>ακρόαση</span><span><i style="background:var(--gold)"></i>quiz ≥ 70%</span><span><i style="background:var(--red)"></i>quiz &lt; 70%</span></div>`
+        : `<div class="empty">Άκου ένα μάθημα ή δώσε ένα quiz και η πρόοδος θα εμφανιστεί εδώ.</div>`}
+    </div>
+    ${weak.length ? `<div class="panel">
+      <h2>Αξίζουν δεύτερο πέρασμα</h2>
+      <p class="hint">Κεφάλαια κάτω από 70%, από το χαμηλότερο.</p>
+      ${weak.map(c => `<div class="ch" role="link" tabindex="0" data-id="${c.id}" data-nav="#/ch/${c.id}" style="grid-template-columns:44px minmax(0,1fr) auto;gap:0 14px">
+          <span class="ch-num">${pad2(c.id)}</span>
+          <span class="ch-body"><span class="ch-title">${esc(c.title)}</span></span>
+          <span class="ch-right"><span class="score">${chState(c.id).best}%</span></span>
+        </div>`).join('')}
+    </div>` : ''}
+    <div class="panel">
+      <h2>Κλείδωμα συσκευής</h2>
+      <p class="hint">Ξεχνά τον κωδικό σε αυτή τη συσκευή. Την επόμενη φορά θα σου ζητηθεί ξανά. Η πρόοδός σου μένει.</p>
+      <button class="btn btn-ghost" id="lockdev">Κλείδωσε αυτή τη συσκευή</button>
+    </div>
+    <div class="panel">
+      <h2>Μηδενισμός</h2>
+      <p class="hint">Σβήνει ακροάσεις, θέση ανάγνωσης και βαθμολογίες από αυτή τη συσκευή. Δεν αναιρείται.</p>
+      <button class="btn btn-ghost danger" id="reset">Σβήσε την πρόοδό μου</button>
+    </div>`;
+  $('#lockdev').onclick = lockDevice;
+  $('#reset').onclick = () => {
+    if (!confirm('Να σβηστεί όλη η πρόοδος από αυτή τη συσκευή;')) return;
+    try { localStorage.removeItem(KEY); } catch(e){}
+    viewProgress();
+  };
+}
+
+/* ── boot ─────────────────────────────────────────────────────────── */
+$('#sheet-body').innerHTML = bigPlayer('sheet') + `
+  <div class="sheet-actions">
+    <button class="btn btn-line" data-p="goto-text">${IC.doc} Κείμενο</button>
+    <button class="btn btn-gold" data-p="goto-quiz">${IC.quiz} Quiz</button>
+  </div>`;
+$('[data-ctrls]').innerHTML = ctrls();
+
+(async function boot(){
+  if (!(window.crypto && crypto.subtle)){ app.innerHTML = `<div class="empty">Ο browser δεν υποστηρίζει την αποκρυπτογράφηση. Άνοιξε τη σελίδα με https.</div>`; return; }
+  let vault;
+  try { vault = await (await fetch('vault.json', {cache:'no-cache'})).json(); }
+  catch(e){ app.innerHTML = `<div class="empty">Η εφαρμογή δεν φορτώθηκε. Ανανέωσε τη σελίδα.</div>`; return; }
+  VKEY = await savedKey(vault) || await askPassword(vault);
+  try { CH = await getJSON('chapters/index.json'); }
+  catch(e){ app.innerHTML = `<div class="empty">Τα κεφάλαια δεν φορτώθηκαν. Ανανέωσε τη σελίδα.</div>`; return; }
+  route();
+})();
+
+if ('serviceWorker' in navigator){
+  addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+</script>
+</body>
+</html>

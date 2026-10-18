@@ -1,0 +1,1156 @@
+.guide {
+  --navy: #1B2A4A;
+  --navy-deep: #11203B;
+  --navy-ink: #0B1628;
+  --sky: #7FB0CC;
+  --sky-soft: #B5D3E2;
+  --sky-wash: #E8F1F6;
+  --sky-ink: #3E6D89;
+  --gold: #C9A961;
+  --gold-soft: #FCF8EC;
+  --gold-ink: #8A6D1F;
+  --red: #B8442B;
+  --red-soft: #FDF2EE;
+  --paper: #FAFAF7;
+  --white: #FFFFFF;
+  --slate-700: #374151;
+  --slate-500: #6B7280;
+  --slate-400: #9CA3AF;
+  --border: #E6E8EC;
+
+  --f-sans: 'Roboto', 'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  --f-serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --f-mono: 'Source Sans 3', 'Roboto', Arial, sans-serif;
+}
+.guide * { box-sizing: border-box; }
+.guide, .guide {
+  margin: 0; padding: 0;
+  background: transparent;
+  font-family: var(--f-sans);
+  color: var(--navy-ink);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+.guide .book {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  padding: 32px;
+}
+.guide /* ─── Page chrome ────────────────────────────────────────────────────── */
+.page {
+  width: 794px;          /* A4 @ 96 DPI */
+  min-height: 1123px;
+  background: var(--paper);
+  position: relative;
+  box-shadow: 0 24px 48px -16px rgba(11,22,40,0.22),
+              0 8px 16px -8px rgba(11,22,40,0.10);
+  overflow: hidden;
+  page-break-after: always;
+}
+.guide .page-running-head {
+  position: absolute;
+  top: 36px; left: 56px; right: 56px;
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--slate-400); font-weight: 500;
+}
+.guide .page-running-head .right {
+  font-family: var(--f-serif); font-style: italic;
+  text-transform: none; letter-spacing: 0;
+  color: var(--sky-ink); font-size: 13px;
+}
+.guide .page-rule {
+  position: absolute;
+  top: 58px; left: 56px; right: 56px;
+  height: 1px; background: var(--border);
+}
+.guide .page-running-foot {
+  position: absolute;
+  bottom: 32px; left: 56px; right: 56px;
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 10px; letter-spacing: 0.20em; text-transform: uppercase;
+  color: var(--slate-400);
+}
+.guide .page-running-foot .url { font-family: var(--f-mono); letter-spacing: 0.08em; }
+.guide .page-running-foot .pagenum { font-size: 11px; color: var(--navy); font-weight: 500; letter-spacing: 0; }
+.guide .page-content {
+  padding: 88px 64px 80px;
+}
+.guide /* ─── Chapter Opener ────────────────────────────────────────────────── */
+.opener-content { padding: 96px 64px 80px; position: relative; }
+.guide .opener-numeral {
+  font-family: var(--f-serif); font-style: italic; font-weight: 500;
+  font-size: 260px; line-height: 0.82;
+  color: var(--sky); letter-spacing: -0.04em;
+}
+.guide .opener-eyebrow {
+  margin-top: 12px;
+  font-size: 11px; font-weight: 500; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--sky-ink);
+  display: flex; align-items: center; gap: 12px;
+}
+.guide .opener-eyebrow::before {
+  content: ""; display: inline-block; width: 28px; height: 1px;
+  background: var(--sky-ink);
+}
+.guide .opener-h1 {
+  margin: 20px 0 24px;
+  font-family: var(--f-sans); font-weight: 300;
+  font-size: 56px; line-height: 1.05;
+  letter-spacing: -0.015em; color: var(--navy-ink);
+}
+.guide .opener-h1 .accent {
+  font-family: var(--f-serif); font-style: italic;
+  font-weight: 500; color: var(--sky-ink);
+}
+.guide .opener-intro {
+  font-size: 16px; line-height: 1.7; color: var(--slate-700);
+  max-width: 540px; margin-bottom: 40px;
+}
+.guide .opener-toc {
+  margin-top: 48px; padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+.guide .opener-toc-label {
+  font-size: 10px; font-weight: 500; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--slate-500); margin-bottom: 16px;
+}
+.guide .opener-toc-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px 32px;
+}
+.guide .opener-toc-item {
+  display: flex; gap: 16px; align-items: baseline;
+}
+.guide .opener-toc-item .num {
+  font-family: var(--f-serif); font-style: italic; font-weight: 500;
+  font-size: 20px; color: var(--sky); min-width: 36px;
+}
+.guide .opener-toc-item .name {
+  font-size: 14.5px; color: var(--navy-ink); font-weight: 400;
+}
+.guide .opener-eco-badge {
+  position: absolute; right: 64px; top: 96px;
+  padding: 10px 16px; border-radius: 999px;
+  background: var(--sky-wash); color: var(--sky-ink);
+  font-size: 10px; font-weight: 500; letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.guide /* ─── Section eyebrow + two-tone H2 ─────────────────────────────────── */
+.section-eyebrow {
+  font-size: 10px; font-weight: 500; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--sky-ink);
+  margin: 36px 0 8px;
+}
+.guide .section-h2 {
+  margin: 0 0 18px;
+  font-family: var(--f-sans); font-weight: 400; font-size: 30px;
+  letter-spacing: -0.01em; color: var(--navy-ink);
+  line-height: 1.18;
+}
+.guide .section-h2 .accent {
+  font-family: var(--f-serif); font-style: italic;
+  font-weight: 500; color: var(--sky-ink);
+}
+.guide .section-h3 {
+  margin: 24px 0 10px;
+  font-family: var(--f-sans); font-weight: 500; font-size: 17px;
+  color: var(--navy-ink); letter-spacing: -0.005em;
+}
+.guide .section-h4 {
+  margin: 18px 0 6px;
+  font-family: var(--f-sans); font-weight: 500; font-size: 13px;
+  color: var(--sky-ink); letter-spacing: 0.05em; text-transform: uppercase;
+}
+.guide /* ─── Body ──────────────────────────────────────────────────────────── */
+.body-p {
+  font-size: 14.5px; line-height: 1.75;
+  color: var(--slate-700); margin: 0 0 14px;
+}
+.guide .body-p strong, .guide .body-p b {
+  color: var(--navy-ink); font-weight: 500;
+}
+.guide .body-p em, .guide .body-p i {
+  font-style: italic; color: var(--sky-ink);
+}
+.guide .body-p code {
+  font-family: 'Consolas', 'Monaco', monospace; font-size: 13px;
+  background: var(--sky-wash); color: var(--navy);
+  padding: 1px 6px; border-radius: 3px;
+}
+.guide /* Drop cap on first paragraph after a section title — disabled in print
+   (WeasyPrint cannot float ::first-letter pseudo elements). The screen-only
+   media query keeps it for HTML viewing. */
+@media screen {
+  .section-h2 + .body-p::first-letter,
+  .section-h3 + .body-p::first-letter {
+    float: left; font-family: var(--f-serif); font-style: italic;
+    font-weight: 500; font-size: 56px; line-height: 0.9;
+    color: var(--navy); margin: 4px 8px 0 0;
+  }
+}
+.guide /* ─── Lists ─────────────────────────────────────────────────────────── */
+ul.body-ul, .guide ol.body-ol {
+  margin: 0 0 16px; padding-left: 0; list-style: none;
+}
+.guide ul.body-ul li, .guide ol.body-ol li {
+  display: flex; gap: 14px; padding: 6px 0;
+  font-size: 14px; line-height: 1.6;
+  color: var(--slate-700);
+  border-bottom: 1px dashed var(--border);
+}
+.guide ul.body-ul li::before {
+  content: "•"; flex: none; color: var(--sky); font-size: 18px;
+  line-height: 1; min-width: 14px;
+}
+.guide ol.body-ol { counter-reset: itm; }
+.guide ol.body-ol li {
+  counter-increment: itm;
+}
+.guide ol.body-ol li::before {
+  content: counter(itm, decimal-leading-zero);
+  flex: none; font-family: var(--f-serif); font-style: italic;
+  font-weight: 500; font-size: 16px; color: var(--sky);
+  min-width: 22px;
+}
+.guide ul.body-ul li strong, .guide ol.body-ol li strong {
+  color: var(--navy-ink); font-weight: 500;
+}
+.guide ul.body-ul li em, .guide ol.body-ol li em {
+  font-style: italic; color: var(--sky-ink);
+}
+.guide /* ─── Callout cards ─────────────────────────────────────────────────── */
+.callout {
+  margin: 18px 0; padding: 16px 20px; border-radius: 0 6px 6px 0;
+}
+.guide .callout-label {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+  font-size: 11px; font-weight: 500; letter-spacing: 0.20em;
+  text-transform: uppercase;
+}
+.guide .callout-body {
+  font-size: 14px; line-height: 1.65; color: var(--navy-ink);
+}
+.guide .callout-body strong { color: var(--navy); font-weight: 500; }
+.guide .callout-body em { font-style: italic; }
+.guide .callout.exam-tip {
+  background: var(--gold-soft);
+  border-left: 3px solid var(--gold);
+}
+.guide .callout.exam-tip .callout-label { color: var(--gold-ink); }
+.guide .callout.exam-tip .callout-body em { color: var(--gold-ink); }
+.guide .callout.key-concept {
+  background: var(--sky-wash);
+  border-left: 3px solid var(--sky-ink);
+}
+.guide .callout.key-concept .callout-label { color: var(--sky-ink); }
+.guide .callout.key-concept .callout-body strong { color: var(--navy); }
+.guide .callout.warning {
+  background: var(--red-soft);
+  border-left: 3px solid var(--red);
+}
+.guide .callout.warning .callout-label { color: var(--red); }
+.guide .callout.note {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--sky);
+}
+.guide .callout.note .callout-label { color: var(--sky-ink); }
+.guide /* ─── Pull quote (PMP Mindset blockquote) ───────────────────────────── */
+.pullquote {
+  margin: 24px 0;
+  padding: 24px 28px;
+  background: var(--white);
+  border-left: 3px solid var(--sky);
+  border-radius: 0 6px 6px 0;
+  box-shadow: 0 2px 6px rgba(11,22,40,0.05);
+}
+.guide .pullquote-eyebrow {
+  font-size: 10px; font-weight: 500; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--sky-ink);
+  margin-bottom: 10px;
+}
+.guide .pullquote-text {
+  font-family: var(--f-serif); font-style: italic;
+  font-size: 18px; line-height: 1.5;
+  color: var(--navy-ink);
+}
+.guide .pullquote-text ol, .guide .pullquote-text ul {
+  font-family: var(--f-sans); font-style: normal;
+  font-size: 14.5px; line-height: 1.75;
+  margin: 12px 0; padding-left: 0; list-style: none;
+}
+.guide .pullquote-text ol li, .guide .pullquote-text ul li {
+  padding: 6px 0 6px 32px; position: relative;
+  border-bottom: 1px dashed var(--border);
+  color: var(--slate-700);
+}
+.guide .pullquote-text ol { counter-reset: pq; }
+.guide .pullquote-text ol li {
+  counter-increment: pq;
+}
+.guide .pullquote-text ol li::before {
+  content: counter(pq, decimal-leading-zero);
+  position: absolute; left: 0; top: 6px;
+  font-family: var(--f-serif); font-style: italic;
+  font-weight: 500; font-size: 18px; color: var(--sky);
+}
+.guide .pullquote-text strong { color: var(--navy-ink); font-weight: 500; font-style: normal; }
+.guide .pullquote-text em { font-style: italic; color: var(--sky-ink); }
+.guide /* ─── Table caption box (snaps flush onto the table below) ────────── */
+.table-caption {
+  margin: 20px 0 0 0;
+  padding: 10px 14px 12px;
+  background: #f4f8fa;
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-left: 3px solid var(--sky-ink);
+  border-top-left-radius: 4px; border-top-right-radius: 4px;
+}
+.guide .table-caption-label {
+  font-family: var(--f-sans); font-size: 9.5px; font-weight: 500;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--sky-ink);
+  margin-bottom: 4px;
+}
+.guide .table-caption-title {
+  font-family: var(--f-sans); font-size: 12.5px; font-weight: 500;
+  color: var(--navy-ink);
+  margin-bottom: 4px;
+}
+.guide .table-caption-desc {
+  font-family: var(--f-serif); font-size: 11.5px; line-height: 1.45;
+  color: var(--slate-700);
+}
+.guide /* When a caption is immediately followed by a table, .guide kill the table's top
+   margin so they read as one unit. */
+.table-caption + table.book-table {
+  margin-top: 0;
+  border-top: none;
+}
+.guide /* ─── Tables ────────────────────────────────────────────────────────── */
+table.book-table {
+  width: 100%; border-collapse: collapse; margin: 20px 0;
+  font-size: 13px; line-height: 1.55;
+  table-layout: auto; word-wrap: break-word;
+}
+.guide table.book-table thead th {
+  background: var(--navy); color: var(--white);
+  font-family: var(--f-sans); font-weight: 500;
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+  padding: 10px 12px; text-align: left;
+  border-right: 1px solid var(--navy-deep);
+  word-wrap: break-word; overflow-wrap: anywhere;
+}
+.guide table.book-table tbody td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  color: var(--slate-700);
+  word-wrap: break-word; overflow-wrap: anywhere;
+}
+.guide table.book-table tbody tr:nth-child(even) td {
+  background: rgba(232, 241, 246, 0.4);
+}
+.guide table.book-table tbody td strong { color: var(--navy-ink); font-weight: 500; }
+.guide table.book-table tbody td em { font-style: italic; color: var(--sky-ink); }
+.guide /* Wide-table treatment: shrink text + reduce padding so 5–7 column tables fit */
+table.book-table.book-table-wide {
+  font-size: 11px; line-height: 1.4;
+}
+.guide table.book-table.book-table-wide thead th {
+  font-size: 9.5px; padding: 7px 8px; letter-spacing: 0.04em;
+}
+.guide table.book-table.book-table-wide tbody td {
+  padding: 6px 8px;
+}
+.guide /* Extra-wide: 8+ cols rotate the page (landscape via @page) */
+table.book-table.book-table-xwide {
+  font-size: 10px; line-height: 1.35;
+}
+.guide table.book-table.book-table-xwide thead th {
+  font-size: 9px; padding: 5px 6px; letter-spacing: 0.02em;
+}
+.guide table.book-table.book-table-xwide tbody td {
+  padding: 4px 6px;
+}
+.guide /* ─── Visual placeholder boxes ──────────────────────────────────────── */
+.visual-placeholder {
+  margin: 24px 0; padding: 24px;
+  background: var(--white);
+  border: 2px dashed var(--sky);
+  border-radius: 6px;
+  text-align: center;
+}
+.guide .visual-placeholder-kind {
+  font-family: var(--f-sans); font-weight: 500;
+  font-size: 11px; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--sky-ink);
+  margin-bottom: 8px;
+}
+.guide .visual-placeholder-desc {
+  font-size: 13px; line-height: 1.6;
+  color: var(--slate-500); font-style: italic;
+}
+.guide /* ─── Visual figures (real images) ──────────────────────────────────── */
+.visual-figure {
+  margin: 28px 0; padding: 0;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  page-break-inside: avoid;
+}
+.guide .visual-figure img {
+  display: block;
+  width: 100%; height: auto;
+  background: var(--paper);
+}
+.guide .visual-figure figcaption {
+  padding: 12px 16px;
+  background: var(--sky-wash);
+  border-top: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 4px;
+}
+.guide .visual-figure-kind {
+  font-family: var(--f-sans); font-weight: 500;
+  font-size: 10px; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--sky-ink);
+}
+.guide .visual-figure-desc {
+  font-size: 12px; line-height: 1.5;
+  color: var(--slate-700); font-style: italic;
+}
+.guide /* ─── Exam Essentials page (special) ────────────────────────────────── */
+.essentials-eyebrow {
+  font-size: 11px; font-weight: 500; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--sky-ink); margin-bottom: 12px;
+  display: flex; align-items: center; gap: 12px;
+}
+.guide .essentials-eyebrow::before {
+  content: ""; display: inline-block; width: 32px; height: 1px;
+  background: var(--sky-ink);
+}
+.guide .essentials-h1 {
+  font-family: var(--f-sans); font-weight: 300; font-size: 44px;
+  line-height: 1.1; letter-spacing: -0.012em;
+  color: var(--navy-ink); margin: 0 0 32px;
+}
+.guide .essentials-h1 .accent {
+  font-family: var(--f-serif); font-style: italic;
+  font-weight: 500; color: var(--sky-ink);
+}
+.guide .essentials-grid {
+  display: grid; gap: 14px;
+}
+.guide .essentials-card {
+  display: grid; grid-template-columns: 44px 1fr; gap: 16px;
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 6px; padding: 18px 22px;
+  align-items: flex-start;
+}
+.guide .essentials-num {
+  width: 36px; height: 36px; border-radius: 8px;
+  background: var(--sky-wash); color: var(--sky-ink);
+  display: grid; place-items: center;
+  font-family: var(--f-serif); font-style: italic; font-weight: 500;
+  font-size: 18px; margin-top: 2px;
+}
+.guide .essentials-card-tag {
+  font-size: 10px; font-weight: 500; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--sky); margin-bottom: 6px;
+}
+.guide .essentials-card-title {
+  font-family: var(--f-sans); font-weight: 500; font-size: 15px;
+  color: var(--navy-ink); margin-bottom: 6px; letter-spacing: -0.005em;
+}
+.guide .essentials-card-body {
+  font-size: 13.5px; line-height: 1.6; color: var(--slate-700);
+}
+.guide .essentials-card-body strong { color: var(--navy-ink); }
+.guide .essentials-card-body em { font-style: italic; color: var(--sky-ink); }
+.guide /* ─── TL;DR navy banner ─────────────────────────────────────────────── */
+.tldr {
+  margin-top: 28px; padding: 18px 24px;
+  background: var(--navy); color: #fff; border-radius: 6px;
+  display: flex; align-items: flex-start; gap: 18px;
+}
+.guide .tldr-label {
+  font-family: var(--f-serif); font-style: italic; font-weight: 500;
+  font-size: 24px; color: var(--sky-soft);
+  flex: none;
+}
+.guide .tldr-text {
+  flex: 1; font-size: 13.5px; line-height: 1.6;
+  color: rgba(255,255,255,0.92);
+}
+.guide .tldr-text em { font-style: italic; color: #fff; }
+.guide .tldr-text strong { color: #fff; font-weight: 500; }
+.guide /* ─── Print styles ──────────────────────────────────────────────────── */
+@media print {
+  html, body { background: #fff; padding: 0; margin: 0; }
+  .book { padding: 0; gap: 0; }
+  .page {
+    box-shadow: none;
+    page-break-after: always;
+    margin: 0; width: 100%; min-height: 100vh;
+  }
+  /* Hide screen-only running header AND footer in print.
+     We do NOT add @page counters — the user requested page numbers ONLY
+     on chapter opener pages (rendered as in-document elements), and uses
+     Chrome's "Save as PDF" which adds nothing automatically. */
+  .page-running-head, .page-running-foot { display: none !important; }
+  /* Prevent break inside critical units */
+  table, .visual-figure, .table-caption, .callout, .pullquote { page-break-inside: avoid; }
+  .table-caption { page-break-after: avoid; }
+  h2.section-h2, .section-eyebrow { page-break-after: avoid; }
+  h3.section-h3, h4.section-h4 { page-break-after: avoid; }
+  @page {
+    size: A4;
+    margin: 0;
+  }
+}
+.guide /* ─── PMP front cover: full-bleed exact PDF image ───────────────────── */
+.pmpcover-page-image {
+  width: 794px; height: 1123px;
+  background: #1B2A4A;
+  page-break-after: always;
+  display: block;
+  overflow: hidden;
+  margin: 0; padding: 0;
+}
+.guide .pmpcover-page-image img {
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: center;
+  display: block;
+}
+.guide /* ─── PMP front cover (match user's PDF design — legacy, .guide kept for fallback) ─ */
+.pmpcover-page {
+  width: 794px; min-height: 1123px;
+  background: #1B2A4A;
+  color: #fff;
+  page-break-after: always;
+  display: flex; flex-direction: column;
+  padding: 56px 70px 50px;
+  position: relative;
+  font-family: var(--f-sans);
+}
+.guide .pmpcover-eyebrow-top { margin-bottom: 64px; }
+.guide .pmpcover-eyebrow-label {
+  font-size: 11px; font-weight: 500;
+  letter-spacing: 0.26em; text-transform: uppercase;
+  color: rgba(255,255,255,0.85);
+  position: relative; padding-left: 50px;
+  margin-bottom: 6px;
+}
+.guide .pmpcover-eyebrow-label::before {
+  content: ""; position: absolute; left: 0; top: 50%;
+  width: 36px; height: 1px; background: rgba(255,255,255,0.55);
+}
+.guide .pmpcover-eyebrow-subline {
+  font-family: var(--f-serif); font-style: italic;
+  font-size: 18px; color: var(--sky-soft);
+  padding-left: 50px;
+}
+.guide .pmpcover-hero { margin: 0 0 90px; }
+.guide .pmpcover-hero-pre {
+  font-family: var(--f-serif); font-style: italic;
+  font-size: 32px; color: var(--sky-soft);
+  margin-bottom: 8px;
+}
+.guide .pmpcover-hero-pmp {
+  font-family: var(--f-serif); font-weight: 300;
+  font-size: 280px; line-height: 0.9; color: #fff;
+  letter-spacing: -0.02em;
+  position: relative;
+  display: inline-block;
+}
+.guide .pmpcover-r {
+  font-family: var(--f-sans); font-size: 36px;
+  vertical-align: super; margin-left: 8px;
+  font-weight: 300;
+}
+.guide .pmpcover-hero-sub-line1 {
+  font-family: var(--f-sans); font-weight: 300;
+  font-size: 60px; line-height: 1; color: #fff;
+  margin-top: -10px;
+}
+.guide .pmpcover-hero-sub-line2 {
+  font-family: var(--f-serif); font-style: italic; font-weight: 400;
+  font-size: 60px; line-height: 1; color: #fff;
+  margin-top: 4px;
+}
+.guide .pmpcover-pills {
+  display: flex; flex-wrap: wrap; gap: 10px 14px;
+  margin: 24px 0 30px;
+}
+.guide .pmpcover-pill {
+  border: 1px solid rgba(255,255,255,0.45);
+  border-radius: 999px;
+  padding: 10px 22px;
+  font-size: 11px; font-weight: 500;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  color: #fff;
+  display: inline-flex; align-items: center;
+}
+.guide .pmpcover-pill-dot { color: var(--sky-soft); margin-right: 8px; font-size: 10px; }
+.guide .pmpcover-divider {
+  height: 1px; background: rgba(255,255,255,0.20);
+  margin: 12px 0 22px;
+}
+.guide .pmpcover-atp {
+  display: inline-block;
+  border: 1px solid rgba(255,255,255,0.45);
+  border-radius: 999px;
+  padding: 8px 18px;
+  font-size: 10px; font-weight: 500;
+  letter-spacing: 0.20em; text-transform: uppercase;
+  color: #fff;
+  margin-bottom: 18px;
+}
+.guide .pmpcover-atp-dot { color: var(--sky-soft); margin-right: 8px; }
+.guide .pmpcover-footer {
+  margin-top: auto;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 24px;
+}
+.guide .pmpcover-footer-left { flex: 1; min-width: 0; }
+.guide .pmpcover-author {
+  font-size: 11.5px; line-height: 1.45;
+  color: rgba(255,255,255,0.92);
+  margin-bottom: 4px;
+}
+.guide .pmpcover-author strong { color: #fff; font-weight: 500; }
+.guide .pmpcover-publisher {
+  font-size: 10px; letter-spacing: 0.04em;
+  color: rgba(255,255,255,0.65);
+}
+.guide .pmpcover-footer-right {
+  flex-shrink: 0;
+}
+.guide /* The LARGE GK Seminars logo bottom-right (per user request) */
+.pmpcover-logo {
+  display: flex; align-items: baseline; gap: 4px;
+  color: var(--sky-soft);
+  font-family: var(--f-serif);
+}
+.guide .pmpcover-logo-gk {
+  font-size: 88px; font-weight: 400; line-height: 1;
+  font-style: italic;
+  letter-spacing: -0.04em;
+}
+.guide .pmpcover-logo-gk em { font-style: italic; }
+.guide .pmpcover-logo-seminars {
+  font-style: italic;
+  font-size: 22px; font-weight: 400;
+  letter-spacing: 0.02em;
+}
+.guide /* ─── Legacy cover-page (used by other variants) ────────────────────── */
+.cover-page {
+  width: 794px; min-height: 1123px;
+  background: var(--navy);
+  position: relative; overflow: hidden;
+  page-break-after: always;
+  display: flex; flex-direction: column;
+  padding: 96px 64px 80px;
+  color: var(--white);
+}
+.guide .cover-eyebrow {
+  font-size: 12px; font-weight: 500; letter-spacing: 0.28em;
+  text-transform: uppercase; color: var(--sky-soft);
+  margin-bottom: 24px;
+}
+.guide .cover-eyebrow::before {
+  content: ""; display: inline-block; width: 36px; height: 1px;
+  background: var(--sky-soft); margin-right: 14px; vertical-align: middle;
+}
+.guide .cover-title {
+  font-family: var(--f-sans); font-weight: 300;
+  font-size: 64px; line-height: 1.05;
+  letter-spacing: -0.02em; color: var(--white);
+  margin: 0 0 24px;
+  max-width: 600px;
+}
+.guide .cover-title .accent {
+  font-family: var(--f-serif); font-style: italic;
+  font-weight: 500; color: var(--sky);
+}
+.guide .cover-subtitle {
+  font-size: 18px; line-height: 1.6; color: var(--sky-soft);
+  font-weight: 300; max-width: 500px;
+  margin-bottom: auto;
+}
+.guide .cover-meta {
+  margin-top: auto; padding-top: 32px;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  display: flex; justify-content: space-between; align-items: flex-end;
+}
+.guide .cover-meta .left {
+  font-family: var(--f-serif); font-style: italic;
+  font-size: 22px; color: var(--sky);
+}
+.guide .cover-meta .right {
+  font-size: 11px; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--sky-soft);
+  text-align: right;
+}
+.guide .cover-meta .right strong {
+  display: block; color: var(--white); font-size: 14px;
+  letter-spacing: 0.06em; text-transform: none; margin-bottom: 4px;
+}
+.guide .cover-decoration {
+  position: absolute; right: -160px; bottom: -160px;
+  width: 400px; height: 400px;
+  border: 1px solid rgba(127, 176, 204, 0.25);
+  border-radius: 50%;
+}
+.guide .cover-decoration-2 {
+  position: absolute; right: -40px; top: 40px;
+  font-family: var(--f-serif); font-style: italic;
+  font-size: 320px; line-height: 0.82; color: rgba(127, 176, 204, 0.10);
+  font-weight: 500;
+}
+.guide /* ─── Title page (interior) ─────────────────────────────────────────── */
+.title-page {
+  width: 794px; min-height: 1123px;
+  background: var(--paper);
+  position: relative;
+  page-break-after: always;
+  padding: 240px 80px 80px;
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center;
+}
+.guide .title-page-eyebrow {
+  font-size: 11px; font-weight: 500; letter-spacing: 0.26em;
+  text-transform: uppercase; color: var(--sky-ink); margin-bottom: 32px;
+}
+.guide .title-page-title {
+  font-family: var(--f-sans); font-weight: 300;
+  font-size: 56px; line-height: 1.1;
+  color: var(--navy-ink); margin: 0 0 24px;
+  letter-spacing: -0.015em;
+}
+.guide .title-page-title .accent {
+  font-family: var(--f-serif); font-style: italic;
+  font-weight: 500; color: var(--sky-ink);
+}
+.guide .title-page-subtitle {
+  font-size: 18px; color: var(--slate-700);
+  font-weight: 300; line-height: 1.6;
+  max-width: 480px; margin-bottom: auto;
+}
+.guide .title-page-publisher {
+  margin-top: auto; padding-top: 48px;
+  font-size: 12px; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--sky-ink);
+  font-weight: 500;
+}
+.guide /* ─── Half-title page ───────────────────────────────────────────────── */
+.half-title-page {
+  width: 794px; min-height: 1123px;
+  background: var(--paper);
+  position: relative;
+  page-break-after: always;
+  padding: 360px 80px 80px;
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center;
+}
+.guide .half-title-text {
+  font-family: var(--f-sans); font-weight: 300;
+  font-size: 32px; line-height: 1.3;
+  color: var(--navy-ink); letter-spacing: -0.01em;
+  max-width: 480px;
+}
+.guide .half-title-text .accent {
+  font-family: var(--f-serif); font-style: italic;
+  font-weight: 500; color: var(--sky-ink);
+}
+.guide /* ─── Copyright page ────────────────────────────────────────────────── */
+.copyright-page {
+  width: 794px; min-height: 1123px;
+  background: var(--paper);
+  page-break-after: always;
+  padding: 64px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center;
+  font-size: 11px; line-height: 1.7; color: var(--slate-500);
+}
+.guide .copyright-page strong { color: var(--navy-ink); font-weight: 500; }
+.guide .copyright-page p { max-width: 460px; margin: 0 0 8px; font-size: 11px; }
+.guide /* ─── Dedication / Foreword (centered editorial) ────────────────────── */
+.editorial-page {
+  width: 794px; min-height: 1123px;
+  background: var(--paper);
+  page-break-after: always;
+  padding: 280px 96px 80px;
+  display: flex; flex-direction: column;
+}
+.guide .editorial-eyebrow {
+  font-size: 11px; font-weight: 500; letter-spacing: 0.24em;
+  text-transform: uppercase; color: var(--sky-ink);
+  text-align: center; margin-bottom: 36px;
+}
+.guide .editorial-eyebrow::before, .guide .editorial-eyebrow::after {
+  content: ""; display: inline-block; width: 28px; height: 1px;
+  background: var(--sky-ink); vertical-align: middle; margin: 0 14px;
+}
+.guide .editorial-text {
+  font-family: var(--f-serif); font-style: italic;
+  font-size: 24px; line-height: 1.55;
+  color: var(--navy-ink); text-align: center;
+  max-width: 520px; margin: 0 auto;
+}
+.guide /* ─── Standard text page (preface, .guide how-to-use, .guide etc.) ────────────────── */
+.text-page {
+  width: 794px; min-height: 1123px;
+  background: var(--paper); position: relative;
+  padding: 96px 80px 80px;
+  page-break-after: always;
+}
+.guide .text-page-eyebrow {
+  font-size: 11px; font-weight: 500; letter-spacing: 0.24em;
+  text-transform: uppercase; color: var(--sky-ink);
+  margin-bottom: 12px;
+}
+.guide .text-page-eyebrow::before {
+  content: ""; display: inline-block; width: 28px; height: 1px;
+  background: var(--sky-ink); margin-right: 14px; vertical-align: middle;
+}
+.guide .text-page-title {
+  font-family: var(--f-sans); font-weight: 300;
+  font-size: 44px; line-height: 1.1;
+  letter-spacing: -0.015em; color: var(--navy-ink);
+  margin: 0 0 32px;
+}
+.guide .text-page-title .accent {
+  font-family: var(--f-serif); font-style: italic;
+  font-weight: 500; color: var(--sky-ink);
+}
+.guide /* ─── Table of Contents page ────────────────────────────────────────── */
+.toc-page { padding: 96px 80px 80px; }
+.guide .toc-page h2 {
+  font-family: var(--f-sans); font-weight: 500; font-size: 16px;
+  color: var(--navy); margin: 32px 0 12px;
+  text-transform: uppercase; letter-spacing: 0.12em;
+  border-bottom: 1px solid var(--border); padding-bottom: 8px;
+}
+.guide .toc-page h3 {
+  font-family: var(--f-sans); font-weight: 500; font-size: 15px;
+  color: var(--navy-ink); margin: 18px 0 4px;
+}
+.guide .toc-page ul { list-style: none; margin: 6px 0 14px; padding-left: 16px; }
+.guide .toc-page ul li {
+  font-size: 12px; line-height: 1.7; color: var(--slate-700);
+  padding: 1px 0;
+}
+.guide /* ─── About GKSeminars page (stats + ATP badge) ──────────────────────── */
+.gks-page {
+  width: 794px; min-height: 1123px;
+  background: var(--paper); padding: 56px 64px 48px;
+  font-family: var(--f-sans); color: var(--ink);
+  page-break-after: always; page-break-inside: avoid;
+  display: flex; flex-direction: column;
+  position: relative;
+}
+.guide .gks-header {
+  display: flex; justify-content: space-between; align-items: center;
+  border-bottom: 1px solid var(--border); padding-bottom: 14px; margin-bottom: 36px;
+}
+.guide .gks-logo {
+  font-family: var(--f-serif); font-style: italic;
+  font-size: 22px; font-weight: 500; color: var(--navy-ink);
+  letter-spacing: 0.01em;
+}
+.guide .gks-meta {
+  font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--slate-500);
+}
+.guide .gks-hero {
+  font-family: var(--f-sans); font-weight: 300;
+  font-size: 42px; line-height: 1.1;
+  color: var(--navy-ink); margin: 0 0 28px;
+  background: var(--navy); color: var(--white);
+  padding: 32px 36px; border-radius: 4px;
+}
+.guide .gks-hero .accent {
+  font-family: var(--f-serif); font-style: italic; font-weight: 400;
+  color: var(--sky-soft);
+}
+.guide .gks-eyebrow {
+  font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase;
+  color: var(--sky-ink); margin-bottom: 14px;
+  position: relative; padding-left: 38px;
+}
+.guide .gks-eyebrow::before {
+  content: ""; position: absolute; left: 0; top: 50%;
+  width: 28px; height: 1px; background: var(--sky-ink);
+}
+.guide .gks-body { margin-bottom: 28px; }
+.guide .gks-body-p {
+  font-family: var(--f-serif); font-size: 13px; line-height: 1.6;
+  color: var(--slate-700); margin: 0 0 12px;
+}
+.guide .gks-body-p strong { color: var(--navy-ink); font-weight: 500; }
+.guide .gks-stats-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 16px; margin: 20px 0 28px;
+}
+.guide .gks-stat {
+  border-top: 1px solid var(--border); padding-top: 14px;
+}
+.guide .gks-stat-num {
+  font-family: var(--f-sans); font-weight: 300;
+  font-size: 30px; color: var(--navy-ink); line-height: 1;
+  margin-bottom: 8px;
+}
+.guide .gks-stat-lbl {
+  font-size: 10.5px; line-height: 1.35;
+  color: var(--slate-500);
+}
+.guide .gks-atp-badge {
+  display: flex; gap: 18px; align-items: center;
+  background: rgba(127, 176, 204, 0.10);
+  border: 1px solid rgba(127, 176, 204, 0.30);
+  border-left: 4px solid var(--sky-ink);
+  border-radius: 4px;
+  padding: 18px 22px; margin: 20px 0;
+}
+.guide .gks-atp-icon {
+  background: var(--navy); color: var(--white);
+  font-family: var(--f-sans); font-weight: 500; font-size: 14px;
+  letter-spacing: 0.08em;
+  width: 56px; height: 56px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; flex-shrink: 0;
+}
+.guide .gks-atp-title {
+  font-family: var(--f-sans); font-weight: 500;
+  font-size: 13px; color: var(--navy-ink);
+  margin-bottom: 4px;
+}
+.guide .gks-atp-body {
+  font-family: var(--f-serif); font-size: 11.5px; line-height: 1.45;
+  color: var(--slate-700);
+}
+.guide .gks-footer {
+  margin-top: auto; padding-top: 24px;
+  border-top: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 10px; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--slate-500);
+}
+.guide .gks-footer-center { text-transform: none; letter-spacing: 0; font-style: italic; }
+.guide /* ─── Back Cover (marketing layout) ─────────────────────────────────── */
+.cover-back-page {
+  width: 794px; min-height: 1123px;
+  background: var(--navy); color: var(--white);
+  padding: 60px 56px;
+  font-family: var(--f-sans);
+  display: flex; flex-direction: column;
+  page-break-after: always;
+  position: relative;
+}
+.guide .bc-eyebrow {
+  font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase;
+  color: var(--sky-soft); margin-bottom: 28px;
+  border-top: 1px solid rgba(255,255,255,0.18); padding-top: 14px;
+}
+.guide .bc-hero {
+  font-family: var(--f-sans); font-weight: 300;
+  font-size: 30px; line-height: 1.25;
+  color: var(--white); margin: 0 0 14px;
+}
+.guide .bc-hero em { color: var(--sky-soft); font-style: italic; font-weight: 400; }
+.guide .bc-subtitle {
+  font-family: var(--f-serif); font-size: 14px; font-style: italic;
+  color: var(--sky-soft); margin-bottom: 22px;
+}
+.guide .bc-body { margin-bottom: 24px; }
+.guide .bc-body-p {
+  font-family: var(--f-serif); font-size: 12px; line-height: 1.6;
+  color: rgba(255,255,255,0.85); margin: 0 0 10px;
+}
+.guide .bc-contents-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 16px 28px;
+  border-top: 1px solid rgba(255,255,255,0.18);
+  padding-top: 22px; margin-top: 16px;
+}
+.guide .bc-feature {
+  display: flex; gap: 10px; align-items: flex-start;
+}
+.guide .bc-feature::before {
+  content: "■"; color: var(--sky-soft); font-size: 8px;
+  margin-top: 6px; flex-shrink: 0;
+}
+.guide .bc-feature-headline {
+  font-size: 11.5px; font-weight: 500; color: var(--white);
+  margin-bottom: 3px; line-height: 1.3;
+}
+.guide .bc-feature-desc {
+  font-family: var(--f-serif); font-size: 10.5px; line-height: 1.4;
+  color: rgba(255,255,255,0.70);
+}
+.guide .bc-feature > div { flex: 1; }
+.guide .bc-footer {
+  margin-top: auto; padding-top: 22px;
+  border-top: 1px solid rgba(255,255,255,0.18);
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px; align-items: end;
+  font-size: 10px;
+}
+.guide .bc-footer.bc-footer-no-isbn {
+  grid-template-columns: 1fr 1fr;
+}
+.guide .bc-contact-label, .guide .bc-isbn-label {
+  letter-spacing: 0.20em; text-transform: uppercase;
+  color: var(--sky-soft); margin-bottom: 6px; font-size: 9px;
+}
+.guide .bc-contact-text {
+  font-size: 10.5px; line-height: 1.5; color: rgba(255,255,255,0.85);
+}
+.guide .bc-isbn-num {
+  font-family: var(--f-mono, monospace); font-size: 10px;
+  color: rgba(255,255,255,0.85);
+}
+.guide .bc-logo {
+  text-align: right;
+  font-family: var(--f-serif); font-style: italic;
+  font-size: 18px; color: var(--sky-soft);
+}
+.guide .bc-logo-img {
+  max-height: 90px;
+  max-width: 220px;
+  width: auto; height: auto;
+  display: inline-block;
+  /* Allow PNGs with white-on-transparent to look right on navy bg */
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.guide /* ─── About-the-Author page (photo + brief bio) ─────────────────────── */
+.about-author-page {
+  text-align: center;
+}
+.guide .about-author-page .appendix-title {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.guide .author-photo {
+  margin: 24px auto 32px; padding: 0;
+  width: 220px; height: 220px;
+}
+.guide .author-photo img {
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: center top;
+  border-radius: 50%;
+  border: 3px solid var(--sky-soft);
+  box-shadow: 0 6px 20px rgba(11, 22, 40, 0.18);
+  display: block;
+}
+.guide .about-author-page .author-bio {
+  max-width: 540px; margin: 0 auto;
+  text-align: left;
+  font-family: var(--f-serif); font-size: 14px; line-height: 1.7;
+  color: var(--ink);
+}
+.guide .author-bio-p { margin: 0 0 14px; }
+.guide .author-bio-p strong { color: var(--navy-ink); font-weight: 500; }
+.guide .author-bio-divider {
+  width: 60px; height: 1px;
+  background: var(--sky-ink);
+  margin: 24px auto;
+}
+.guide /* ─── Appendix page (chapter-like) ──────────────────────────────────── */
+.appendix-eyebrow {
+  font-size: 11px; font-weight: 500; letter-spacing: 0.24em;
+  text-transform: uppercase; color: var(--sky-ink);
+  margin-bottom: 12px;
+}
+.guide .appendix-eyebrow::before {
+  content: ""; display: inline-block; width: 28px; height: 1px;
+  background: var(--sky-ink); margin-right: 14px; vertical-align: middle;
+}
+.guide .appendix-title {
+  font-family: var(--f-sans); font-weight: 300;
+  font-size: 44px; line-height: 1.1;
+  letter-spacing: -0.015em; color: var(--navy-ink);
+  margin: 0 0 28px;
+}
+.guide .appendix-title .accent {
+  font-family: var(--f-serif); font-style: italic;
+  font-weight: 500; color: var(--sky-ink);
+}
+.guide /* ─── Glossary / Index ──────────────────────────────────────────────── */
+.glossary-page h2, .guide .index-page h2 {
+  font-family: var(--f-serif); font-weight: 600; font-style: italic;
+  font-size: 28px; color: var(--sky); margin: 28px 0 12px;
+  border-bottom: 2px solid var(--sky-wash); padding-bottom: 4px;
+}
+.guide .glossary-page p {
+  font-size: 12px; line-height: 1.6; color: var(--slate-700);
+  margin: 4px 0; padding-left: 12px;
+}
+.guide .glossary-page p strong {
+  color: var(--navy-ink); font-weight: 500;
+}
+.guide /* ─── Master document navigation ──────────────────────────────────── */
+@media screen {
+  body { padding-left: 280px; }
+  .master-nav {
+    position: fixed; top: 0; left: 0; bottom: 0;
+    width: 260px; padding: 24px 18px;
+    background: var(--navy); color: var(--white);
+    overflow-y: auto;
+    font-family: var(--f-sans);
+    z-index: 100;
+    box-shadow: 4px 0 16px rgba(11, 22, 40, 0.20);
+  }
+  .master-nav h1 {
+    font-size: 14px; font-weight: 500; margin: 0 0 6px;
+    color: var(--white);
+  }
+  .master-nav .sub {
+    font-size: 10px; color: var(--sky-soft);
+    letter-spacing: 0.16em; text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+  .master-nav h2 {
+    font-size: 10px; color: var(--sky-soft);
+    letter-spacing: 0.18em; text-transform: uppercase;
+    margin: 22px 0 8px; font-weight: 500;
+    border-top: 1px solid rgba(255,255,255,0.12); padding-top: 14px;
+  }
+  .master-nav h2:first-of-type { border-top: none; padding-top: 0; }
+  .master-nav ul { list-style: none; margin: 0; padding: 0; }
+  .master-nav li {
+    margin: 0; padding: 4px 0;
+    font-size: 12px; line-height: 1.4;
+  }
+  .master-nav a {
+    color: rgba(255,255,255,0.78);
+    text-decoration: none;
+    display: block; padding: 4px 8px; border-radius: 4px;
+    transition: background 140ms;
+  }
+  .master-nav a:hover {
+    background: rgba(255,255,255,0.08);
+    color: var(--white);
+  }
+  .master-nav .num {
+    font-family: var(--f-serif); font-style: italic;
+    color: var(--sky); margin-right: 6px; font-size: 11px;
+  }
+  .master-nav a.active {
+    background: rgba(127,176,204,0.18);
+    color: var(--white);
+  }
+  /* File anchor — invisible on screen, scroll-margin gives breathing room
+     when jumped to via nav link. */
+  .file-anchor {
+    display: block; height: 0; overflow: hidden;
+    scroll-margin-top: 24px;
+  }
+  /* Smooth scroll on anchor click */
+  html { scroll-behavior: smooth; }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "PMP Prep — Μαθήματα PMBOK 8",
+  "short_name": "PMP Prep",
+  "description": "21 μαθήματα PMP με ηχητικό, κείμενο και quiz ανά κεφάλαιο. PMBOK® 8 · ECO 2026.",
+  "lang": "el",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#11203B",
+  "theme_color": "#11203B",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
