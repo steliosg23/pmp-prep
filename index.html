@@ -778,6 +778,7 @@ svg.tk{width:100%;max-width:460px;display:block;margin:0 auto}
 .sync-ok{display:flex;align-items:center;gap:8px;font-weight:500;color:var(--heading);margin:0 0 8px}
 .sync-ok .dot{width:9px;height:9px;border-radius:50%;background:var(--green)}.sync-ok .dot.bad{background:var(--red)}
 /* session */
+.plan-wrap{margin:0 0 20px}
 .sess-card{margin-bottom:14px;padding:16px;border-radius:16px;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow)}
 .sess-go{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:14px 16px;border-radius:14px;background:var(--gold);color:var(--brand-ink);box-shadow:0 6px 18px rgba(201,169,97,.35);transition:transform .1s}
 .sess-go:active{transform:scale(.98)}
@@ -1580,7 +1581,7 @@ function viewList(){
           <div><b>${avg===null?'—':avg+'%'}</b>μέσος όρος quiz</div>
         </div>
       </div>
-      ${typeof todayCard === 'function' ? todayCard() : ''}
+      ${typeof sessCard === 'function' ? sessCard() : ''}
     </section>
     <section class="spine">
       <div class="spine-fill" style="height:${CH.length ? (done/CH.length*100) : 0}%"></div>
@@ -2375,7 +2376,7 @@ function viewProgress(){
     <section class="prog-head">
       <p class="eyebrow">Dashboard</p>
       <h1>Η πρόοδός σου</h1>
-      <p>Ακρόαση, διάβασμα και quiz ανά κεφάλαιο. Όλα αποθηκεύονται τοπικά στη συσκευή σου.</p>
+      <p>Ακρόαση, διάβασμα και quiz ανά κεφάλαιο. Συγχρονίζονται σε όλες τις συσκευές σου.</p>
     </section>
     <div class="stats">
       <div class="stat"><div class="v">${done}<small>/21</small></div><div class="l">κεφάλαια ολοκληρωμένα</div></div>
@@ -2383,6 +2384,7 @@ function viewProgress(){
       <div class="stat"><div class="v">${avg===null?'—':avg+'<small>%</small>'}</div><div class="l">μέσος όρος στα quiz</div></div>
       <div class="stat"><div class="v">${scored.length}<small>/21</small></div><div class="l">quiz που έδωσες</div></div>
     </div>
+    ${typeof todayCard === 'function' ? `<div class="plan-wrap">${todayCard()}</div>` : ''}
     ${typeof ecoPanel === 'function' ? ecoPanel() : ''}
     <div class="panel">
       <h2>Ανά κεφάλαιο</h2>

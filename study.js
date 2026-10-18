@@ -467,12 +467,10 @@ function todayCard(){
     cur ? {play:cur, t:`Μόνο άκου · κεφάλαιο ${pad2(cur)}`, s:'για τις κουρασμένες μέρες · στον δρόμο ή ξαπλωμένος'} : null,
     {nav:'#/drills', t:'Ασκήσεις τύπων', s:'≈ 10 λεπτά · EVM, PERT, float'}
   ].filter(Boolean).slice(0, 4);
-  return `${typeof sessCard === 'function' ? sessCard() : ''}<div class="today">
-    <div class="td-head"><span class="rc-k">Σήμερα</span><span class="td-prog">${done}/${steps.length} βήματα${eta ? ` · με τον ρυθμό σου, έτοιμος περίπου ${eta.toLocaleDateString('el-GR', {day:'numeric', month:'long'})}` : ''}</span></div>
+  return `<div class="today">
+    <div class="td-head"><span class="rc-k">Το πρόγραμμά σου</span><span class="td-prog">${done}/${steps.length} βήματα${eta ? ` · με τον ρυθμό σου, έτοιμος περίπου ${eta.toLocaleDateString('el-GR', {day:'numeric', month:'long'})}` : ''}</span></div>
     <div class="td-bar"><i style="width:${done / steps.length * 100}%"></i></div>
     ${next ? `<button class="td-main" data-nav="${next.nav}"><span class="td-l">${next.long ? 'Όταν έχεις χρόνο (2–3 ώρες)' : 'Επόμενο βήμα'}</span><b>${esc(next.title)}</b><span>${esc(next.sub)}</span></button>` : '<div class="td-main"><b>Ολοκλήρωσες το πρόγραμμα 🎉</b><span>Κράτα επαφή με λάθη και κάρτες μέχρι την εξέταση.</span></div>'}
-    <div class="td-l" style="margin-top:12px">Αν είσαι κουρασμένος ή έχεις μόνο 25 λεπτά</div>
-    <div class="td-short">${shortTasks.map(x => `<button ${x.op ? `data-op="${x.op}"` : x.play ? `data-play="${x.play}"` : `data-nav="${x.nav}"`}><b>${esc(x.t)}</b><span>${esc(x.s)}</span></button>`).join('')}</div>
     <p class="td-note">Χωρίς ημερομηνίες: αν χάσεις μέρες, το πρόγραμμα συνεχίζει από εκεί που έμεινες.</p>
   </div>`;
 }
