@@ -633,6 +633,10 @@ mark.hl.flash{outline:2px solid var(--gold);outline-offset:2px}
 .fl-t{font-family:var(--serif);font-size:clamp(26px,5vw,36px);font-weight:600;color:var(--heading);line-height:1.15}
 .fl-hint{margin-top:auto;font-size:14px;color:var(--text-3)}
 .fl-d{font-size:17px;line-height:1.65;color:var(--text)}
+.fl-tip{text-align:center;font-size:12.5px;color:var(--text-3);margin:10px 0 0}
+.fl-nav .btn[disabled]{opacity:.4;pointer-events:none}
+.fl-row.fl-nav{justify-content:space-between}
+@media (max-width:560px){.fl-nav .btn{flex:1 1 0;justify-content:center;padding-left:8px;padding-right:8px;font-size:14px}.fl-nav .fl-know{order:3;flex-basis:100%}}
 .fl-row{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
 
 .topnav .nv{display:none}
@@ -779,14 +783,17 @@ svg.tk{width:100%;max-width:460px;display:block;margin:0 auto}
 .tu-steps{list-style:none;margin:0;padding:0;display:grid;gap:8px}
 .tu-s{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow-sm);overflow:hidden}
 .tu-s.on{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold-soft),var(--shadow-sm)}
-.tu-h{display:flex;align-items:center;gap:12px;width:100%;padding:14px 16px;text-align:left}
+.tu-hr{display:flex;align-items:center;padding-left:12px}
+.tu-h{display:flex;align-items:center;gap:12px;flex:1;min-width:0;padding:14px 16px 14px 10px;text-align:left}
+.tu-chk{cursor:pointer;width:32px!important;height:32px!important;border:2px solid var(--line-2)}.tu-chk:hover{border-color:var(--green)}.tu-s.done .tu-chk{border-color:var(--green)}
 .tu-h b{flex:1;font-weight:500;color:var(--heading);font-size:15.5px}.tu-h small{color:var(--text-3);font-size:12.5px}
-.tu-n{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:600;background:var(--sunk);color:var(--text-2)}
+.tu-n{flex:none;width:28px;height:28px;padding:0;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:600;background:var(--sunk);color:var(--text-2)}
 .tu-s.on .tu-n{background:var(--gold);color:var(--brand-ink)}
 .tu-s.done .tu-n{background:var(--green);color:#fff}.tu-s.done .tu-h b{color:var(--text-2)}
 .tu-b{display:none;padding:0 16px 16px}.tu-s.on .tu-b{display:block}
 .tu-say{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px}
 .tu-say p{margin:0;padding:12px 14px;border-radius:4px 14px 14px 14px;background:var(--sky-wash);color:var(--text);font-size:15px;line-height:1.55}
+.tu-hint{margin:-4px 0 12px 50px;font-size:13px;color:var(--text-3)}
 .tu-goals{margin:0 0 12px;padding-left:22px;font-size:14px;color:var(--text-2);display:grid;gap:6px}
 .tu-traps{display:grid;gap:8px;margin-bottom:10px}
 .tu-trap{padding:10px 12px;border-radius:10px;background:var(--red-soft);font-size:14px;line-height:1.5}
@@ -2118,6 +2125,8 @@ function viewLibrary(){
 
 /* ── view: flashcards (Appendix Θ) ────────────────────────────────── */
 const cardId = c => c.ch + ':' + c.t;
+let CARD_KEYS = null;
+addEventListener('keydown', e => { if (currentView === 'cards' && CARD_KEYS) CARD_KEYS(e); });
 function viewCards(ch){
   setView('cards'); scrollTo(0,0);
   const KNOWN = 'pmp8.cards.v1';
@@ -2150,9 +2159,12 @@ function viewCards(ch){
           <span class="fl-t">${esc(c.t)}</span>
           ${flipped ? `<span class="fl-d guide">${c.d}</span>` : `<span class="fl-hint">Σκέψου τον ορισμό και πάτα για να δεις την απάντηση</span>`}
         </button>
-        <div class="fl-row">
-          ${flipped ? `<button class="btn btn-ghost" id="fl-again">Ξανά αργότερα</button><button class="btn btn-gold" id="fl-know">${IC.check} Το ήξερα</button>`
-                    : `<button class="btn btn-navy" id="fl-flip">Δείξε τον ορισμό</button>`}
+        <div class="fl-row fl-nav">
+          <button class="btn btn-ghost" id="fl-prev"${i === 0 ? ' disabled' : ''}>${IC.left} Προηγούμενη</button>
+          <button class="btn ${known[cardId(c)] ? 'btn-gold' : 'btn-ghost'} fl-know" id="fl-know" aria-pressed="${known[cardId(c)] ? 'true' : 'false'}">${IC.check} ${known[cardId(c)] ? 'Την ξέρω' : 'Την ξέρω;'}</button>
+          <button class="btn btn-navy" id="fl-next">${i === deck.length - 1 ? 'Από την αρχή ↺' : 'Επόμενη →'}</button>
+        </div>
+        <p class="fl-tip">Πάτα την κάρτα για να γυρίσει · σύρε αριστερά/δεξιά ή χρησιμοποίησε τα βελάκια</p>
         </div>` : `
         <div class="empty">${pool().length ? 'Μπράβο — τις ξέρεις όλες σε αυτή την επιλογή.' : 'Δεν υπάρχουν κάρτες για αυτό το κεφάλαιο.'}
           <div style="margin-top:16px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
@@ -2161,16 +2173,22 @@ function viewCards(ch){
       </div>`;
     $('#cf-ch').onchange = e => { location.hash = e.target.value ? `#/ch/${e.target.value}/cards` : '#/cards'; };
     $$('[data-mode]').forEach(b => b.onclick = () => { mode = b.dataset.mode; build(); });
-    const flip = () => { flipped = true; render(); };
-    if ($('#flash')) $('#flash').onclick = () => { if (!flipped) flip(); };
-    if ($('#fl-flip')) $('#fl-flip').onclick = flip;
-    const next = know => {
-      const k = store.get(KNOWN, {}); if (know) k[cardId(c)] = 1; else delete k[cardId(c)]; store.set(KNOWN, k);
-      if (!know) deck.push(c);   /* see it again later in this round */
-      i++; flipped = false; render();
-    };
-    if ($('#fl-know')) $('#fl-know').onclick = () => next(true);
-    if ($('#fl-again')) $('#fl-again').onclick = () => next(false);
+    const go = d => { if (!deck.length) return; i = (i + d + deck.length) % deck.length; flipped = false; render(); };
+    const toggleKnow = () => { const k = store.get(KNOWN, {}); if (k[cardId(c)]) delete k[cardId(c)]; else k[cardId(c)] = 1; store.set(KNOWN, k); render(); };
+    const fl = $('#flash');
+    if (fl){
+      fl.onclick = () => { flipped = !flipped; render(); };
+      let sx = null;
+      fl.addEventListener('touchstart', e => { sx = e.touches[0].clientX; }, {passive:true});
+      fl.addEventListener('touchend', e => { if (sx === null) return; const dx = e.changedTouches[0].clientX - sx; sx = null;
+        if (Math.abs(dx) > 50){ e.preventDefault(); go(dx < 0 ? 1 : -1); } });
+    }
+    if ($('#fl-prev')) $('#fl-prev').onclick = () => { if (i > 0) go(-1); };
+    if ($('#fl-next')) $('#fl-next').onclick = () => go(1);
+    if ($('#fl-know')) $('#fl-know').onclick = toggleKnow;
+    CARD_KEYS = c ? e => { if (e.target.closest('input,select,textarea')) return;
+      if (e.key === 'ArrowRight') go(1); else if (e.key === 'ArrowLeft' && i > 0) go(-1);
+      else if (e.key === ' ' || e.key === 'Enter'){ e.preventDefault(); flipped = !flipped; render(); } else if (e.key.toLowerCase() === 'k') toggleKnow(); } : null;
     if ($('#fl-reset')) $('#fl-reset').onclick = () => { const k = store.get(KNOWN, {}); pool().forEach(c => delete k[cardId(c)]); store.set(KNOWN, k); mode = 'todo'; build(); };
   }
   build();

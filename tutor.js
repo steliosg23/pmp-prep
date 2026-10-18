@@ -28,25 +28,25 @@ function tutSteps(n){
   S.push({k:'goals', t:'Προσανατολισμός', m:'2′', manual:true, done:!!mk.goals,
     say: T.goals.length ? `Πριν ξεκινήσεις, δες πού πας. Αυτοί είναι οι ${T.goals.length} στόχοι του κεφαλαίου — δεν τους αποστηθίζεις, απλώς τους διαβάζεις για να ξέρεις τι να προσέξεις.` : 'Πριν ξεκινήσεις, ρίξε μια ματιά στο μονοσέλιδο για να ξέρεις τι έρχεται.',
     list:T.goals, acts:[hasOp ? {op:n, t:'Μονοσέλιδο (προαιρετικό)'} : null]});
-  S.push({k:'listen', t:'Άκου το μάθημα', m:mins + '′', manual:true, done: st.heard >= .9 || !!mk.listen,
+  S.push({k:'listen', t:'Άκου το μάθημα', m:mins + '′', manual:true, done:!!mk.listen, hint: st.heard > 0 ? `Έχεις ακούσει το ${Math.round(st.heard * 100)}%.` : '',
     say:'Άκου το μάθημα χαλαρά, χωρίς σημειώσεις — ο στόχος είναι να σου γίνουν οικείες οι έννοιες. Αν σήμερα είσαι κουρασμένος, αυτό το βήμα αρκεί. Μπορείς και στον δρόμο ή ξαπλωμένος.',
     acts:[{play:n, t:'Άκου το μάθημα'}]});
-  S.push({k:'read', t:'Διάβασε το κεφάλαιο', m:'20–30′', manual:true, done: (st.at || 0) >= .9 || !!mk.read,
+  S.push({k:'read', t:'Διάβασε το κεφάλαιο', m:'20–30′', manual:true, done:!!mk.read, hint: st.at > 0 ? `Έχεις διαβάσει περίπου το ${Math.round(st.at * 100)}%.` : '',
     say:'Τώρα διάβασε. Εστίασε στα κίτρινα και πράσινα highlights του βιβλίου· ό,τι δεν κάθεται, σημείωσέ το με την πένα. Δεν χρειάζεται να το τελειώσεις σε μία φορά — η πρόοδος κρατιέται.',
     acts:[{nav:'#/ch/' + n, t:'Άνοιξε το κεφάλαιο'}]});
-  S.push({k:'see', t:'Δες το οπτικά', m:'5–10′', manual:true, done: labs.some(l => seen[l.h]) || !!mk.see,
+  S.push({k:'see', t:'Δες το οπτικά', m:'5–10′', manual:true, done:!!mk.see, hint: labs.filter(l => seen[l.h]).length ? `Έχεις ανοίξει ${labs.filter(l => seen[l.h]).length} από ${labs.length} εργαλεία.` : '',
     say: labs.length > 1 ? 'Κάνε τις έννοιες εικόνα. Τα εργαλεία αυτά είναι παιχνίδια κατανόησης — όταν κάτι «κάνει κλικ» οπτικά, δεν το ξεχνάς.' : 'Δες τον εννοιολογικό χάρτη του κεφαλαίου: πώς δένουν οι ενότητες και οι βασικοί όροι.',
     acts:labs.map(l => ({nav:l.h, t:l.t, viz:true}))});
   if (T.traps.length || T.tips.length) S.push({k:'traps', t:'Οι παγίδες του κεφαλαίου', m:'5′', manual:true, done:!!mk.traps,
     say:'Πριν το quiz, πέρνα τις παγίδες που ρίχνουν τους υποψηφίους σε αυτό το κεφάλαιο. Διάβασέ τες μία φορά με προσοχή.', traps:T.traps, tips:T.tips});
-  S.push({k:'quiz', t:hasX ? 'Quiz του βιβλίου' : 'Quiz κεφαλαίου', m:'10–15′', done: st.best !== null && st.best >= 70,
+  S.push({k:'quiz', t:hasX ? 'Quiz του βιβλίου' : 'Quiz κεφαλαίου', m:'10–15′', manual:true, done:!!mk.quiz, hint: st.best !== null ? `Καλύτερο σκορ: ${st.best}%.` : '',
     say: st.best === null ? 'Κάνε το quiz χωρίς να κοιτάς. Στόχος 70%. Κάθε λάθος μπαίνει αυτόματα στα «Τα λάθη μου» και θα σου ξαναέρθει σε 1, 3 και 7 μέρες.'
       : st.best < 70 ? `Έπιασες ${st.best}%. Μην ξαναδιαβάσεις όλο το κεφάλαιο: δες τις εξηγήσεις των λαθών, ξαναδιάβασε μόνο εκείνες τις ενότητες και ξαναδοκίμασε.` : `Έπιασες ${st.best}% — μπράβο.`,
     acts:[{nav:`#/ch/${n}/quiz/${mainSet(c)}`, t:'Ξεκίνα το quiz', gold:true}]});
-  if (cards.length) S.push({k:'cards', t:'Κάρτες αυτοελέγχου', m:'10′', done: nk / cards.length >= .7,
+  if (cards.length) S.push({k:'cards', t:'Κάρτες αυτοελέγχου', m:'10′', manual:true, done:!!mk.cards, hint:`Σημειωμένες ως «τις ξέρω»: ${nk}/${cards.length}.`,
     say:`Γύρνα τις κάρτες του κεφαλαίου και σημείωσε όσες ξέρεις. Ξέρεις ${nk} από ${cards.length}· στόχος το 70%. Όσες δεν ξέρεις θα ξανάρθουν.`,
     acts:[{nav:`#/ch/${n}/cards`, t:'Άνοιξε τις κάρτες'}]});
-  if (hasX) S.push({k:'extra', t:'Επιπλέον ερωτήσεις', m:'10–15′', done: st.bestX !== null && st.bestX >= 70,
+  if (hasX) S.push({k:'extra', t:'Επιπλέον ερωτήσεις', m:'10–15′', manual:true, done:!!mk.extra, hint: st.bestX !== null ? `Καλύτερο σκορ: ${st.bestX}%.` : '',
     say:'Τώρα δοκίμασε τη γνώση σου σε νέες ερωτήσεις, γραμμένες σε ύφος εξέτασης. Εδώ φαίνεται αν το κατάλαβες ή αν θυμάσαι απλώς τις ερωτήσεις του βιβλίου.',
     acts:[{nav:`#/ch/${n}/quiz/extra`, t:'Επιπλέον ερωτήσεις'}]});
   S.push({k:'close', t:'Κλείσιμο κεφαλαίου', m:'5′', manual:true, done:!!mk.close,
@@ -69,6 +69,7 @@ async function viewTutor(n){
       : `<button class="btn ${a.gold ? 'btn-gold' : 'btn-ghost'}" data-nav="${a.nav}">${a.viz ? IC.viz : ''} ${esc(a.t)}</button>`;
     const body = (s, i) => `
       <div class="tu-say"><span class="tu-av">${IC.tutor}</span><p>${esc(s.say)}</p></div>
+      ${s.hint ? `<p class="tu-hint">${esc(s.hint)} Το «έγινε» το αποφασίζεις εσύ.</p>` : ''}
       ${s.list && s.list.length ? `<ol class="tu-goals">${s.list.map(g => `<li>${esc(g)}</li>`).join('')}</ol>` : ''}
       ${s.traps ? `<div class="tu-traps">${s.traps.map(t => `<div class="tu-trap">${t[0] ? `<b>${esc(t[0])}</b>` : ''}<span>${esc(t[1])}</span></div>`).join('')}</div>
         ${s.tips && s.tips.length ? `<details class="tu-tips"><summary>Exam tips του κεφαλαίου (${s.tips.length})</summary><ul>${s.tips.map(t => `<li>${esc(t)}</li>`).join('')}</ul></details>` : ''}` : ''}
@@ -81,12 +82,13 @@ async function viewTutor(n){
       <div class="tu-top"><div class="tu-bar"><i style="width:${done / S.length * 100}%"></i></div><span>${done}/${S.length} βήματα</span></div>
       ${cur === -1 ? `<div class="tu-done"><b>Ολοκλήρωσες το κεφάλαιο ${pad2(n)}.</b> ${nextC ? `<button class="btn btn-gold" data-nav="#/ch/${nextC.id}/tutor">Επόμενο: Κεφάλαιο ${pad2(nextC.id)} →</button>` : '<button class="btn btn-gold" data-nav="#/exam">Πάμε στις προσομοιώσεις →</button>'}</div>` : ''}
       <ol class="tu-steps">${S.map((s, i) => `<li class="tu-s${s.done ? ' done' : ''}${i === cur ? ' on' : ''}" data-i="${i}">
-        <button class="tu-h" data-i="${i}"><span class="tu-n">${s.done ? IC.check : i + 1}</span><b>${esc(s.t)}</b><small>${s.m}</small></button>
+        <div class="tu-hr"><button class="tu-n tu-chk" data-k="${s.k}" data-v="${s.done ? 0 : 1}" aria-label="${s.done ? 'Αναίρεση' : 'Σημείωσε ως έγινε'}" title="${s.done ? 'Αναίρεση' : 'Σημείωσε ως έγινε'}">${s.done ? IC.check : i + 1}</button>
+          <button class="tu-h" data-i="${i}"><b>${esc(s.t)}</b><small>${s.m}</small></button></div>
         <div class="tu-b">${body(s, i)}</div></li>`).join('')}</ol>
-      <p class="hint" style="margin-top:18px">Δεν υπάρχουν ημερομηνίες. Όπου κι αν βγεις από την εφαρμογή, η ροή σε περιμένει εδώ — και το κουμπί «Συνέχεια ροής» σε φέρνει πίσω από οποιαδήποτε οθόνη.</p>
+      <p class="hint" style="margin-top:18px">Εσύ αποφασίζεις πότε ένα βήμα έγινε: πάτα τον αριθμό του βήματος για να το τσεκάρεις ή να το αναιρέσεις. Δεν υπάρχουν ημερομηνίες. Όπου κι αν βγεις από την εφαρμογή, η ροή σε περιμένει εδώ — και το κουμπί «Συνέχεια ροής» σε φέρνει πίσω από οποιαδήποτε οθόνη.</p>
     </div>`;
     $$('.tu-h').forEach(b => b.onclick = () => { const li = b.closest('.tu-s'); const was = li.classList.contains('on'); $$('.tu-s').forEach(x => x.classList.remove('on')); if (!was) li.classList.add('on'); });
-    $$('.tu-tick').forEach(b => b.onclick = () => { tutMark(n, b.dataset.k, b.dataset.v === '1'); draw(); const on = $('.tu-s.on'); if (on) on.scrollIntoView({behavior:'smooth', block:'nearest'}); });
+    $$('.tu-tick, .tu-chk').forEach(b => b.onclick = () => { tutMark(n, b.dataset.k, b.dataset.v === '1'); draw(); const on = $('.tu-s.on'); if (on) on.scrollIntoView({behavior:'smooth', block:'nearest'}); });
   };
   draw();
 }

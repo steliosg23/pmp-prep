@@ -439,7 +439,7 @@ function planSteps(){
     steps.push({id:'ch' + c.id, ch:c.id, title:`Κεφάλαιο ${pad2(c.id)} · ${c.title}`,
       sub: !read ? 'Άκου το μάθημα και διάβασε το κεφάλαιο.' : (s.best === null || s.best < 70) ? 'Δώσε το quiz του βιβλίου (στόχος ≥ 70%).' : 'Κάρτες αυτοελέγχου του κεφαλαίου.',
       nav: `#/ch/${c.id}/tutor`,
-      long: !read, done: read && s.best !== null && s.best >= 70 && (!cards.length || known / cards.length >= .7)});
+      long: !read, done: typeof tutSteps === 'function' ? tutSteps(c.id).every(x => x.done) : (read && s.best !== null && s.best >= 70 && (!cards.length || known / cards.length >= .7))});
   });
   const minis = hist.filter(h => h.kind === 'mini').length, fulls = hist.filter(h => h.kind === 'full');
   steps.push({id:'mini', title:'Γύρος 3 · Mini mock (60)', sub:'Πρώτη μέτρηση σε συνθήκες εξέτασης.', nav:'#/exam', long:true, done: minis > 0});
