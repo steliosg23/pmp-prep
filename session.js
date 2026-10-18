@@ -52,6 +52,34 @@ function sessCard(){
   </div>`;
 }
 
+/* formula drills: the chapter's own formulas, plus spaced practice of formulas from chapters already passed */
+const DRILL_CH = {11:'Χρονοδιάγραμμα', 12:'EVM', 13:'Επικοινωνία', 15:'Κίνδυνοι'};
+function drillGroups(ch){
+  const own = DRILL_CH[ch] ? [DRILL_CH[ch]] : [];
+  const past = Object.keys(DRILL_CH).filter(k => +k !== ch && chOf(+k) && stateOf(chOf(+k)) === 'done').map(k => DRILL_CH[k]);
+  return [...new Set([...own, ...past])];
+}
+function drillSeq(host, groups, n, done){
+  if (typeof DRILLS === 'undefined' || !groups.length) return done();
+  let i = 0;
+  const next = () => {
+    if (i >= n) return done(); i++;
+    const g = groups[(i - 1) % groups.length]; let d, guard = 0;
+    do { d = DRILLS[Math.floor(Math.random() * DRILLS.length)](); } while (d.g !== g && ++guard < 200);
+    const opts = shuffleArr([...new Set([d.a, ...d.alts])].slice(0, 4));
+    host.innerHTML = `<div class="mq"><p class="mq-l">${esc(d.g)} · ${esc(d.k)} · ${i}/${n}</p><p class="qtext">${esc(d.q)}</p>
+      <div>${opts.map((o, k) => `<button class="opt" data-i="${k}"><span class="key">${'ABCD'[k]}</span><span>${esc(o)}</span></button>`).join('')}</div><div class="mq-after"></div></div>`;
+    host.querySelectorAll('.opt').forEach(b => b.onclick = () => {
+      if (host.querySelector('.opt[data-mark]')) return;
+      const good = opts[+b.dataset.i] === d.a;
+      host.querySelectorAll('.opt').forEach(x => { x.disabled = true; if (opts[+x.dataset.i] === d.a) x.dataset.mark = 'right'; else if (x === b) x.dataset.mark = 'wrong'; });
+      host.querySelector('.mq-after').innerHTML = `<div class="why"><b>${good ? 'Σωστά.' : 'Όχι ακριβώς.'}</b> ${esc(d.w)}</div><div class="qfoot"><button class="btn btn-gold mq-next">Συνέχεια →</button></div>`;
+      host.querySelector('.mq-next').onclick = next;
+    });
+  };
+  next();
+}
+
 /* ── small question widget (recall, coach mode, mistakes, hook) ────── */
 function miniQ(host, q0, {coach = false, onDone, label = ''}){
   const q = prepQ(q0), keys = Object.keys(q.options);
@@ -87,7 +115,7 @@ function questionsSeq(host, qs, opts, done){
 /* ── the session ───────────────────────────────────────────────────── */
 const SBLOCKS = {
   warm:{t:'Ζέσταμα', m:2}, listen:{t:'Άκου το επεισόδιο', m:0}, recall:{t:'Quiz κεφαλαίου', m:5}, click:{t:'Ένα «κλικ»', m:5},
-  coach:{t:'Situational', m:7}, test:{t:'Τεστ ετοιμότητας', m:15}, mist:{t:'Τα λάθη σου', m:3}, close:{t:'Κλείσιμο', m:2},
+  coach:{t:'Situational', m:7}, drill:{t:'Ασκήσεις τύπων', m:4}, test:{t:'Τεστ ετοιμότητας', m:15}, mist:{t:'Τα λάθη σου', m:3}, close:{t:'Κλείσιμο', m:2},
 };
 async function viewSession(mini){
   setView('session'); scrollTo(0, 0);
@@ -96,7 +124,8 @@ async function viewSession(mini){
   let s = store.get(SESS, null);
   const kind = mini ? 'mini' : 'full';
   if (!s || s.date !== today() || s.kind !== kind || s.step >= s.blocks.length)
-    s = {date:today(), kind, ch:sessCh(), step:0, blocks: mini ? ['warm', 'coach', 'close'] : allHeard() ? ['warm', 'test', 'mist', 'close'] : ['warm', 'listen', 'recall', 'click', 'coach', 'mist', 'close'], t0:Date.now()};
+    { const ch0 = sessCh(), dr = drillGroups(ch0).length;
+      s = {date:today(), kind, ch:ch0, step:0, blocks: mini ? ['warm', 'coach', 'close'] : allHeard() ? ['warm', 'test', 'drill', 'mist', 'close'] : ['warm', 'listen', 'recall', 'click', ...(dr ? ['drill'] : []), 'coach', 'mist', 'close'], t0:Date.now()}; }
   store.set(SESS, s);
   const ch = s.ch, c = chOf(ch);
   const save = () => store.set(SESS, s);
@@ -206,6 +235,12 @@ async function viewSession(mini){
           <div class="qfoot"><button class="btn btn-gold" id="tn">Συνέχεια →</button></div>`;
         $('#tn').onclick = advance;
       });
+    },
+    drill(h){
+      const G = drillGroups(ch), own = !!DRILL_CH[ch];
+      if (!G.length) return advance();
+      h.innerHTML = `<p class="sess-say">${own ? 'Οι τύποι αυτού του κεφαλαίου, με νέους αριθμούς κάθε φορά. Μετά από λίγες επαναλήψεις γίνονται αυτόματοι.' : 'Γρήγορη επανάληψη τύπων από κεφάλαια που έχεις περάσει, για να μην ξεχαστούν.'}</p><div id="dq"></div>`;
+      drillSeq($('#dq'), G, own ? 3 : 2, advance);
     },
     mist(h){
       const due = srsDue().slice(0, 3), qs = due.map(id => (BANK || []).find(q => q.id === id)).filter(Boolean);
