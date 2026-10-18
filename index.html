@@ -1305,6 +1305,14 @@ async function viewQuiz(id){
       <div class="empty">Οι ερωτήσεις για αυτό το κεφάλαιο δεν είναι έτοιμες ακόμη.</div></div>`;
     return;
   }
+  /* new order on every attempt: questions and options are shuffled and relabelled A–D,
+     so you learn the content, not the position of the right answer */
+  const shuffle = a => { a = a.slice(); for (let k = a.length - 1; k > 0; k--){ const j = Math.floor(Math.random() * (k + 1)); [a[k], a[j]] = [a[j], a[k]]; } return a; };
+  qs = shuffle(qs).map(q => {
+    const L = 'ABCDEFGH', opts = {}; let right = null;
+    shuffle(Object.keys(q.options)).forEach((k, n) => { opts[L[n]] = q.options[k]; if (k === q.correct) right = L[n]; });
+    return Object.assign({}, q, {options: opts, correct: right});
+  });
   let i = 0, correct = 0, answered = false;
 
   function render(){
