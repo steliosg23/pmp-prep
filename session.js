@@ -114,7 +114,7 @@ function questionsSeq(host, qs, opts, done){
 
 /* ── the session ───────────────────────────────────────────────────── */
 const SBLOCKS = {
-  warm:{t:'Ζέσταμα', m:2}, listen:{t:'Άκου το επεισόδιο', m:0}, recall:{t:'Quiz κεφαλαίου', m:5}, click:{t:'Ένα «κλικ»', m:5},
+  warm:{t:'Ζέσταμα', m:2}, listen:{t:'Άκου το επεισόδιο', m:0}, recall:{t:'Quiz κεφαλαίου', m:5}, click:{t:'Οπτικά εργαλεία', m:6},
   coach:{t:'Situational', m:7}, drill:{t:'Ασκήσεις τύπων', m:4}, test:{t:'Τεστ ετοιμότητας', m:15}, mist:{t:'Τα λάθη σου', m:3}, close:{t:'Κλείσιμο', m:2},
 };
 async function viewSession(mini){
@@ -207,10 +207,13 @@ async function viewSession(mini){
       });
     },
     click(h){
-      const L = labsFor(ch), lab = L.find(l => !/maps|drills/.test(l.h)) || L[0];
-      h.innerHTML = `<p class="sess-say">Μία έννοια, σε εικόνα. Άνοιξέ το, παίξε λίγο, και πάτα «Συνέχεια συνεδρίας» πάνω αριστερά για να γυρίσεις.</p>
-        <button class="sess-lab" id="sl">${IC.viz}<span><b>${esc(lab.t)}</b><small>Κεφάλαιο ${pad2(ch)}</small></span><i>→</i></button>`;
-      $('#sl').onclick = () => { LAB_FROM = '#/session'; markDay(1); s.step++; save(); location.hash = lab.h; };
+      /* all the visual tools of this chapter; each one you open gets a ✓, then «Συνέχεια» */
+      const L = labsFor(ch).filter(l => !/drills/.test(l.h)), seen = store.get('pmp8.labs.v1', {});
+      h.innerHTML = `<p class="sess-say">Τα οπτικά εργαλεία αυτού του κεφαλαίου. Άνοιξε όσα θέλεις — από μέσα, το «Συνέχεια συνεδρίας» πάνω αριστερά σε φέρνει πίσω εδώ.</p>
+        <div class="sess-labs">${L.map(l => `<button class="sess-lab${seen[l.h] ? ' seen' : ''}" data-h="${l.h}">${IC.viz}<span><b>${esc(l.t)}</b><small>${seen[l.h] ? '✓ το έχεις δει' : 'Κεφάλαιο ' + pad2(ch)}</small></span><i>→</i></button>`).join('')}</div>
+        <div class="qfoot"><button class="btn btn-gold" id="cl-next">Συνέχεια →</button></div>`;
+      h.querySelectorAll('.sess-lab').forEach(b => b.onclick = () => { LAB_FROM = '#/session'; location.hash = b.dataset.h; });
+      $('#cl-next').onclick = advance;
     },
     coach(h){
       const done = new Set([...answered]);
