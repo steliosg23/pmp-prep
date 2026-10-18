@@ -120,12 +120,22 @@ async function viewPractice(){
       ${tile('#/cards', IC.cards, 'Κάρτες αυτοελέγχου', 'Οι όροι του βιβλίου ως flashcards')}
     </div></div>
     <div class="lib-group"><h2>Οπτικά εργαλεία κατανόησης</h2><div class="lib-grid">
-      ${tile('#/lab/pmbok', IC.lib, 'Ο χάρτης του PMBOK 8', '6 αρχές · 7 domains · 5 focus areas · 40 processes')}
-      ${tile('#/lab/evm', IC.doc, 'EVM εργαστήριο', 'Κούνα PV, EV, AC και δες τι σημαίνουν οι δείκτες')}
-      ${tile('#/lab/cpm', IC.doc, 'Critical path εργαστήριο', 'Forward / backward pass σε δίκτυο που αλλάζει')}
-      ${tile('#/lab/conflict', IC.doc, 'Συγκρούσεις: Thomas-Kilmann', 'Οι 5 τεχνικές σε χάρτη · πότε ταιριάζει η καθεμία')}
-      ${tile('#/lab/contracts', IC.doc, 'Συμβάσεις & κατανομή ρίσκου', 'Από FFP έως CPFF · ποιος σηκώνει το ρίσκο')}
-      ${tile('#/lab/maps', IC.doc, 'Εννοιολογικοί χάρτες κεφαλαίων', 'Κάθε κεφάλαιο ως χάρτης ενοτήτων και όρων')}
+      ${tile('#/lab/pmbok', IC.viz, 'Ο χάρτης του PMBOK 8', 'Κεφ. 3 · 6 αρχές · 7 domains · 5 focus areas · 40 processes')}
+      ${tile('#/lab/value', IC.viz, 'Από το έργο στην αξία', 'Κεφ. 2 · portfolio/program/project · deliverable → value')}
+      ${tile('#/lab/situational', IC.viz, 'Situational δέντρο απόφασης', 'Κεφ. 4 · τα 5 βήματα πάνω σε σενάριο')}
+      ${tile('#/lab/approach', IC.viz, 'Επιλογή προσέγγισης', 'Κεφ. 5 · predictive, hybrid ή adaptive;')}
+      ${tile('#/lab/finance', IC.viz, 'NPV · ROI · IRR · Payback', 'Κεφ. 6 · τρία έργα, τέσσερις δείκτες')}
+      ${tile('#/lab/stakeholders', IC.viz, 'Stakeholders: grid & engagement', 'Κεφ. 8 · power/interest · C → D')}
+      ${tile('#/lab/cpm', IC.viz, 'Critical path εργαστήριο', 'Κεφ. 11 · forward / backward pass')}
+      ${tile('#/lab/evm', IC.viz, 'EVM εργαστήριο', 'Κεφ. 12 · κούνα PV, EV, AC')}
+      ${tile('#/lab/team', IC.viz, 'Ομάδα: Tuckman, RACI, κανάλια', 'Κεφ. 13 · στάδια, leadership, n(n−1)/2')}
+      ${tile('#/lab/quality', IC.viz, 'Ποιότητα', 'Κεφ. 14 · control chart, Pareto, CoQ, QA/QC')}
+      ${tile('#/lab/risk', IC.viz, 'Ρίσκο', 'Κεφ. 15 · heat map, EMV, 10 στρατηγικές')}
+      ${tile('#/lab/contracts', IC.viz, 'Συμβάσεις & κατανομή ρίσκου', 'Κεφ. 16 · από FFP έως CPFF')}
+      ${tile('#/lab/conflict', IC.viz, 'Συγκρούσεις: Thomas-Kilmann', 'Κεφ. 17 · οι 5 τεχνικές σε χάρτη')}
+      ${tile('#/lab/metrics', IC.viz, 'Burnup, burndown & δείκτες', 'Κεφ. 18 · scope growth · leading/lagging')}
+      ${tile('#/lab/flows', IC.viz, 'Ροές σε σωστή σειρά', 'Change control, closing, ADKAR, Kotter, Tuckman…')}
+      ${tile('#/lab/maps', IC.viz, 'Εννοιολογικοί χάρτες κεφαλαίων', 'Κάθε κεφάλαιο ως χάρτης ενοτήτων και όρων')}
     </div></div>`;
 }
 
@@ -447,20 +457,22 @@ function todayCard(){
   const left = steps.length - done;
   const pace = recent >= 2 ? left / (recent / 3) : null;   /* steps per week over the last 3 weeks */
   const eta = pace ? new Date(Date.now() + pace * 7 * DAY) : null;
-  const cur = next && next.ch ? next.ch : null;
+  const nextCh = steps.find(s => !s.done && s.ch), cur = nextCh ? nextCh.ch : null;
   const cardsTodo = cur ? CARDS.filter(k => k.ch <= cur && !store.get('pmp8.cards.v1', {})[k.ch + ':' + k.t]).length : 0;
   const shortTasks = [
     due ? {nav:'#/review', t:`Τα λάθη μου · ${due} για σήμερα`, s:'≈ 10–15 λεπτά'} : null,
     cardsTodo ? {nav: cur ? `#/ch/${Math.max(1, cur - 1)}/cards` : '#/cards', t:'Κάρτες αυτοελέγχου', s:'≈ 10 λεπτά · όροι από όσα έχεις διαβάσει'} : null,
     cur && OPS.includes(cur) ? {op:cur, t:`Μονοσέλιδο κεφαλαίου ${pad2(cur)}`, s:'≈ 5 λεπτά · πριν ή μετά το διάβασμα'} : null,
+    cur && typeof labsFor === 'function' && labsFor(cur).length > 1 ? {nav:labsFor(cur)[0].h, t:'Οπτικό εργαλείο · ' + labsFor(cur)[0].t, s:'≈ 5–10 λεπτά · παιχνίδι κατανόησης, χωρίς διάβασμα'} : null,
+    cur ? {play:cur, t:`Μόνο άκου · κεφάλαιο ${pad2(cur)}`, s:'για τις κουρασμένες μέρες · στον δρόμο ή ξαπλωμένος'} : null,
     {nav:'#/drills', t:'Ασκήσεις τύπων', s:'≈ 10 λεπτά · EVM, PERT, float'}
-  ].filter(Boolean).slice(0, 3);
+  ].filter(Boolean).slice(0, 4);
   return `<div class="today">
     <div class="td-head"><span class="rc-k">Σήμερα</span><span class="td-prog">${done}/${steps.length} βήματα${eta ? ` · με τον ρυθμό σου, έτοιμος περίπου ${eta.toLocaleDateString('el-GR', {day:'numeric', month:'long'})}` : ''}</span></div>
     <div class="td-bar"><i style="width:${done / steps.length * 100}%"></i></div>
     ${next ? `<button class="td-main" data-nav="${next.nav}"><span class="td-l">${next.long ? 'Όταν έχεις χρόνο (2–3 ώρες)' : 'Επόμενο βήμα'}</span><b>${esc(next.title)}</b><span>${esc(next.sub)}</span></button>` : '<div class="td-main"><b>Ολοκλήρωσες το πρόγραμμα 🎉</b><span>Κράτα επαφή με λάθη και κάρτες μέχρι την εξέταση.</span></div>'}
-    <div class="td-l" style="margin-top:12px">Αν έχεις μόνο 25 λεπτά</div>
-    <div class="td-short">${shortTasks.map(x => `<button ${x.op ? `data-op="${x.op}"` : `data-nav="${x.nav}"`}><b>${esc(x.t)}</b><span>${esc(x.s)}</span></button>`).join('')}</div>
+    <div class="td-l" style="margin-top:12px">Αν είσαι κουρασμένος ή έχεις μόνο 25 λεπτά</div>
+    <div class="td-short">${shortTasks.map(x => `<button ${x.op ? `data-op="${x.op}"` : x.play ? `data-play="${x.play}"` : `data-nav="${x.nav}"`}><b>${esc(x.t)}</b><span>${esc(x.s)}</span></button>`).join('')}</div>
     <p class="td-note">Χωρίς ημερομηνίες: αν χάσεις μέρες, το πρόγραμμα συνεχίζει από εκεί που έμεινες.</p>
   </div>`;
 }
@@ -553,7 +565,8 @@ function viewDrills(){
    ════════════════════════════════════════════════════════════════════ */
 function labShell(title, sub, body){
   setView('practice'); scrollTo(0, 0);
-  app.innerHTML = `<div class="lab"><div class="qprog"><button class="back" data-nav="#/practice">${IC.left} Εξάσκηση</button></div>
+  const bk = typeof labBack === 'function' ? labBack() : {nav:'#/practice', label:'Εξάσκηση'};
+  app.innerHTML = `<div class="lab"><div class="qprog"><button class="back" data-nav="${bk.nav}">${IC.left} ${bk.label}</button></div>
     <p class="eyebrow">Οπτικό εργαλείο</p><h1 class="lesson-title">${title}</h1><p class="lab-sub">${sub}</p>${body}</div>`;
 }
 
