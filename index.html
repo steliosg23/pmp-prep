@@ -356,10 +356,10 @@ html.buffering [data-p="toggle"].pbtn::after{content:'';position:absolute;inset:
   .ol-toggle{display:none}
   .lesson-side{display:flex;flex-direction:column;gap:14px;min-height:0;overflow-y:auto;padding-bottom:4px;scrollbar-width:thin}
   .lesson-side .side-outline{flex:none}
-  .guide .section-eyebrow{scroll-margin-top:18px}
+  .guide .section-eyebrow,.guide h1,.guide .section-h2,.guide .section-h3{scroll-margin-top:18px}
 }
 @media (max-width:1079px){
-  .guide .section-eyebrow{scroll-margin-top:calc(var(--top) + 64px)}
+  .guide .section-eyebrow,.guide h1,.guide .section-h2,.guide .section-h3{scroll-margin-top:calc(var(--top) + 64px)}
 }
 
 /* ══ bottom dock: the persistent mini player ══════════════════════════ */
@@ -598,6 +598,38 @@ mark.hl.flash{outline:2px solid var(--gold);outline-offset:2px}
 .notes-list .meta{padding:6px 10px;font-size:12.5px;color:var(--text-3)}
 .notes-list .clear{color:var(--red);font-size:12.5px;padding:6px 10px}
 
+.lib-group{margin:8px 0 26px}
+.lib-group h2{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-3);font-weight:500;margin:0 0 10px}
+.lib-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.lib-item{display:grid;grid-template-columns:40px 1fr;gap:4px 14px;text-align:left;padding:16px;border-radius:14px;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow-sm);transition:border-color .15s,transform .1s}
+.lib-item:hover{border-color:var(--sky)}
+.lib-ico{grid-row:span 2;width:40px;height:40px;border-radius:10px;background:var(--sky-wash);color:var(--sky-ink);display:grid;place-items:center}
+.lib-t{font-size:15.5px;color:var(--heading);line-height:1.3}
+.lib-s{font-size:13px;color:var(--text-3);line-height:1.4}
+.op-dlg{position:fixed;inset:0;z-index:88;background:rgba(5,10,20,.6);display:flex;align-items:center;justify-content:center;padding:16px}
+.op-dlg[hidden]{display:none}
+.op-card{width:100%;max-width:760px;max-height:100%;display:flex;flex-direction:column;background:var(--surface);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+.op-top{display:flex;align-items:center;justify-content:space-between;padding:10px 12px 10px 20px;border-bottom:1px solid var(--line);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-3)}
+.op-top .ibtn{color:var(--heading)}
+.op-body{overflow:auto;padding:clamp(18px,4vw,36px);overscroll-behavior:contain}
+.guide .op-sep{height:1px;background:var(--line);margin:40px 0}
+.guide td.fill{padding:4px 6px}
+.guide td.fill input:not([type]){width:100%;min-width:70px;font:inherit;font-size:13px;padding:6px 8px;border-radius:6px;border:1px dashed var(--line-2);background:var(--surface-2);color:var(--text)}
+.guide td.fill input:not([type]):focus{outline:none;border-style:solid;border-color:var(--sky)}
+.guide td.chk{text-align:center}
+.guide td.chk input{width:20px;height:20px;accent-color:#2F6B4F}
+.card-filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+.card-filters select{font:inherit;font-size:14px;padding:8px 12px;border-radius:999px;border:1px solid var(--line-2);background:var(--surface-2);color:var(--text);max-width:100%}
+.card-filters .qset{margin:0}
+.qset button[data-mode]{cursor:pointer}
+.flash{display:flex;flex-direction:column;gap:14px;width:100%;min-height:300px;text-align:left;padding:clamp(22px,5vw,40px);border-radius:18px;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);cursor:pointer}
+.flash.flipped{cursor:default;background:linear-gradient(180deg,var(--surface),var(--sky-wash))}
+.fl-k{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--sky-ink);font-weight:500}
+.fl-t{font-family:var(--serif);font-size:clamp(26px,5vw,36px);font-weight:600;color:var(--heading);line-height:1.15}
+.fl-hint{margin-top:auto;font-size:14px;color:var(--text-3)}
+.fl-d{font-size:17px;line-height:1.65;color:var(--text)}
+.fl-row{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+
 /* lock screen */
 .lock{position:fixed;inset:0;z-index:95;display:flex;align-items:center;justify-content:center;padding:24px;
   background:radial-gradient(120% 80% at 100% 0%,rgba(127,176,204,.22),transparent 55%),linear-gradient(160deg,#16284A,#0B1628 70%);color:#fff}
@@ -631,6 +663,7 @@ mark.hl.flash{outline:2px solid var(--gold);outline-offset:2px}
     </button>
     <nav class="topnav">
       <button data-nav="#/">Μαθήματα</button>
+      <button data-nav="#/library">Βιβλιοθήκη</button>
       <button data-nav="#/progress">Πρόοδος</button>
       <button class="theme-btn" id="theme" aria-label="Εναλλαγή φωτεινού / σκοτεινού θέματος" title="Night mode">
         <svg class="i s sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/></svg>
@@ -679,6 +712,10 @@ mark.hl.flash{outline:2px solid var(--gold);outline-offset:2px}
 <div class="toast" id="toast" role="status" aria-live="polite"><span id="toast-msg"></span><button id="toast-act" hidden></button></div>
 <div class="lightbox" id="lightbox"><img alt="" /></div>
 <div class="hl-pop" id="hl-pop" hidden></div>
+<div class="op-dlg" id="op-dlg" hidden role="dialog" aria-modal="true" aria-label="Μονοσέλιδο κεφαλαίου">
+  <div class="op-card"><div class="op-top"><span id="op-k">Μονοσέλιδο</span><button class="ibtn" id="op-close" aria-label="Κλείσιμο"><svg class="i s" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <div class="op-body"><div class="guide" id="op-body"></div></div></div>
+</div>
 <div class="note-dlg" id="note-dlg" hidden>
   <div class="nd-card">
     <div class="nd-q" id="nd-q"></div>
@@ -719,7 +756,8 @@ function setCh(id, patch){ const s = loadState(); s[id] = Object.assign(chState(
 const prefs = Object.assign({rate:1, zoom:1}, store.get(PREF, {}));
 const savePrefs = () => store.set(PREF, prefs);
 
-let CH = [];
+let CH = [], DOCS = [], CARDS = [], OPS = [];
+const docOf = id => { const d = DOCS.find(x => x.id === id); return d && Object.assign({html: `docs/${id}.html`}, d); };
 const $ = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const root = document.documentElement;
@@ -765,6 +803,9 @@ const IC = {
   list:  '<svg class="i s" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/></svg>',
   check: '<svg class="i s" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
   left:  '<svg class="i s" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>',
+  cards: '<svg class="i s" viewBox="0 0 24 24"><rect x="3" y="6" width="14" height="13" rx="2"/><path d="M7 3h12a2 2 0 0 1 2 2v11"/></svg>',
+  lib:   '<svg class="i s" viewBox="0 0 24 24"><path d="M4 4h4v16H4zM10 4h4v16h-4zM16 5l3.5-1 3 15-3.5 1z"/></svg>',
+  shuffle:'<svg class="i s" viewBox="0 0 24 24"><path d="M16 3h5v5M4 20l17-17M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>',
   pen:   '<svg class="i s" viewBox="0 0 24 24"><path d="M15.5 4.5l4 4L8 20H4v-4z"/><path d="M13.5 6.5l4 4"/></svg>',
   hl:    '<svg class="i s" viewBox="0 0 24 24"><path d="M4 20h7"/><path d="M14.5 4.5l5 5-7.5 7.5H7v-5z"/></svg>',
   marker:'<svg class="i s" viewBox="0 0 24 24"><path d="M9 15l-4 4 2 2 2-2h4l7-7-6-6-7 7z"/><path d="M3 21h6"/></svg>',
@@ -1062,6 +1103,8 @@ document.addEventListener('click', e => {
     else if (a === 'switch'){ P.load(+act.dataset.id, true); refreshView(); }
     return;
   }
+  const op = e.target.closest('[data-op]');
+  if (op){ openOp(+op.dataset.op); return; }
   const pl = e.target.closest('[data-play]');
   if (pl){
     e.stopPropagation();
@@ -1073,7 +1116,7 @@ document.addEventListener('click', e => {
   if (n){ if (location.hash === n.dataset.nav) route(); else location.hash = n.dataset.nav; }
 });
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape'){ closeSheet(); $('#lightbox').classList.remove('show'); }
+  if (e.key === 'Escape'){ closeSheet(); closeOp(); $('#lightbox').classList.remove('show'); }
   const tag = (e.target.tagName || '').toLowerCase();
   if (e.key === 'Enter' && e.target.matches('[role="link"][data-nav]')) location.hash = e.target.dataset.nav;
   if (e.key === ' ' && P.ch && !['input','button','textarea','select'].includes(tag) && !e.target.isContentEditable){
@@ -1117,11 +1160,17 @@ let currentView = null;
 function route(){
   const h = location.hash || '#/';
   $$('.topnav [data-nav]').forEach(b =>
-    b.toggleAttribute('aria-current', b.dataset.nav === (h.startsWith('#/progress') ? '#/progress' : '#/')));
+    b.toggleAttribute('aria-current', b.dataset.nav === (h.startsWith('#/progress') ? '#/progress' : /^#\/(library|doc|cards)/.test(h) ? '#/library' : '#/')));
   closeSheet();
   readerCleanup();
   const m = h.match(/^#\/ch\/(\d+)(\/quiz(?:\/(book|extra))?)?$/);
+  closeOp();
   if (m) return m[2] ? viewQuiz(+m[1], m[3]) : viewModule(+m[1]);
+  const dm = h.match(/^#\/doc\/([a-z0-9-]+)$/);
+  if (dm) return dm[1] === 'cards' ? viewCards(null) : viewModule(dm[1]);
+  const cm = h.match(/^#\/(?:ch\/(\d+)\/)?cards$/);
+  if (cm) return viewCards(cm[1] ? +cm[1] : null);
+  if (h.startsWith('#/library')) return viewLibrary();
   if (h.startsWith('#/progress')) return viewProgress();
   return viewList();
 }
@@ -1198,20 +1247,24 @@ function readerCleanup(){
 }
 
 async function viewModule(id){
-  const c = chOf(id);
+  const isDoc = typeof id === 'string';
+  const c = isDoc ? docOf(id) : chOf(id);
   if (!c){ location.hash = '#/'; return; }
+  const here = location.hash, key = isDoc ? 'doc:' + id : id;   /* key for notes and reading position */
   setView('module'); scrollTo(0,0);
-  if (!P.ch || (!(P.ready ? !A.paused : P.wantPlay) && P.ch !== id)) P.load(id, false);
-  const st = chState(id), s = stateOf(c);
-  const other = P.ch !== id ? chOf(P.ch) : null;
+  if (!isDoc && (!P.ch || (!(P.ready ? !A.paused : P.wantPlay) && P.ch !== id))) P.load(id, false);
+  const st = chState(key), s = isDoc ? '' : stateOf(c);
+  const other = !isDoc && P.ch !== id ? chOf(P.ch) : null;
+  const nCards = isDoc ? 0 : CARDS.filter(k => k.ch === id).length, hasOp = !isDoc && OPS.includes(id);
 
   app.innerHTML = `
   <div class="lesson">
     <section class="lesson-main">
       <header class="lesson-head">
-        <nav class="crumbs"><button data-nav="#/">${IC.left}Μαθήματα</button><span>/</span><span>Κεφάλαιο ${pad2(id)} από ${CH.length}</span></nav>
+        <nav class="crumbs">${isDoc ? `<button data-nav="#/library">${IC.left}Βιβλιοθήκη</button><span>/</span><span>${esc(c.sub)}</span>`
+          : `<button data-nav="#/">${IC.left}Μαθήματα</button><span>/</span><span>Κεφάλαιο ${pad2(id)} από ${CH.length}</span>`}</nav>
         <h1 class="lesson-title" title="${esc(c.title)}">${esc(c.title)}</h1>
-        <div class="lesson-meta">
+        ${isDoc ? '' : `<div class="lesson-meta">
           <span class="pill">${IC.head}${mins(c.seconds)} ηχητικό</span>
           ${c.eco ? `<span class="pill eco">${esc(c.eco)}</span>` : ''}
           ${st.best !== null ? `<span class="pill${st.best>=PASS?' ok':''}">Quiz ${st.best}%</span>` : ''}
@@ -1220,13 +1273,15 @@ async function viewModule(id){
         <div class="lesson-actions">
           <button class="btn btn-navy" data-play="${id}">${IC.play}${IC.pause}<span class="lbl">Άκου το μάθημα</span></button>
           <button class="btn btn-ghost" data-nav="#/ch/${id}/quiz/${mainSet(c)}">${IC.quiz} Quiz</button>
-        </div>
+          ${hasOp ? `<button class="btn btn-ghost" data-op="${id}">${IC.doc} Μονοσέλιδο</button>` : ''}
+          ${nCards ? `<button class="btn btn-ghost" data-nav="#/ch/${id}/cards">${IC.cards} Κάρτες</button>` : ''}
+        </div>`}
       </header>
 
       <div class="viewer" id="viewer">
         <div class="viewer-bar">
           <button class="vb-btn ol-toggle" id="ol-btn" aria-expanded="false" aria-controls="ol-pop">${IC.list}<span>Ενότητες</span></button>
-          <span class="vb-label">${IC.doc}<span class="vb-sec" id="vb-sec">Κείμενο κεφαλαίου</span></span>
+          <span class="vb-label">${IC.doc}<span class="vb-sec" id="vb-sec">${isDoc ? 'Κείμενο' : 'Κείμενο κεφαλαίου'}</span></span>
           <div class="vb-right">
             <span class="vb-pct" id="vb-pct">0%</span>
             <button class="vb-btn" id="anno-btn" aria-expanded="false" title="Πένα, υπογράμμιση και σημειώσεις" aria-label="Πένα και υπογράμμιση">${IC.pen}</button>
@@ -1261,23 +1316,30 @@ async function viewModule(id){
     </section>
 
     <aside class="lesson-side">
-      <div class="side-card np-card">
+      ${isDoc ? '' : `<div class="side-card np-card">
         ${other ? `<div class="np-other"><span>Παίζει το κεφ. ${pad2(other.id)}</span><button class="btn btn-gold" data-p="switch" data-id="${id}">Άκου το ${pad2(id)}</button></div>` : ''}
         ${bigPlayer('side')}
-      </div>
+      </div>`}
       <div class="side-card side-outline">
-        <h3>Σε αυτό το κεφάλαιο</h3>
+        <h3>${isDoc ? 'Περιεχόμενα' : 'Σε αυτό το κεφάλαιο'}</h3>
         <ol class="outline" id="outline"></ol>
       </div>
       <div class="side-card side-notes">
         <h3>Οι σημειώσεις μου</h3>
         <ul class="notes-list" id="notes-side"></ul>
       </div>
-      <div class="side-card side-quiz">
+      ${isDoc ? '' : `<div class="side-card side-quiz">
         <h3>Quiz κεφαλαίου</h3>
         <p>${c.quiz && c.quiz.book ? 'Πρώτα οι ερωτήσεις του βιβλίου, μετά οι επιπλέον για εξάσκηση.' : 'Ερωτήσεις μόνο από αυτό το κεφάλαιο.'} Περνάς με ${PASS}%.</p>
         <div class="qbtns">${quizBtns(c, 'btn-ghost')}</div>
       </div>
+      ${hasOp || nCards ? `<div class="side-card side-quiz">
+        <h3>Επανάληψη</h3>
+        <div class="qbtns">
+          ${hasOp ? `<button class="btn btn-ghost" data-op="${id}">${IC.doc} Μονοσέλιδο κεφαλαίου</button>` : ''}
+          ${nCards ? `<button class="btn btn-ghost" data-nav="#/ch/${id}/cards">${IC.cards} Κάρτες αυτοελέγχου <span class="qn">${nCards}</span></button>` : ''}
+        </div>
+      </div>` : ''}`}
     </aside>
   </div>`;
   syncAll();
@@ -1307,19 +1369,21 @@ async function viewModule(id){
     return;
   }
   const w = $('#gwrap');
-  if (!w || currentView !== 'module' || location.hash !== `#/ch/${id}`) return;
-  const nextC = chOf(id + 1);
+  if (!w || currentView !== 'module' || location.hash !== here) return;
+  const nextC = isDoc ? null : chOf(id + 1);
   w.innerHTML = `<div class="guide"></div>
-    <section class="end-cta">
+    ${isDoc ? '' : `<section class="end-cta">
       <div>
         <h2>Τέλος κεφαλαίου</h2>
         <p>Τσέκαρε τι κράτησες: πρώτα με τις ερωτήσεις του βιβλίου, μετά με επιπλέον ερωτήσεις από το ίδιο κεφάλαιο.</p>
       </div>
       <div class="row">
         ${quizBtns(c, 'btn-line')}
+        ${hasOp ? `<button class="btn btn-line" data-op="${id}">${IC.doc} Μονοσέλιδο</button>` : ''}
+        ${nCards ? `<button class="btn btn-line" data-nav="#/ch/${id}/cards">${IC.cards} Κάρτες</button>` : ''}
         ${nextC ? `<button class="btn btn-line" data-nav="#/ch/${nextC.id}">Επόμενο κεφάλαιο →</button>` : ''}
       </div>
-    </section>`;
+    </section>`}`;
   const g = w.querySelector('.guide');
   /* parsed inside .guide, so stray closing tags in the book can't escape it;
      images are encrypted too, so their src is filled in after decrypting */
@@ -1348,6 +1412,11 @@ async function viewModule(id){
     while (h && !/^H[2-3]$/.test(h.tagName)) h = h.nextElementSibling;
     return {el, num, title: (h ? h.textContent : el.textContent).replace(/\.\s*$/, '').trim()};
   });
+  if (!secs.length){   /* documents without numbered sections: use their headings */
+    let hs = $$('h1.opener-h1, .section-h2', g);
+    if (hs.length < 2) hs = $$('.section-h3', g);
+    hs.forEach((el, i) => secs.push({el, num: String(i + 1), title: el.textContent.replace(/\.\s*$/, '').trim().slice(0, 90)}));
+  }
   const items = secs.map((s, i) => `<li><button data-sec="${i}"><span class="n">${esc(s.num)}</span><span>${esc(s.title)}</span></button></li>`).join('');
   $('#outline').innerHTML = items || '<li class="empty" style="padding:8px">—</li>';
   $('#ol-pop-list').innerHTML = items;
@@ -1397,7 +1466,7 @@ async function viewModule(id){
         if (ar.top < br.top || ar.bottom > br.bottom) a.scrollIntoView({block:'nearest'}); }
     }
     clearTimeout(saveT);
-    saveT = setTimeout(() => setCh(id, {at: m.ratio}), 400);
+    saveT = setTimeout(() => setCh(key, {at: m.ratio}), 400);
   };
   const onScroll = () => { if (!ticking){ ticking = true; requestAnimationFrame(update); } };
   vbody.addEventListener('scroll', onScroll, {passive:true});
@@ -1405,7 +1474,17 @@ async function viewModule(id){
   const onMode = () => requestAnimationFrame(update);
   DESK.addEventListener?.('change', onMode);
   reader = {id, onScroll, onMode};
-  setupAnnotations(id, g, w);
+  setupAnnotations(key, g, w);
+  /* fillable tables (study plan trackers) keep what you type on this device */
+  const FILL = 'pmp8.fill.v1', fills = store.get(FILL, {}), mine = fills[key] || {};
+  $$('input[data-cell]', g).forEach(inp => {
+    const v = mine[inp.dataset.cell];
+    if (inp.type === 'checkbox') inp.checked = !!v; else if (v) inp.value = v;
+    inp.addEventListener('change', () => {
+      const all = store.get(FILL, {}); all[key] = all[key] || {};
+      all[key][inp.dataset.cell] = inp.type === 'checkbox' ? inp.checked : inp.value; store.set(FILL, all);
+    });
+  });
 
   /* wait briefly for images so the restored position lands where you left it */
   await Promise.race([Promise.all(imgLoads), new Promise(r => setTimeout(r, 2500))]);
@@ -1701,6 +1780,96 @@ function setupAnnotations(id, g, w){
   ANNO = {cleanup(){ document.removeEventListener('selectionchange', onSel); removeEventListener('scroll', onScrollHide); ro.disconnect(); hidePop(); $('#note-dlg').hidden = true; }};
 }
 
+/* ── one-pager (Appendix Z) as an overlay ───────────────────────────── */
+async function openOp(n){
+  const dlg = $('#op-dlg'), body = $('#op-body');
+  $('#op-k').textContent = `Μονοσέλιδο · Κεφάλαιο ${pad2(n)}`;
+  body.innerHTML = '<div class="loading">Φόρτωση…</div>'; dlg.hidden = false; document.body.style.overflow = 'hidden';
+  try { body.innerHTML = await getText(`docs/op-${n}.html`); } catch(e){ body.innerHTML = '<div class="loading">Δεν φορτώθηκε.</div>'; }
+}
+function closeOp(){ const d = $('#op-dlg'); if (d && !d.hidden){ d.hidden = true; document.body.style.overflow = ''; } }
+$('#op-close').onclick = closeOp;
+$('#op-dlg').addEventListener('click', e => { if (e.target.id === 'op-dlg') closeOp(); });
+
+/* ── view: library (study guide, appendices, tools) ───────────────── */
+function viewLibrary(){
+  setView('library'); scrollTo(0,0);
+  const groups = [...new Set(DOCS.map(d => d.group))];
+  const known = store.get('pmp8.cards.v1', {}), nk = CARDS.filter((c, i) => known[cardId(c)]).length;
+  app.innerHTML = `
+    <section class="prog-head">
+      <p class="eyebrow">Ολόκληρο το βιβλίο</p>
+      <h1>Βιβλιοθήκη</h1>
+      <p>Ο οδηγός μελέτης, τα εργαλεία επανάληψης και τα παραρτήματα του βιβλίου, με τις υπογραμμίσεις του.</p>
+    </section>
+    ${groups.map(g => `<div class="lib-group"><h2>${esc(g)}</h2><div class="lib-grid">${DOCS.filter(d => d.group === g).map(d => `
+      <button class="lib-item" data-nav="${d.kind === 'cards' ? '#/cards' : '#/doc/' + d.id}">
+        <span class="lib-ico">${d.kind === 'cards' ? IC.cards : IC.doc}</span>
+        <span class="lib-t">${esc(d.title)}</span>
+        <span class="lib-s">${esc(d.sub)}${d.kind === 'cards' && CARDS.length ? ` · ξέρεις ${nk}/${CARDS.length}` : ''}</span>
+      </button>`).join('')}</div></div>`).join('')}`;
+}
+
+/* ── view: flashcards (Appendix Θ) ────────────────────────────────── */
+const cardId = c => c.ch + ':' + c.t;
+function viewCards(ch){
+  setView('cards'); scrollTo(0,0);
+  const KNOWN = 'pmp8.cards.v1';
+  let mode = 'todo';   /* todo = only cards you don't know yet; all = every card */
+  const pool = () => CARDS.filter(c => (ch === null || c.ch === ch));
+  let deck = [], i = 0, flipped = false;
+  const shuffle = a => { a = a.slice(); for (let k = a.length - 1; k > 0; k--){ const j = Math.floor(Math.random() * (k + 1)); [a[k], a[j]] = [a[j], a[k]]; } return a; };
+  function build(){
+    const known = store.get(KNOWN, {});
+    deck = shuffle(pool().filter(c => mode === 'all' || !known[cardId(c)])); i = 0; flipped = false; render();
+  }
+  function render(){
+    const known = store.get(KNOWN, {}), all = pool(), nk = all.filter(c => known[cardId(c)]).length;
+    const chs = [...new Set(CARDS.map(c => c.ch))].sort((a, b) => a - b);
+    const c = deck[i];
+    app.innerHTML = `
+      <div class="quiz">
+        <div class="qprog">
+          <button class="back" data-nav="${ch ? '#/ch/' + ch : '#/library'}">${IC.left} ${ch ? 'Κεφ. ' + pad2(ch) : 'Βιβλιοθήκη'}</button>
+          <div class="track"><div class="fill" style="width:${all.length ? nk / all.length * 100 : 0}%"></div></div>
+          <span>ξέρεις ${nk}/${all.length}</span>
+        </div>
+        <div class="card-filters">
+          <select id="cf-ch" aria-label="Κεφάλαιο"><option value="">Όλα τα κεφάλαια</option>${chs.map(n => `<option value="${n}"${n === ch ? ' selected' : ''}>Κεφάλαιο ${pad2(n)} · ${esc((chOf(n) || {}).title || '')}</option>`).join('')}</select>
+          <div class="qset"><button data-mode="todo"${mode === 'todo' ? ' aria-current="true"' : ''}>Όσες δεν ξέρω</button><button data-mode="all"${mode === 'all' ? ' aria-current="true"' : ''}>Όλες</button></div>
+        </div>
+        ${c ? `
+        <button class="flash${flipped ? ' flipped' : ''}" id="flash" aria-label="Γύρισε την κάρτα">
+          <span class="fl-k">Κεφάλαιο ${pad2(c.ch)} · ${i + 1} / ${deck.length}</span>
+          <span class="fl-t">${esc(c.t)}</span>
+          ${flipped ? `<span class="fl-d guide">${c.d}</span>` : `<span class="fl-hint">Σκέψου τον ορισμό και πάτα για να δεις την απάντηση</span>`}
+        </button>
+        <div class="fl-row">
+          ${flipped ? `<button class="btn btn-ghost" id="fl-again">Ξανά αργότερα</button><button class="btn btn-gold" id="fl-know">${IC.check} Το ήξερα</button>`
+                    : `<button class="btn btn-navy" id="fl-flip">Δείξε τον ορισμό</button>`}
+        </div>` : `
+        <div class="empty">${pool().length ? 'Μπράβο — τις ξέρεις όλες σε αυτή την επιλογή.' : 'Δεν υπάρχουν κάρτες για αυτό το κεφάλαιο.'}
+          <div style="margin-top:16px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+            <button class="btn btn-ghost" data-mode="all">Επανάληψη όλων</button>
+            ${nk ? '<button class="btn btn-ghost" id="fl-reset">Μηδενισμός «ξέρω»</button>' : ''}</div></div>`}
+      </div>`;
+    $('#cf-ch').onchange = e => { location.hash = e.target.value ? `#/ch/${e.target.value}/cards` : '#/cards'; };
+    $$('[data-mode]').forEach(b => b.onclick = () => { mode = b.dataset.mode; build(); });
+    const flip = () => { flipped = true; render(); };
+    if ($('#flash')) $('#flash').onclick = () => { if (!flipped) flip(); };
+    if ($('#fl-flip')) $('#fl-flip').onclick = flip;
+    const next = know => {
+      const k = store.get(KNOWN, {}); if (know) k[cardId(c)] = 1; else delete k[cardId(c)]; store.set(KNOWN, k);
+      if (!know) deck.push(c);   /* see it again later in this round */
+      i++; flipped = false; render();
+    };
+    if ($('#fl-know')) $('#fl-know').onclick = () => next(true);
+    if ($('#fl-again')) $('#fl-again').onclick = () => next(false);
+    if ($('#fl-reset')) $('#fl-reset').onclick = () => { const k = store.get(KNOWN, {}); pool().forEach(c => delete k[cardId(c)]); store.set(KNOWN, k); mode = 'todo'; build(); };
+  }
+  build();
+}
+
 /* ── view: quiz ───────────────────────────────────────────────────── */
 async function viewQuiz(id, setId){
   const c = chOf(id);
@@ -1889,7 +2058,11 @@ $('[data-ctrls]').innerHTML = ctrls();
   try { vault = await (await fetch('vault.json', {cache:'no-cache'})).json(); }
   catch(e){ app.innerHTML = `<div class="empty">Η εφαρμογή δεν φορτώθηκε. Ανανέωσε τη σελίδα.</div>`; return; }
   VKEY = await savedKey(vault) || await askPassword(vault);
-  try { CH = await getJSON('chapters/index.json'); }
+  try {
+    CH = await getJSON('chapters/index.json');
+    [DOCS, CARDS] = await Promise.all([getJSON('docs/index.json').catch(() => []), getJSON('docs/cards.json').catch(() => [])]);
+    OPS = Array.from({length: 20}, (_, i) => i + 1);
+  }
   catch(e){ app.innerHTML = `<div class="empty">Τα κεφάλαια δεν φορτώθηκαν. Ανανέωσε τη σελίδα.</div>`; return; }
   route();
 })();

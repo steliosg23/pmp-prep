@@ -7,7 +7,7 @@
  * - Audio files are left to the browser's HTTP cache.
  * - Bump CACHE_VERSION on every deploy to drop old caches.
  */
-const CACHE_VERSION = 'v2026.10.18.09';
+const CACHE_VERSION = 'v2026.10.18.10';
 const APP_CACHE = `pmp-app-${CACHE_VERSION}`;
 const CONTENT_CACHE = `pmp-content-${CACHE_VERSION}`;
 const CDN_CACHE = `pmp-cdn-${CACHE_VERSION}`;
@@ -59,7 +59,7 @@ self.addEventListener('fetch', (event) => {
     const isHTML = req.mode === 'navigate';
     if (isHTML || url.pathname.endsWith('/chapters/index.json.enc') || url.pathname.endsWith('/vault.json')) {
       event.respondWith(networkFirst(req, APP_CACHE));
-    } else if (/\/(chapters|quiz|img)\//.test(url.pathname)) {
+    } else if (/\/(chapters|quiz|img|docs)\//.test(url.pathname)) {
       event.respondWith(staleWhileRevalidate(req, CONTENT_CACHE));
     } else {
       event.respondWith(staleWhileRevalidate(req, APP_CACHE));
