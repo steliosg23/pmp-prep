@@ -1505,8 +1505,20 @@ $('[data-ctrls]').innerHTML = ctrls();
   route();
 })();
 
+/* when a new version is deployed, the new service worker takes over and the page reloads
+   itself (or asks first, if a lesson is playing), so old code never meets new content */
 if ('serviceWorker' in navigator){
-  addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
+  const hadController = !!navigator.serviceWorker.controller;
+  let reloading = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadController || reloading) return;
+    const go = () => { reloading = true; P.save(); location.reload(); };
+    if (P.ready && !A.paused) toast('Υπάρχει νέα έκδοση της εφαρμογής.', 'Ανανέωση', go); else go();
+  });
+  addEventListener('load', () => navigator.serviceWorker.register('sw.js').then(r => {
+    r.update().catch(()=>{});
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) r.update().catch(()=>{}); });
+  }).catch(()=>{}));
 }
 </script>
 </body>
