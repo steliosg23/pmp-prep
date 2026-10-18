@@ -301,7 +301,17 @@ html.buffering [data-p="toggle"].pbtn::after{content:'';position:absolute;inset:
 .side-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow-sm)}
 .side-card h3{font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-3);font-weight:500;margin:2px 4px 10px}
 .side-quiz p{margin:0 4px 14px;font-size:14px;color:var(--text-2);line-height:1.5}
-.side-quiz .btn{width:100%}
+.side-quiz .btn{width:100%;justify-content:space-between}
+.qbtns{display:flex;flex-direction:column;gap:8px}
+.btn .qn{font-weight:400;opacity:.75;font-size:13px;margin-left:auto}
+.end-cta .btn .qn{margin-left:6px}
+.qset{display:flex;gap:6px;margin:0 0 18px;flex-wrap:wrap}
+.qset button{padding:7px 14px;border-radius:999px;font-size:13.5px;border:1px solid var(--line-2);color:var(--text-2)}
+.qset button[aria-current]{background:var(--heading);color:var(--bg);border-color:var(--heading)}
+.qtitle{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--sky-ink);font-weight:500;margin:0 0 10px}
+.qscen{font-size:15.5px;line-height:1.65;color:var(--text-2);margin:0 0 14px;padding:14px 16px;background:var(--sunk);border-radius:10px}
+.why .no{display:block;margin-top:10px;padding-top:10px;border-top:1px solid color-mix(in srgb,var(--sky) 35%,transparent)}
+.why .eco{display:inline-block;margin-top:10px;font-size:12px;color:var(--sky-ink);letter-spacing:.04em}
 .side-quiz .best{display:flex;justify-content:space-between;align-items:center;margin:0 4px 12px;font-size:13.5px;color:var(--text-2)}
 
 /* "now playing" — big player (sidebar on desktop, sheet on phones) */
@@ -627,7 +637,7 @@ const store = {
   set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
 };
 const loadState = () => store.get(KEY, {});
-function chState(id){ return Object.assign({pos:0, heard:0, best:null, at:0}, loadState()[id]); }
+function chState(id){ return Object.assign({pos:0, heard:0, best:null, bestX:null, at:0}, loadState()[id]); }
 function setCh(id, patch){ const s = loadState(); s[id] = Object.assign(chState(id), patch); store.set(KEY, s); }
 const prefs = Object.assign({rate:1, zoom:1}, store.get(PREF, {}));
 const savePrefs = () => store.set(PREF, prefs);
@@ -650,6 +660,19 @@ function stateOf(c){
   if (st.best !== null && st.best >= PASS && st.heard >= 0.9) return 'done';
   if (st.heard > 0.02 || st.best !== null || st.at > 0.03) return 'started';
   return 'new';
+}
+
+/* two quiz sets per chapter: the book's own practice questions, and extra questions.
+   The main set (book, or extra when the book has none) decides whether a chapter is done. */
+const SETS = {book:'Ερωτήσεις του βιβλίου', extra:'Επιπλέον ερωτήσεις'};
+const mainSet = c => (c && c.quiz && c.quiz.book) ? 'book' : 'extra';
+const scoreKey = (c, set) => set === mainSet(c) ? 'best' : 'bestX';
+function quizBtns(c, cls2){
+  const st = chState(c.id), sets = Object.keys((c && c.quiz) || {extra:8});
+  return sets.map((k, n) => {
+    const b = st[scoreKey(c, k)];
+    return `<button class="btn ${n === 0 ? 'btn-gold' : cls2}" data-nav="#/ch/${c.id}/quiz/${k}">${IC.quiz} ${SETS[k]} <span class="qn">${(c.quiz||{})[k] || ''}${b !== null && b !== undefined ? ' · ' + b + '%' : ''}</span></button>`;
+  }).join('');
 }
 
 /* icons */
@@ -1013,8 +1036,8 @@ function route(){
     b.toggleAttribute('aria-current', b.dataset.nav === (h.startsWith('#/progress') ? '#/progress' : '#/')));
   closeSheet();
   readerCleanup();
-  const m = h.match(/^#\/ch\/(\d+)(\/quiz)?$/);
-  if (m) return m[2] ? viewQuiz(+m[1]) : viewModule(+m[1]);
+  const m = h.match(/^#\/ch\/(\d+)(\/quiz(?:\/(book|extra))?)?$/);
+  if (m) return m[2] ? viewQuiz(+m[1], m[3]) : viewModule(+m[1]);
   if (h.startsWith('#/progress')) return viewProgress();
   return viewList();
 }
@@ -1111,7 +1134,7 @@ async function viewModule(id){
         </div>
         <div class="lesson-actions">
           <button class="btn btn-navy" data-play="${id}">${IC.play}${IC.pause}<span class="lbl">Άκου το μάθημα</span></button>
-          <button class="btn btn-ghost" data-nav="#/ch/${id}/quiz">${IC.quiz} Quiz</button>
+          <button class="btn btn-ghost" data-nav="#/ch/${id}/quiz/${mainSet(c)}">${IC.quiz} Quiz</button>
         </div>
       </header>
 
@@ -1144,9 +1167,8 @@ async function viewModule(id){
       </div>
       <div class="side-card side-quiz">
         <h3>Quiz κεφαλαίου</h3>
-        ${st.best !== null ? `<div class="best"><span>Καλύτερο σκορ</span><span class="score${st.best>=PASS?' pass':''}">${st.best}%</span></div>` : ''}
-        <p>Ερωτήσεις μόνο από αυτό το κεφάλαιο. Περνάς με ${PASS}%.</p>
-        <button class="btn btn-gold" data-nav="#/ch/${id}/quiz">${IC.quiz} ${st.best === null ? 'Ξεκίνα το quiz' : 'Ξανά το quiz'}</button>
+        <p>${c.quiz && c.quiz.book ? 'Πρώτα οι ερωτήσεις του βιβλίου, μετά οι επιπλέον για εξάσκηση.' : 'Ερωτήσεις μόνο από αυτό το κεφάλαιο.'} Περνάς με ${PASS}%.</p>
+        <div class="qbtns">${quizBtns(c, 'btn-ghost')}</div>
       </div>
     </aside>
   </div>`;
@@ -1183,10 +1205,10 @@ async function viewModule(id){
     <section class="end-cta">
       <div>
         <h2>Τέλος κεφαλαίου</h2>
-        <p>Τσέκαρε τι κράτησες με ερωτήσεις μόνο από αυτό το κεφάλαιο — από το κείμενο και το ηχητικό μάθημα.</p>
+        <p>Τσέκαρε τι κράτησες: πρώτα με τις ερωτήσεις του βιβλίου, μετά με επιπλέον ερωτήσεις από το ίδιο κεφάλαιο.</p>
       </div>
       <div class="row">
-        <button class="btn btn-gold" data-nav="#/ch/${id}/quiz">${IC.quiz} Ξεκίνα το quiz</button>
+        ${quizBtns(c, 'btn-line')}
         ${nextC ? `<button class="btn btn-line" data-nav="#/ch/${nextC.id}">Επόμενο κεφάλαιο →</button>` : ''}
       </div>
     </section>`;
@@ -1291,16 +1313,19 @@ async function viewModule(id){
 $('#lightbox').onclick = () => $('#lightbox').classList.remove('show');
 
 /* ── view: quiz ───────────────────────────────────────────────────── */
-async function viewQuiz(id){
+async function viewQuiz(id, setId){
   const c = chOf(id);
   if (!c){ location.hash = '#/'; return; }
   setView('quiz'); scrollTo(0,0);
   app.innerHTML = `<div class="loading">Φόρτωση ερωτήσεων…</div>`;
+  const here = location.hash;
 
-  let qs = null;
-  try { qs = (await getJSON(`quiz/ch${id}.json`)).questions; } catch(e){}
-  if (location.hash !== `#/ch/${id}/quiz`) return;
-  if (!qs || !qs.length){
+  let data = null;
+  try { data = await getJSON(`quiz/ch${id}.json`); } catch(e){}
+  if (location.hash !== here) return;
+  const sets = data ? (data.sets || [{id:'extra', questions:data.questions}]) : [];
+  const set = sets.find(x => x.id === setId) || sets[0];
+  if (!set || !set.questions || !set.questions.length){
     app.innerHTML = `<div class="quiz"><div class="qprog"><button class="back" data-nav="#/ch/${id}">${IC.left} Πίσω στο κεφάλαιο</button></div>
       <div class="empty">Οι ερωτήσεις για αυτό το κεφάλαιο δεν είναι έτοιμες ακόμη.</div></div>`;
     return;
@@ -1308,11 +1333,17 @@ async function viewQuiz(id){
   /* new order on every attempt: questions and options are shuffled and relabelled A–D,
      so you learn the content, not the position of the right answer */
   const shuffle = a => { a = a.slice(); for (let k = a.length - 1; k > 0; k--){ const j = Math.floor(Math.random() * (k + 1)); [a[k], a[j]] = [a[j], a[k]]; } return a; };
-  qs = shuffle(qs).map(q => {
-    const L = 'ABCDEFGH', opts = {}; let right = null;
-    shuffle(Object.keys(q.options)).forEach((k, n) => { opts[L[n]] = q.options[k]; if (k === q.correct) right = L[n]; });
-    return Object.assign({}, q, {options: opts, correct: right});
+  const qs = shuffle(set.questions).map(q => {
+    const L = 'ABCDEFGH', opts = {}, wrong = {}; let right = null;
+    shuffle(Object.keys(q.options)).forEach((k, n) => {
+      opts[L[n]] = q.options[k];
+      if (k === q.correct) right = L[n];
+      if (q.wrong && q.wrong[k]) wrong[L[n]] = q.wrong[k];
+    });
+    return Object.assign({}, q, {options: opts, correct: right, wrong});
   });
+  const tabs = sets.length > 1 ? `<div class="qset">${sets.map(x =>
+    `<button data-nav="#/ch/${id}/quiz/${x.id}"${x.id === set.id ? ' aria-current="true"' : ''}>${SETS[x.id] || x.title} · ${x.questions.length}</button>`).join('')}</div>` : '';
   let i = 0, correct = 0, answered = false;
 
   function render(){
@@ -1324,7 +1355,10 @@ async function viewQuiz(id){
           <div class="track"><div class="fill" style="width:${(i/qs.length)*100}%"></div></div>
           <span>${i+1} / ${qs.length}</span>
         </div>
+        ${i === 0 ? tabs : ''}
         <div class="quiz-card">
+          ${q.title ? `<p class="qtitle">${esc(q.title)}</p>` : ''}
+          ${q.scenario ? `<p class="qscen">${esc(q.scenario)}</p>` : ''}
           <p class="qtext">${esc(q.q)}</p>
           <div id="opts">${keys.map(k => `<button class="opt" data-k="${k}"><span class="key">${k}</span><span>${esc(q.options[k])}</span></button>`).join('')}</div>
           <div id="after"></div>
@@ -1338,7 +1372,9 @@ async function viewQuiz(id){
         if (b.dataset.k === right) b.dataset.mark = 'right'; else if (b.dataset.k === pick) b.dataset.mark = 'wrong'; });
       const last = i === qs.length - 1;
       $('#after').innerHTML = `
-        <div class="why"><b>${pick===right ? 'Σωστά.' : 'Η σωστή είναι η ' + right + '.'}</b> ${esc(q.why)}</div>
+        <div class="why"><b>${pick===right ? 'Σωστά.' : 'Η σωστή είναι η ' + right + '.'}</b> ${esc(q.why)}
+          ${pick !== right && q.wrong[pick] ? `<span class="no"><b>Γιατί όχι η ${pick}:</b> ${esc(q.wrong[pick])}</span>` : ''}
+          ${q.eco ? `<span class="eco">ECO: ${esc(q.eco)}</span>` : ''}</div>
         <div class="qfoot"><button class="btn btn-gold" id="next">${last ? 'Δες το αποτέλεσμα' : 'Επόμενη ερώτηση →'}</button></div>`;
       $('#next').onclick = () => { if (last) return finish(); i++; answered = false; render(); scrollTo(0,0); };
       $('#next').focus({preventScroll:true});
@@ -1346,21 +1382,24 @@ async function viewQuiz(id){
   }
   function finish(){
     const pct = Math.round((correct / qs.length) * 100);
-    const prev = chState(id).best;
-    if (prev === null || pct > prev) setCh(id, {best: pct});
+    const key = scoreKey(c, set.id), prev = chState(id)[key];
+    if (prev === null || prev === undefined || pct > prev) setCh(id, {[key]: pct});
     const pass = pct >= PASS, nextC = chOf(id+1);
+    const other = sets.find(x => x.id !== set.id);
     app.innerHTML = `
       <div class="result">
         ${ring(pct, pass)}
         <h2>${pct}%</h2>
-        <p>${correct} από ${qs.length} σωστές. ${pass ? 'Το quiz του κεφαλαίου πέρασε.' : 'Κάτω από 70% — αξίζει μια δεύτερη ακρόαση πριν προχωρήσεις.'}</p>
+        <p>${SETS[set.id] || ''}: ${correct} από ${qs.length} σωστές. ${pass ? (key === 'best' ? 'Το quiz του κεφαλαίου πέρασε.' : 'Πολύ καλά.') : 'Κάτω από 70% — αξίζει μια δεύτερη ακρόαση πριν προχωρήσεις.'}</p>
         <div class="row">
-          ${pass && nextC ? `<button class="btn btn-gold" data-nav="#/ch/${nextC.id}">Επόμενο κεφάλαιο →</button>` : ''}
-          <button class="btn ${pass && nextC ? 'btn-ghost' : 'btn-gold'}" id="again">Ξανά</button>
+          ${other ? `<button class="btn btn-gold" data-nav="#/ch/${id}/quiz/${other.id}">${SETS[other.id]} →</button>` : ''}
+          ${pass && nextC && !other ? `<button class="btn btn-gold" data-nav="#/ch/${nextC.id}">Επόμενο κεφάλαιο →</button>` : ''}
+          <button class="btn btn-ghost" id="again">Ξανά</button>
           <button class="btn btn-ghost" data-nav="#/ch/${id}">Πίσω στο κεφάλαιο</button>
+          ${pass && nextC && other ? `<button class="btn btn-ghost" data-nav="#/ch/${nextC.id}">Επόμενο κεφάλαιο →</button>` : ''}
         </div>
       </div>`;
-    $('#again').onclick = () => viewQuiz(id);
+    $('#again').onclick = () => viewQuiz(id, set.id);
   }
   render();
 }
