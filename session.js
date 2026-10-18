@@ -8,6 +8,7 @@ const SESS = 'pmp8.sess.cur', DAYS = 'pmp8.days.v1', HOOK = 'pmp8.hook', JOURNAL
 const today = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
 function markDay(blocks = 1, secs = 0){ const d = store.get(DAYS, {}), k = today(); d[k] = {b:((d[k] || {}).b || 0) + blocks, s:((d[k] || {}).s || 0) + secs}; store.set(DAYS, d); }
 
+const allHeard = () => CH.length && CH.every(c => chState(c.id).heard >= .9);
 function sessCh(){
   const cur = store.get('pmp8.tutor.cur', null);
   if (cur && chOf(cur) && chState(cur).heard < .9) return cur;
@@ -29,16 +30,24 @@ function weekDots(){
     return `<span class="wd${d[key] ? ' on' : ''}${k === dow ? ' now' : ''}" title="${key}">${l}</span>`; }).join('');
 }
 
+function readyChecks(){
+  const heard = CH.filter(c => chState(c.id).heard >= .9).length;
+  const T = store.get('pmp8.tests.v1', []), good = T.slice(-5).filter(t => t.sc >= 75).length;
+  const mock = store.get('pmp8.exam.hist', []).some(h => h.pct >= 75);
+  return [[heard >= CH.length, `Όλα τα επεισόδια (${heard}/${CH.length})`], [good >= 2, `2 τεστ ετοιμότητας ≥ 75% (${Math.min(good, 2)}/2)`], [mock, 'Μία προσομοίωση ≥ 75%']];
+}
 /* card on the home page, above everything else */
 function sessCard(){
   const ch = sessCh(), c = chOf(ch), r = readiness(), s = store.get(SESS, null), going = s && s.date === today() && s.step > 0 && s.step < s.blocks.length;
   const active = Object.keys(store.get(DAYS, {})).length;
   return `<div class="sess-card">
     <button class="sess-go" data-nav="#/session"><span class="sg-play">${IC.play}</span>
-      <span><b>${going ? 'Συνέχισε τη συνεδρία' : 'Πάμε'}</b><small>${going ? `μπλοκ ${s.step + 1} από ${s.blocks.length}` : `~${Math.round(((c ? c.seconds : 600) - (chState(ch).pos || 0)) / 60) + 20}′ χωρίς αποφάσεις · Κεφ. ${pad2(ch)} · ${esc(c ? c.title : '')}`}</small></span></button>
+      <span><b>${going ? 'Συνέχισε τη συνεδρία' : 'Πάμε'}</b><small>${going ? `μπλοκ ${s.step + 1} από ${s.blocks.length}` : allHeard() ? 'Τεστ ετοιμότητας · 12 ερωτήσεις από όλη την ύλη' : `~${Math.round(((c ? c.seconds : 600) - (chState(ch).pos || 0)) / 60) + 20}′ χωρίς αποφάσεις · Κεφ. ${pad2(ch)} · ${esc(c ? c.title : '')}`}</small></span></button>
     <button class="sess-mini" data-nav="#/session/mini">Κουρασμένος; <b>Μόνο 2 λεπτά</b> — η μέρα μετράει</button>
     <div class="sess-meta"><div class="wds">${weekDots()}</div>
       <div class="rd"><span>Ετοιμότητα <b>${r.n < 10 && !r.cov ? '—' : r.score + '%'}</b>${r.n < 10 && !r.cov ? ' <small>φαίνεται μετά τις πρώτες 10 ερωτήσεις</small>' : ' <small>στόχος 75%</small>'}</span><div class="rd-bar"><i style="width:${r.score}%"></i><em style="left:75%"></em></div></div></div>
+    <div class="rdy"><span class="rdy-t">${readyChecks().every(x => x[0]) ? '✓ Είσαι έτοιμος να πας στον καθηγητή σου' : 'Για να πας έτοιμος στον καθηγητή σου:'}</span>
+      ${readyChecks().map(x => `<span class="rdy-i${x[0] ? ' ok' : ''}">${x[0] ? '✓' : '○'} ${x[1]}</span>`).join('')}</div>
     ${active ? '' : '<p class="sess-tip">Ξεκίνα με το «Πάμε»: η εφαρμογή σου δείχνει ένα βήμα τη φορά.</p>'}
   </div>`;
 }
@@ -78,7 +87,7 @@ function questionsSeq(host, qs, opts, done){
 /* ── the session ───────────────────────────────────────────────────── */
 const SBLOCKS = {
   warm:{t:'Ζέσταμα', m:2}, listen:{t:'Άκου το επεισόδιο', m:0}, recall:{t:'Θυμήσου', m:3}, click:{t:'Ένα «κλικ»', m:5},
-  coach:{t:'Situational', m:7}, mist:{t:'Τα λάθη σου', m:3}, close:{t:'Κλείσιμο', m:2},
+  coach:{t:'Situational', m:7}, test:{t:'Τεστ ετοιμότητας', m:15}, mist:{t:'Τα λάθη σου', m:3}, close:{t:'Κλείσιμο', m:2},
 };
 async function viewSession(mini){
   setView('session'); scrollTo(0, 0);
@@ -87,7 +96,7 @@ async function viewSession(mini){
   let s = store.get(SESS, null);
   const kind = mini ? 'mini' : 'full';
   if (!s || s.date !== today() || s.kind !== kind || s.step >= s.blocks.length)
-    s = {date:today(), kind, ch:sessCh(), step:0, blocks: mini ? ['warm', 'coach', 'close'] : ['warm', 'listen', 'recall', 'click', 'coach', 'mist', 'close'], t0:Date.now()};
+    s = {date:today(), kind, ch:sessCh(), step:0, blocks: mini ? ['warm', 'coach', 'close'] : allHeard() ? ['warm', 'test', 'mist', 'close'] : ['warm', 'listen', 'recall', 'click', 'coach', 'mist', 'close'], t0:Date.now()};
   store.set(SESS, s);
   const ch = s.ch, c = chOf(ch);
   const save = () => store.set(SESS, s);
@@ -170,6 +179,23 @@ async function viewSession(mini){
       const qs = shuffleArr(pool.length >= 4 ? pool : (BANK || [])).slice(0, mini ? 1 : 4);
       h.innerHTML = `<p class="sess-say">Λειτουργία προπονητή: χωρίς χρόνο, χωρίς σκορ. Αν δυσκολευτείς, πάτα «Βοήθεια» και θα μείνουν οι δύο πιο πιθανές — εκεί κρίνεται η εξέταση.</p><div id="cq"></div>`;
       questionsSeq($('#cq'), qs, {coach:true, label:'Situational'}, advance);
+    },
+    test(h){
+      /* after the whole syllabus: 12 mixed questions, weighted towards the weakest ECO tasks */
+      const st = typeof taskStats === 'function' ? taskStats() : {}, rate = t => st[t] && st[t].n ? st[t].ok / st[t].n : .5;
+      const pool = shuffleArr((BANK || []).filter(q => !answered.has(q.id))).sort((a, b) => rate(a.task) - rate(b.task));
+      const qs = shuffleArr(pool.slice(0, 30)).slice(0, 12);
+      if (!qs.length) return advance();
+      let ok = 0;
+      h.innerHTML = `<p class="sess-say">Τέλειωσες όλη την ύλη. Τώρα κάθε συνεδρία είναι ένα μικρό τεστ 12 ερωτήσεων από όλα τα κεφάλαια, με περισσότερες από τα ECO tasks όπου είσαι πιο αδύναμος. Στο τέλος βλέπεις το σκορ.</p><div id="tq"></div>`;
+      questionsSeq($('#tq'), qs.map(q => Object.assign({}, q)), {label:'Τεστ', coach:false}, () => {
+        const log = store.get('pmp8.answers.v1', []).slice(-qs.length), sc = Math.round(100 * log.reduce((a, x) => a + x.ok, 0) / qs.length);
+        const T = store.get('pmp8.tests.v1', []); T.push({d:today(), sc}); store.set('pmp8.tests.v1', T);
+        h.innerHTML = `<div class="sess-end"><p class="sess-big">${sc}%</p><p class="hint">${sc >= 75 ? 'Επίπεδο εξέτασης. Αν το κρατήσεις και στις πλήρεις προσομοιώσεις, είσαι έτοιμος.' : sc >= 65 ? 'Κοντά. Τα λάθη έγιναν κάρτες επανάληψης — συνέχισε έτσι.' : 'Τα λάθη έγιναν κάρτες επανάληψης. Η εξάσκηση ανά ECO task θα σε ανεβάσει γρήγορα.'}</p>
+          <p class="hint">Τελευταία τεστ: ${T.slice(-5).map(t => t.sc + '%').join(' · ')}</p></div>
+          <div class="qfoot"><button class="btn btn-gold" id="tn">Συνέχεια →</button></div>`;
+        $('#tn').onclick = advance;
+      });
     },
     mist(h){
       const due = srsDue().slice(0, 3), qs = due.map(id => (BANK || []).find(q => q.id === id)).filter(Boolean);
