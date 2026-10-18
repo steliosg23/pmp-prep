@@ -35,7 +35,7 @@ function sessCard(){
   const active = Object.keys(store.get(DAYS, {})).length;
   return `<div class="sess-card">
     <button class="sess-go" data-nav="#/session"><span class="sg-play">${IC.play}</span>
-      <span><b>${going ? 'Συνέχισε τη συνεδρία' : 'Πάμε'}</b><small>${going ? `μπλοκ ${s.step + 1} από ${s.blocks.length}` : `30′ χωρίς αποφάσεις · Κεφ. ${pad2(ch)} · ${esc(c ? c.title : '')}`}</small></span></button>
+      <span><b>${going ? 'Συνέχισε τη συνεδρία' : 'Πάμε'}</b><small>${going ? `μπλοκ ${s.step + 1} από ${s.blocks.length}` : `~${Math.round(((c ? c.seconds : 600) - (chState(ch).pos || 0)) / 60) + 20}′ χωρίς αποφάσεις · Κεφ. ${pad2(ch)} · ${esc(c ? c.title : '')}`}</small></span></button>
     <button class="sess-mini" data-nav="#/session/mini">Κουρασμένος; <b>Μόνο 2 λεπτά</b> — η μέρα μετράει</button>
     <div class="sess-meta"><div class="wds">${weekDots()}</div>
       <div class="rd"><span>Ετοιμότητα <b>${r.n < 10 && !r.cov ? '—' : r.score + '%'}</b>${r.n < 10 && !r.cov ? ' <small>φαίνεται μετά τις πρώτες 10 ερωτήσεις</small>' : ' <small>στόχος 75%</small>'}</span><div class="rd-bar"><i style="width:${r.score}%"></i><em style="left:75%"></em></div></div></div>
@@ -77,7 +77,7 @@ function questionsSeq(host, qs, opts, done){
 
 /* ── the session ───────────────────────────────────────────────────── */
 const SBLOCKS = {
-  warm:{t:'Ζέσταμα', m:2}, listen:{t:'Άκου', m:7}, recall:{t:'Θυμήσου', m:3}, click:{t:'Ένα «κλικ»', m:5},
+  warm:{t:'Ζέσταμα', m:2}, listen:{t:'Άκου το επεισόδιο', m:0}, recall:{t:'Θυμήσου', m:3}, click:{t:'Ένα «κλικ»', m:5},
   coach:{t:'Situational', m:7}, mist:{t:'Τα λάθη σου', m:3}, close:{t:'Κλείσιμο', m:2},
 };
 async function viewSession(mini){
@@ -100,7 +100,7 @@ async function viewSession(mini){
       <div class="sess-top"><button class="back" data-nav="#/">${IC.left} Αρχική</button>
         <div class="sess-seg">${s.blocks.map((b, i) => `<i class="${i < s.step ? 'd' : i === s.step ? 'c' : ''}" title="${SBLOCKS[b].t}"></i>`).join('')}</div></div>
       <p class="eyebrow">${mini ? 'Μόνο 2 λεπτά' : 'Συνεδρία'} · Κεφ. ${pad2(ch)} · ${esc(c ? c.title : '')}</p>
-      <h1 class="sess-h">${B.t} <small>~${mini && k === 'coach' ? 1 : B.m}′</small></h1>
+      <h1 class="sess-h">${B.t} <small>~${k === 'listen' ? Math.max(1, Math.round(((c ? c.seconds : 600) - (chState(ch).pos || 0)) / 60)) : mini && k === 'coach' ? 1 : B.m}′</small></h1>
       <div id="sb"></div>
       ${k !== 'close' ? `<div class="sess-foot"><button class="btn btn-ghost" id="s-skip">Παράλειψη</button><button class="btn btn-ghost" id="s-stop">Σταματάω εδώ · μετράει</button></div>` : ''}
     </div>`;
@@ -135,22 +135,22 @@ async function viewSession(mini){
       else doCards();
     },
     listen(h){
-      const goal = 7 * 60; let got = s.lis || 0, last = null;
-      h.innerHTML = `<p class="sess-say">Άκου χαλαρά. Μπορείς να κλείσεις τα μάτια — εγώ μετράω. Σε 7 λεπτά σταματάω και περνάμε στο επόμενο.</p>
+      const c = chOf(ch), total = c.seconds || 600;
+      const left = () => P.ch === ch && P.ready ? Math.max(0, P.dur - P.a.currentTime) : Math.max(0, total - (chState(ch).pos || 0));
+      const fmt = x => Math.floor(x / 60) + ':' + String(Math.floor(x % 60)).padStart(2, '0');
+      h.innerHTML = `<p class="sess-say">Άκου ολόκληρο το επεισόδιο, χαλαρά — μπορείς να κλείσεις τα μάτια. Όταν τελειώσει, περνάμε μόνοι μας στο επόμενο. Αν κουραστείς, πάτα «Σταματάω εδώ»: συνεχίζει από το ίδιο σημείο την επόμενη φορά.</p>
         <div class="lis"><button class="lis-btn" data-play="${ch}">${IC.play}${IC.pause}</button>
-          <div class="lis-ring"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" class="r0"/><circle cx="60" cy="60" r="52" class="r1" id="lr"/></svg><b id="lt"></b></div></div>
-        <p class="hint" style="text-align:center">Κεφάλαιο ${pad2(ch)} · έχεις ακούσει το ${Math.round(chState(ch).heard * 100)}%</p>`;
-      const upd = () => { const left = Math.max(0, goal - got), C = 2 * Math.PI * 52;
-        $('#lr') && ($('#lr').style.strokeDasharray = `${C * Math.min(1, got / goal)} ${C}`);
-        $('#lt') && ($('#lt').textContent = Math.floor(left / 60) + ':' + String(Math.floor(left % 60)).padStart(2, '0')); };
-      const tick = () => {
-        if (!$('#lt')) return P.a.removeEventListener('timeupdate', tick);
-        const t = P.a.currentTime;
-        if (P.ch === ch && !P.a.paused && last !== null && t > last && t - last < 3){ got += t - last; s.lis = got; if (Math.floor(got) % 5 === 0) save(); }
-        last = t; upd();
-        if (got >= goal){ P.a.removeEventListener('timeupdate', tick); P.a.pause(); markDay(0, goal); s.lis = 0; advance(); }
-      };
-      P.a.addEventListener('timeupdate', tick); upd();
+          <div class="lis-ring"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" class="r0"/><circle cx="60" cy="60" r="52" class="r1" id="lr"/></svg><b id="lt"></b><small class="lis-s">απομένουν</small></div></div>
+        <p class="hint" style="text-align:center">Κεφάλαιο ${pad2(ch)} · επεισόδιο ${Math.round(total / 60)}′</p>`;
+      const C = 2 * Math.PI * 52;
+      const upd = () => { const l = left();
+        $('#lr') && ($('#lr').style.strokeDasharray = `${C * Math.min(1, 1 - l / total)} ${C}`);
+        $('#lt') && ($('#lt').textContent = fmt(l)); };
+      let t0 = null;
+      const tick = () => { if (!$('#lt')) return off(); if (P.ch === ch && !P.a.paused){ if (t0 === null) t0 = Date.now(); } upd(); };
+      const end = () => { if (!$('#lt') || P.ch !== ch) return off(); off(); markDay(0, t0 ? Math.round((Date.now() - t0) / 1000) : 0); setTimeout(() => { if (!P.a.paused) P.a.pause(); }, 50); advance(); };
+      const off = () => { P.a.removeEventListener('timeupdate', tick); P.a.removeEventListener('ended', end); };
+      P.a.addEventListener('timeupdate', tick); P.a.addEventListener('ended', end); upd();
     },
     recall(h){
       const pool = chQs(ch), fresh = pool.filter(q => !answered.has(q.id)), qs = shuffleArr(fresh.length >= 3 ? fresh : pool).slice(0, 3);
