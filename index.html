@@ -1492,6 +1492,15 @@ function setupAnnotations(id, g, w){
   let rT = null; const ro = new ResizeObserver(() => { clearTimeout(rT); rT = setTimeout(renderInk, 120); }); ro.observe(w);
 
   let live = null;
+  /* pen vs scroll: one finger draws, two fingers scroll; once a stylus is used,
+     fingers only scroll (palm rejection) and the stylus draws */
+  const touches = new Map(); let multi = false, stylus = false, lastMid = null;
+  const scroller = () => DESK.matches ? $('#vbody') : null;
+  const scrollByY = dy => { const sc = scroller(); if (sc) sc.scrollTop += dy; else scrollBy(0, dy); };
+  const midY = () => { let y = 0; touches.forEach(t => y += t.y); return y / touches.size; };
+  const cancelLive = () => { if (live && live.path) live.path.remove(); live = null; };
+  svg.addEventListener('touchmove', e => { if (tool !== 'select') e.preventDefault(); }, {passive:false});
+  svg.addEventListener('touchstart', e => { if (tool !== 'select') e.preventDefault(); }, {passive:false});
   const local = e => { const W = w.getBoundingClientRect(); return [e.clientX - W.left, e.clientY - W.top]; };
   function eraseAt(x, y){
     const hit = cache.find(c => c.pts.some(([px, py]) => Math.hypot(px - x, py - y) < Math.max(12, c.st.w)));
@@ -1501,22 +1510,36 @@ function setupAnnotations(id, g, w){
   svg.addEventListener('pointerdown', e => {
     if (tool === 'select') return;
     e.preventDefault();
+    if (e.pointerType === 'pen') stylus = true;
+    if (e.pointerType === 'touch'){
+      touches.set(e.pointerId, {y:e.clientY});
+      if (touches.size > 1 || stylus){ multi = true; cancelLive(); lastMid = midY(); return; }
+    }
     if (tool === 'eraser'){ live = {erase:true}; eraseAt(...local(e)); return; }
-    svg.setPointerCapture(e.pointerId);
+    try { svg.setPointerCapture(e.pointerId); } catch(x){}
     const path = document.createElementNS(NS, 'path');
     const st = tool === 'marker' ? {c:color === 'ink' ? 'yellow' : color, w:16, o:0.35} : {c:color, w:2.6, o:1};
     paint(path, st); svg.appendChild(path);
-    live = {path, st, pts:[local(e)], x0:e.clientX, y0:e.clientY};
+    live = {path, st, pts:[local(e)], x0:e.clientX, y0:e.clientY, pid:e.pointerId};
     path.setAttribute('d', pathD(live.pts));
   });
   svg.addEventListener('pointermove', e => {
+    if (e.pointerType === 'touch' && touches.has(e.pointerId)){
+      touches.get(e.pointerId).y = e.clientY;
+      if (multi){ const m = midY(); if (lastMid !== null) scrollByY(lastMid - m); lastMid = m; return; }
+    }
     if (!live) return;
     if (live.erase){ if (e.buttons) eraseAt(...local(e)); return; }
+    if (e.pointerId !== live.pid) return;
     const p = local(e), q = live.pts[live.pts.length - 1];
     if (Math.hypot(p[0] - q[0], p[1] - q[1]) < 1.5) return;
     live.pts.push(p); live.path.setAttribute('d', pathD(live.pts));
   });
-  const endStroke = () => {
+  const endStroke = e => {
+    if (e && e.pointerType === 'touch'){
+      touches.delete(e.pointerId);
+      if (multi){ if (!touches.size){ multi = false; lastMid = null; } else lastMid = midY(); return; }
+    }
     if (!live) return;
     const L = live; live = null;
     if (L.erase) return;
@@ -1535,9 +1558,12 @@ function setupAnnotations(id, g, w){
     $$('[data-tool]', bar).forEach(b => b.setAttribute('aria-pressed', b.dataset.tool === t));
     viewer.classList.toggle('drawing', t !== 'select'); viewer.classList.toggle('erasing', t === 'eraser');
     $('#anno-hint').textContent = {select:'Επίλεξε κείμενο για να το υπογραμμίσεις ή να γράψεις σημείωση. Πάτα μια υπογράμμιση για αλλαγή ή διαγραφή.',
-      pen:'Γράψε ή σχεδίασε με το δάχτυλο ή τη γραφίδα. Για κύλιση, πάτα «Τέλος».', marker:'Πέρασε μαρκαδόρο πάνω από το κείμενο.',
+      pen:'Ένα δάχτυλο γράφει, δύο δάχτυλα κάνουν κύλιση. Με γραφίδα (π.χ. Apple Pencil) γράφει η γραφίδα και το δάχτυλο κάνει κύλιση.', marker:'Πέρασε μαρκαδόρο πάνω από το κείμενο. Δύο δάχτυλα για κύλιση.',
       eraser:'Πέρασε τη γόμα πάνω από μια γραμμή για να τη σβήσεις.'}[t];
   }
+  let hinted = false;
+  const _setTool = setTool;
+  setTool = t => { _setTool(t); if ((t === 'pen' || t === 'marker') && !hinted && matchMedia('(pointer:coarse)').matches){ hinted = true; toast('Ένα δάχτυλο γράφει · δύο δάχτυλα για κύλιση'); } };
   function setColor(c){ color = c; $$('[data-color]', bar).forEach(b => b.setAttribute('aria-pressed', b.dataset.color === c)); }
   $$('[data-tool]', bar).forEach(b => b.onclick = () => setTool(b.dataset.tool));
   $$('[data-color]', bar).forEach(b => b.onclick = () => { setColor(b.dataset.color); if (tool === 'select' || tool === 'eraser') setTool('pen'); });
