@@ -8,14 +8,14 @@ const SESS = 'pmp8.sess.cur', DAYS = 'pmp8.days.v1', HOOK = 'pmp8.hook', JOURNAL
 const today = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
 function markDay(blocks = 1, secs = 0){ const d = store.get(DAYS, {}), k = today(); d[k] = {b:((d[k] || {}).b || 0) + blocks, s:((d[k] || {}).s || 0) + secs}; store.set(DAYS, d); }
 
-const allHeard = () => CH.length && CH.every(c => chState(c.id).heard >= .9);
+const allHeard = () => CH.length && CH.every(c => stateOf(c) === 'done');
 function sessCh(){
+  /* the first chapter not yet done: episode heard and chapter quiz passed */
   const cur = store.get('pmp8.tutor.cur', null);
-  if (cur && chOf(cur) && chState(cur).heard < .9) return cur;
-  const c = CH.find(c => chState(c.id).heard < .9);
+  if (cur && chOf(cur) && stateOf(chOf(cur)) !== 'done') return cur;
+  const c = CH.find(c => stateOf(c) !== 'done');
   return c ? c.id : CH[CH.length - 1].id;
 }
-
 /* ── readiness: coverage of the syllabus + recent accuracy (indicative) ── */
 function readiness(){
   const cov = CH.filter(c => chState(c.id).heard >= .9 || chState(c.id).best !== null).length / (CH.length || 21);
@@ -86,7 +86,7 @@ function questionsSeq(host, qs, opts, done){
 
 /* ── the session ───────────────────────────────────────────────────── */
 const SBLOCKS = {
-  warm:{t:'Ζέσταμα', m:2}, listen:{t:'Άκου το επεισόδιο', m:0}, recall:{t:'Θυμήσου', m:3}, click:{t:'Ένα «κλικ»', m:5},
+  warm:{t:'Ζέσταμα', m:2}, listen:{t:'Άκου το επεισόδιο', m:0}, recall:{t:'Quiz κεφαλαίου', m:5}, click:{t:'Ένα «κλικ»', m:5},
   coach:{t:'Situational', m:7}, test:{t:'Τεστ ετοιμότητας', m:15}, mist:{t:'Τα λάθη σου', m:3}, close:{t:'Κλείσιμο', m:2},
 };
 async function viewSession(mini){
@@ -144,6 +144,7 @@ async function viewSession(mini){
       else doCards();
     },
     listen(h){
+      if (chState(ch).heard >= .9) return advance();   /* already heard: straight to the quiz */
       const c = chOf(ch), total = c.seconds || 600;
       const left = () => P.ch === ch && P.ready ? Math.max(0, P.dur - P.a.currentTime) : Math.max(0, total - (chState(ch).pos || 0));
       const fmt = x => Math.floor(x / 60) + ':' + String(Math.floor(x % 60)).padStart(2, '0');
@@ -162,10 +163,19 @@ async function viewSession(mini){
       P.a.addEventListener('timeupdate', tick); P.a.addEventListener('ended', end); upd();
     },
     recall(h){
-      const pool = chQs(ch), fresh = pool.filter(q => !answered.has(q.id)), qs = shuffleArr(fresh.length >= 3 ? fresh : pool).slice(0, 3);
+      /* the chapter's own quiz (book questions; extra for chapter 1): the score updates the chapter */
+      const c = chOf(ch), set = mainSet(c), qs = (BANK || []).filter(q => q.ch === ch && q.set === set);
       if (!qs.length) return advance();
-      h.innerHTML = '<p class="sess-say">Τρεις γρήγορες από όσα μόλις άκουσες. Χωρίς βαθμό — η προσπάθεια να θυμηθείς είναι που μένει στη μνήμη.</p><div id="rq"></div>';
-      questionsSeq($('#rq'), qs, {label:'Θυμήσου'}, advance);
+      const t0 = store.get('pmp8.answers.v1', []).length;
+      h.innerHTML = `<p class="sess-say">Το quiz του κεφαλαίου: ${qs.length} ερωτήσεις πάνω σε ό,τι μόλις άκουσες. Με 70% και πάνω, το κεφάλαιο γίνεται ✓ στη διαδρομή σου.</p><div id="rq"></div>`;
+      questionsSeq($('#rq'), shuffleArr(qs), {label:'Quiz κεφαλαίου'}, () => {
+        const got = store.get('pmp8.answers.v1', []).slice(t0), pct = got.length ? Math.round(100 * got.reduce((a, x) => a + x.ok, 0) / got.length) : 0;
+        const key = scoreKey(c, set), prev = chState(ch)[key];
+        if (prev === null || prev === undefined || pct > prev) setCh(ch, {[key]:pct});
+        h.innerHTML = `<div class="sess-end"><p class="sess-big">${pct}%</p><p class="hint">${pct >= PASS ? 'Πέρασες το κεφάλαιο ✓' : 'Κάτω από 70%: τα λάθη έγιναν κάρτες επανάληψης. Την επόμενη φορά το ξαναδοκιμάζεις — μετράει το καλύτερο σκορ.'}</p></div>
+          <div class="qfoot"><button class="btn btn-gold" id="rn">Συνέχεια →</button></div>`;
+        $('#rn').onclick = advance;
+      });
     },
     click(h){
       const L = labsFor(ch), lab = L.find(l => !/maps|drills/.test(l.h)) || L[0];
