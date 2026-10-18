@@ -467,7 +467,7 @@ function todayCard(){
     cur ? {play:cur, t:`Μόνο άκου · κεφάλαιο ${pad2(cur)}`, s:'για τις κουρασμένες μέρες · στον δρόμο ή ξαπλωμένος'} : null,
     {nav:'#/drills', t:'Ασκήσεις τύπων', s:'≈ 10 λεπτά · EVM, PERT, float'}
   ].filter(Boolean).slice(0, 4);
-  return `<div class="today">
+  return `${typeof sessCard === 'function' ? sessCard() : ''}<div class="today">
     <div class="td-head"><span class="rc-k">Σήμερα</span><span class="td-prog">${done}/${steps.length} βήματα${eta ? ` · με τον ρυθμό σου, έτοιμος περίπου ${eta.toLocaleDateString('el-GR', {day:'numeric', month:'long'})}` : ''}</span></div>
     <div class="td-bar"><i style="width:${done / steps.length * 100}%"></i></div>
     ${next ? `<button class="td-main" data-nav="${next.nav}"><span class="td-l">${next.long ? 'Όταν έχεις χρόνο (2–3 ώρες)' : 'Επόμενο βήμα'}</span><b>${esc(next.title)}</b><span>${esc(next.sub)}</span></button>` : '<div class="td-main"><b>Ολοκλήρωσες το πρόγραμμα 🎉</b><span>Κράτα επαφή με λάθη και κάρτες μέχρι την εξέταση.</span></div>'}

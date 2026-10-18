@@ -10,6 +10,7 @@ document.addEventListener('click', e => {
   if (t && !/^#\/lab\//.test(location.hash)) LAB_FROM = location.hash;
 }, true);
 function labBack(){
+  if (LAB_FROM === '#/session') return {nav:'#/session', label:'Συνέχεια συνεδρίας'};
   const m = LAB_FROM && LAB_FROM.match(/^#\/ch\/(\d+)/);
   return m ? {nav:'#/ch/' + m[1], label:'Κεφάλαιο ' + pad2(+m[1])} : {nav:'#/practice', label:'Εξάσκηση'};
 }
